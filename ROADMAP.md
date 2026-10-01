@@ -85,6 +85,7 @@ Only receive and process what is on screen, and measure it on the slowest device
 Done when the Fire HD stays under the budgets above against a real home, and the demo fixture behaves the same.
 
 ### 3. Layouts bound to meaning
+First the grid: square cells as the unit, sections 4 cells wide, packed into columns ([LAYOUTS.md](LAYOUTS.md)).
 A layout is a list of sections that select entities by area, domain, device class, label or role, resolved against
 the registries at runtime. Today's room model becomes the default generator; you can reorder, hide and pin. Layouts
 are stored in Home Assistant's per-user data (`frontend/set_user_data`), so they survive a cleared browser and need

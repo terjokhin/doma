@@ -82,6 +82,8 @@ over Wi-Fi (no USB needed). If it can't connect, check your computer's firewall.
 
 ## Architecture
 
+How the screen is divided into cells and sections, and how elements are sized: [LAYOUTS.md](LAYOUTS.md).
+
 ```
 src/
   ha/         connection (OAuth + WebSocket, or a fixture), subscriptions and the store
