@@ -1,0 +1,74 @@
+{
+  "app": {
+    "connecting": "Connecting to Home Assistant…",
+    "offline": "Offline, reconnecting…",
+    "otherFloor": "Everywhere"
+  },
+  "setup": {
+    "title": "Connect to Home Assistant",
+    "lead": "Enter your Home Assistant address. You'll log in on its own sign-in page; this app never sees your password.",
+    "url": "Home Assistant URL",
+    "connect": "Connect",
+    "demo": "Try the demo home",
+    "error": "Couldn't connect: {{message}}",
+    "badUrl": "That doesn't look like an address. Try something like 192.168.1.10:8123.",
+    "unreachable": "Can't reach {{url}}. Check the address and port, and that this device is on the same network.",
+    "checking": "Checking…",
+    "errors": {
+      "cannotConnect": "Home Assistant didn't accept the connection. Is it running?",
+      "invalidAuth": "The login expired or was rejected. Log in again.",
+      "httpsToHttp": "This page is on HTTPS but Home Assistant is on HTTP; the browser blocks that. Open this app over HTTP, or give Home Assistant HTTPS.",
+      "authCallback": "The login didn't complete. Try again."
+    }
+  },
+  "home": {
+    "greeting_morning": "Good morning",
+    "greeting_afternoon": "Good afternoon",
+    "greeting_evening": "Good evening",
+    "greeting_night": "Good night",
+    "lightsOn_zero": "All lights off",
+    "lightsOn_one": "{{count}} light on",
+    "lightsOn_other": "{{count}} lights on"
+  },
+  "room": {
+    "back": "Home",
+    "lights": "Lights",
+    "climate": "Climate",
+    "switches": "Switches",
+    "media": "Media",
+    "sensors": "Sensors",
+    "allOff": "All off",
+    "allOn": "All on",
+    "empty": "Nothing to control here yet."
+  },
+  "state": {
+    "on": "On",
+    "off": "Off",
+    "unavailable": "Unavailable",
+    "unknown": "Unknown",
+    "target": "Target {{value}}",
+    "open": "Open",
+    "closed": "Closed",
+    "detected": "Detected",
+    "clear": "Clear",
+    "playing": "Playing",
+    "paused": "Paused",
+    "idle": "Idle",
+    "standby": "Standby"
+  },
+  "hvac": {
+    "off": "Off",
+    "heat": "Heating",
+    "cool": "Cooling",
+    "heat_cool": "Auto",
+    "auto": "Auto",
+    "dry": "Dry",
+    "fan_only": "Fan"
+  },
+  "settings": {
+    "language": "Language",
+    "logout": "Log out",
+    "title": "Settings",
+    "exitDemo": "Exit demo"
+  }
+}

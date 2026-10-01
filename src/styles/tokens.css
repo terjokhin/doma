@@ -1,0 +1,54 @@
+/*
+ * Design tokens. Dark first: wall panels live in dim rooms, and dark UIs glare less.
+ * No backdrop-filter or large blurs: tablets and small kiosk PCs drop frames on them.
+ */
+:root {
+  color-scheme: dark;
+
+  --bg: #0e1013;
+  --bg-glow: radial-gradient(1200px 700px at 15% -10%, #1d2430 0%, transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, #1a1f1a 0%, transparent 55%);
+  --surface: #171a1f;
+  --surface-2: #1f232a;
+  --surface-3: #292e37;
+  --line: rgb(255 255 255 / 0.06);
+
+  --text: #eef1f5;
+  --text-dim: #9aa3ae;
+  --text-faint: #5f6873;
+
+  --warm: #ffc56b; /* light on */
+  --warm-soft: rgb(255 197 107 / 0.14);
+  --cool: #6cc4ff; /* climate, cooling */
+  --cool-soft: rgb(108 196 255 / 0.14);
+  --heat: #ff8a5c;
+  --good: #6fdc9b;
+  --alert: #ff6b6b;
+
+  --radius-s: 14px;
+  --radius-m: 22px;
+  --radius-l: 30px;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --font: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --text-xs: 0.8125rem;
+  --text-s: 0.9375rem;
+  --text-m: 1.0625rem;
+  --text-l: 1.375rem;
+  --text-xl: 2rem;
+  --text-hero: clamp(3.5rem, 7vw, 6.5rem);
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --fast: 160ms;
+  --slow: 420ms;
+
+  --tile-min: 15rem;
+  --touch: 3.25rem; /* smallest tap target */
+}

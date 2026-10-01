@@ -1,0 +1,1467 @@
+{
+ "config": {
+  "version": "demo",
+  "language": "en",
+  "unit_system": {
+   "temperature": "°C"
+  },
+  "time_zone": "Europe/Amsterdam"
+ },
+ "states": [
+  {
+   "entity_id": "light.living_room_ceiling_light",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Ceiling light",
+    "supported_color_modes": [
+     "brightness"
+    ],
+    "brightness": 180
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.living_room_floor_lamp",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Floor lamp",
+    "supported_color_modes": [
+     "brightness"
+    ],
+    "brightness": 90
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.living_room_wall_sconce",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Wall sconce",
+    "supported_color_modes": [
+     "brightness"
+    ]
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.living_room_air_sensor_temperature",
+   "state": "21.4",
+   "attributes": {
+    "friendly_name": "Air sensor Temperature",
+    "device_class": "temperature",
+    "unit_of_measurement": "°C",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.living_room_air_sensor_humidity",
+   "state": "44",
+   "attributes": {
+    "friendly_name": "Air sensor Humidity",
+    "device_class": "humidity",
+    "unit_of_measurement": "%",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.living_room_air_sensor_battery",
+   "state": "87",
+   "attributes": {
+    "friendly_name": "Air sensor Battery",
+    "device_class": "battery",
+    "unit_of_measurement": "%"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.kitchen_spot_lights",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Spot lights",
+    "supported_color_modes": [
+     "brightness"
+    ]
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.kitchen_counter_light",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Counter light",
+    "supported_color_modes": [
+     "brightness"
+    ],
+    "brightness": 255
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.kitchen_air_sensor_temperature",
+   "state": "22.1",
+   "attributes": {
+    "friendly_name": "Air sensor Temperature",
+    "device_class": "temperature",
+    "unit_of_measurement": "°C",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.kitchen_air_sensor_humidity",
+   "state": "51",
+   "attributes": {
+    "friendly_name": "Air sensor Humidity",
+    "device_class": "humidity",
+    "unit_of_measurement": "%",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.kitchen_air_sensor_battery",
+   "state": "87",
+   "attributes": {
+    "friendly_name": "Air sensor Battery",
+    "device_class": "battery",
+    "unit_of_measurement": "%"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.hallway_ceiling_light",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Ceiling light",
+    "supported_color_modes": [
+     "brightness"
+    ]
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.hallway_air_sensor_temperature",
+   "state": "19.8",
+   "attributes": {
+    "friendly_name": "Air sensor Temperature",
+    "device_class": "temperature",
+    "unit_of_measurement": "°C",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.hallway_air_sensor_humidity",
+   "state": "47",
+   "attributes": {
+    "friendly_name": "Air sensor Humidity",
+    "device_class": "humidity",
+    "unit_of_measurement": "%",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.hallway_air_sensor_battery",
+   "state": "87",
+   "attributes": {
+    "friendly_name": "Air sensor Battery",
+    "device_class": "battery",
+    "unit_of_measurement": "%"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.garden_path_lights",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Path lights",
+    "supported_color_modes": [
+     "brightness"
+    ]
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.garden_air_sensor_temperature",
+   "state": "14.2",
+   "attributes": {
+    "friendly_name": "Air sensor Temperature",
+    "device_class": "temperature",
+    "unit_of_measurement": "°C",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.garden_air_sensor_humidity",
+   "state": "72",
+   "attributes": {
+    "friendly_name": "Air sensor Humidity",
+    "device_class": "humidity",
+    "unit_of_measurement": "%",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.garden_air_sensor_battery",
+   "state": "87",
+   "attributes": {
+    "friendly_name": "Air sensor Battery",
+    "device_class": "battery",
+    "unit_of_measurement": "%"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.bedroom_ceiling_light",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Ceiling light",
+    "supported_color_modes": [
+     "brightness"
+    ]
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.bedroom_bedside_light",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Bedside light",
+    "supported_color_modes": [
+     "brightness"
+    ],
+    "brightness": 40
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.bedroom_air_sensor_temperature",
+   "state": "20.2",
+   "attributes": {
+    "friendly_name": "Air sensor Temperature",
+    "device_class": "temperature",
+    "unit_of_measurement": "°C",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.bedroom_air_sensor_humidity",
+   "state": "48",
+   "attributes": {
+    "friendly_name": "Air sensor Humidity",
+    "device_class": "humidity",
+    "unit_of_measurement": "%",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.bedroom_air_sensor_battery",
+   "state": "87",
+   "attributes": {
+    "friendly_name": "Air sensor Battery",
+    "device_class": "battery",
+    "unit_of_measurement": "%"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.kids_room_ceiling_light",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Ceiling light",
+    "supported_color_modes": [
+     "brightness"
+    ]
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.kids_room_night_light",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Night light",
+    "supported_color_modes": [
+     "brightness"
+    ]
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.kids_room_air_sensor_temperature",
+   "state": "21",
+   "attributes": {
+    "friendly_name": "Air sensor Temperature",
+    "device_class": "temperature",
+    "unit_of_measurement": "°C",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.kids_room_air_sensor_humidity",
+   "state": "46",
+   "attributes": {
+    "friendly_name": "Air sensor Humidity",
+    "device_class": "humidity",
+    "unit_of_measurement": "%",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.kids_room_air_sensor_battery",
+   "state": "87",
+   "attributes": {
+    "friendly_name": "Air sensor Battery",
+    "device_class": "battery",
+    "unit_of_measurement": "%"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "light.office_desk_light",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Desk light",
+    "supported_color_modes": [
+     "brightness"
+    ],
+    "brightness": 220
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.office_air_sensor_temperature",
+   "state": "22.6",
+   "attributes": {
+    "friendly_name": "Air sensor Temperature",
+    "device_class": "temperature",
+    "unit_of_measurement": "°C",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.office_air_sensor_humidity",
+   "state": "40",
+   "attributes": {
+    "friendly_name": "Air sensor Humidity",
+    "device_class": "humidity",
+    "unit_of_measurement": "%",
+    "state_class": "measurement"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.office_air_sensor_battery",
+   "state": "87",
+   "attributes": {
+    "friendly_name": "Air sensor Battery",
+    "device_class": "battery",
+    "unit_of_measurement": "%"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "climate.living_room_ac",
+   "state": "heat",
+   "attributes": {
+    "friendly_name": "Air conditioner",
+    "hvac_modes": [
+     "off",
+     "heat",
+     "cool",
+     "auto",
+     "dry",
+     "fan_only"
+    ],
+    "current_temperature": 21.4,
+    "temperature": 22,
+    "min_temp": 16,
+    "max_temp": 30,
+    "target_temp_step": 0.5
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "climate.bedroom_ac",
+   "state": "cool",
+   "attributes": {
+    "friendly_name": "Air conditioner",
+    "hvac_modes": [
+     "off",
+     "heat",
+     "cool",
+     "auto",
+     "dry",
+     "fan_only"
+    ],
+    "current_temperature": 20.2,
+    "temperature": 19.5,
+    "min_temp": 16,
+    "max_temp": 30,
+    "target_temp_step": 0.5
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "climate.office_ac",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Air conditioner",
+    "hvac_modes": [
+     "off",
+     "heat",
+     "cool",
+     "auto",
+     "dry",
+     "fan_only"
+    ],
+    "current_temperature": 22.6,
+    "temperature": 21,
+    "min_temp": 16,
+    "max_temp": 30,
+    "target_temp_step": 0.5
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "binary_sensor.hallway_door_sensor",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Front door",
+    "device_class": "door"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "binary_sensor.kitchen_leak_sensor",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Leak sensor",
+    "device_class": "moisture"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "binary_sensor.hallway_motion",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Motion",
+    "device_class": "motion"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "sensor.office_co2",
+   "state": "740",
+   "attributes": {
+    "friendly_name": "CO₂",
+    "device_class": "carbon_dioxide",
+    "unit_of_measurement": "ppm"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "switch.kitchen_coffee_machine",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Coffee machine"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "fan.bedroom_fan",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Fan"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "media_player.living_room_speaker",
+   "state": "playing",
+   "attributes": {
+    "friendly_name": "Speaker",
+    "media_title": "Kind of Blue"
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "weather.home",
+   "state": "partlycloudy",
+   "attributes": {
+    "friendly_name": "Home",
+    "temperature": 14.2,
+    "humidity": 72
+   },
+   "last_changed": "2026-09-30T16:00:27.642Z",
+   "last_updated": "2026-09-30T16:00:27.642Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  }
+ ],
+ "floors": [
+  {
+   "floor_id": "ground",
+   "name": "Ground floor",
+   "level": 0,
+   "icon": null,
+   "aliases": []
+  },
+  {
+   "floor_id": "upstairs",
+   "name": "Upstairs",
+   "level": 1,
+   "icon": null,
+   "aliases": []
+  }
+ ],
+ "areas": [
+  {
+   "area_id": "living_room",
+   "name": "Living room",
+   "floor_id": "ground",
+   "icon": null,
+   "picture": null,
+   "aliases": [],
+   "labels": [],
+   "temperature_entity_id": null,
+   "humidity_entity_id": null
+  },
+  {
+   "area_id": "kitchen",
+   "name": "Kitchen",
+   "floor_id": "ground",
+   "icon": null,
+   "picture": null,
+   "aliases": [],
+   "labels": [],
+   "temperature_entity_id": null,
+   "humidity_entity_id": null
+  },
+  {
+   "area_id": "hallway",
+   "name": "Hallway",
+   "floor_id": "ground",
+   "icon": null,
+   "picture": null,
+   "aliases": [],
+   "labels": [],
+   "temperature_entity_id": null,
+   "humidity_entity_id": null
+  },
+  {
+   "area_id": "garden",
+   "name": "Garden",
+   "floor_id": null,
+   "icon": null,
+   "picture": null,
+   "aliases": [],
+   "labels": [],
+   "temperature_entity_id": null,
+   "humidity_entity_id": null
+  },
+  {
+   "area_id": "bedroom",
+   "name": "Bedroom",
+   "floor_id": "upstairs",
+   "icon": null,
+   "picture": null,
+   "aliases": [],
+   "labels": [],
+   "temperature_entity_id": null,
+   "humidity_entity_id": null
+  },
+  {
+   "area_id": "kids_room",
+   "name": "Kids' room",
+   "floor_id": "upstairs",
+   "icon": null,
+   "picture": null,
+   "aliases": [],
+   "labels": [],
+   "temperature_entity_id": null,
+   "humidity_entity_id": null
+  },
+  {
+   "area_id": "office",
+   "name": "Office",
+   "floor_id": "upstairs",
+   "icon": null,
+   "picture": null,
+   "aliases": [],
+   "labels": [],
+   "temperature_entity_id": null,
+   "humidity_entity_id": null
+  }
+ ],
+ "devices": [
+  {
+   "id": "living_room_ceiling_light",
+   "name": "Ceiling light",
+   "name_by_user": null,
+   "area_id": "living_room",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "living_room_floor_lamp",
+   "name": "Floor lamp",
+   "name_by_user": null,
+   "area_id": "living_room",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "living_room_wall_sconce",
+   "name": "Wall sconce",
+   "name_by_user": null,
+   "area_id": "living_room",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "living_room_air_sensor",
+   "name": "Air sensor",
+   "name_by_user": null,
+   "area_id": "living_room",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "kitchen_spot_lights",
+   "name": "Spot lights",
+   "name_by_user": null,
+   "area_id": "kitchen",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "kitchen_counter_light",
+   "name": "Counter light",
+   "name_by_user": null,
+   "area_id": "kitchen",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "kitchen_air_sensor",
+   "name": "Air sensor",
+   "name_by_user": null,
+   "area_id": "kitchen",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "hallway_ceiling_light",
+   "name": "Ceiling light",
+   "name_by_user": null,
+   "area_id": "hallway",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "hallway_air_sensor",
+   "name": "Air sensor",
+   "name_by_user": null,
+   "area_id": "hallway",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "garden_path_lights",
+   "name": "Path lights",
+   "name_by_user": null,
+   "area_id": "garden",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "garden_air_sensor",
+   "name": "Air sensor",
+   "name_by_user": null,
+   "area_id": "garden",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "bedroom_ceiling_light",
+   "name": "Ceiling light",
+   "name_by_user": null,
+   "area_id": "bedroom",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "bedroom_bedside_light",
+   "name": "Bedside light",
+   "name_by_user": null,
+   "area_id": "bedroom",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "bedroom_air_sensor",
+   "name": "Air sensor",
+   "name_by_user": null,
+   "area_id": "bedroom",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "kids_room_ceiling_light",
+   "name": "Ceiling light",
+   "name_by_user": null,
+   "area_id": "kids_room",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "kids_room_night_light",
+   "name": "Night light",
+   "name_by_user": null,
+   "area_id": "kids_room",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "kids_room_air_sensor",
+   "name": "Air sensor",
+   "name_by_user": null,
+   "area_id": "kids_room",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "office_desk_light",
+   "name": "Desk light",
+   "name_by_user": null,
+   "area_id": "office",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "office_air_sensor",
+   "name": "Air sensor",
+   "name_by_user": null,
+   "area_id": "office",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "living_room_ac",
+   "name": "Air conditioner",
+   "name_by_user": null,
+   "area_id": "living_room",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "bedroom_ac",
+   "name": "Air conditioner",
+   "name_by_user": null,
+   "area_id": "bedroom",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "office_ac",
+   "name": "Air conditioner",
+   "name_by_user": null,
+   "area_id": "office",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "hallway_door_sensor",
+   "name": "Front door",
+   "name_by_user": null,
+   "area_id": "hallway",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "kitchen_leak_sensor",
+   "name": "Leak sensor",
+   "name_by_user": null,
+   "area_id": "kitchen",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "hallway_motion",
+   "name": "Motion",
+   "name_by_user": null,
+   "area_id": "hallway",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "office_co2",
+   "name": "CO₂ monitor",
+   "name_by_user": null,
+   "area_id": "office",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "kitchen_coffee",
+   "name": "Coffee machine",
+   "name_by_user": null,
+   "area_id": "kitchen",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "bedroom_fan",
+   "name": "Fan",
+   "name_by_user": null,
+   "area_id": "bedroom",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  },
+  {
+   "id": "living_room_speaker",
+   "name": "Speaker",
+   "name_by_user": null,
+   "area_id": "living_room",
+   "manufacturer": "Demo",
+   "model": null,
+   "disabled_by": null
+  }
+ ],
+ "entities": [
+  {
+   "ei": "light.living_room_ceiling_light",
+   "pl": "demo",
+   "di": "living_room_ceiling_light",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "light.living_room_floor_lamp",
+   "pl": "demo",
+   "di": "living_room_floor_lamp",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "light.living_room_wall_sconce",
+   "pl": "demo",
+   "di": "living_room_wall_sconce",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "sensor.living_room_air_sensor_temperature",
+   "pl": "demo",
+   "di": "living_room_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Temperature"
+  },
+  {
+   "ei": "sensor.living_room_air_sensor_humidity",
+   "pl": "demo",
+   "di": "living_room_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Humidity"
+  },
+  {
+   "ei": "sensor.living_room_air_sensor_battery",
+   "pl": "demo",
+   "di": "living_room_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Battery",
+   "ec": 1
+  },
+  {
+   "ei": "light.kitchen_spot_lights",
+   "pl": "demo",
+   "di": "kitchen_spot_lights",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "light.kitchen_counter_light",
+   "pl": "demo",
+   "di": "kitchen_counter_light",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "sensor.kitchen_air_sensor_temperature",
+   "pl": "demo",
+   "di": "kitchen_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Temperature"
+  },
+  {
+   "ei": "sensor.kitchen_air_sensor_humidity",
+   "pl": "demo",
+   "di": "kitchen_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Humidity"
+  },
+  {
+   "ei": "sensor.kitchen_air_sensor_battery",
+   "pl": "demo",
+   "di": "kitchen_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Battery",
+   "ec": 1
+  },
+  {
+   "ei": "light.hallway_ceiling_light",
+   "pl": "demo",
+   "di": "hallway_ceiling_light",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "sensor.hallway_air_sensor_temperature",
+   "pl": "demo",
+   "di": "hallway_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Temperature"
+  },
+  {
+   "ei": "sensor.hallway_air_sensor_humidity",
+   "pl": "demo",
+   "di": "hallway_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Humidity"
+  },
+  {
+   "ei": "sensor.hallway_air_sensor_battery",
+   "pl": "demo",
+   "di": "hallway_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Battery",
+   "ec": 1
+  },
+  {
+   "ei": "light.garden_path_lights",
+   "pl": "demo",
+   "di": "garden_path_lights",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "sensor.garden_air_sensor_temperature",
+   "pl": "demo",
+   "di": "garden_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Temperature"
+  },
+  {
+   "ei": "sensor.garden_air_sensor_humidity",
+   "pl": "demo",
+   "di": "garden_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Humidity"
+  },
+  {
+   "ei": "sensor.garden_air_sensor_battery",
+   "pl": "demo",
+   "di": "garden_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Battery",
+   "ec": 1
+  },
+  {
+   "ei": "light.bedroom_ceiling_light",
+   "pl": "demo",
+   "di": "bedroom_ceiling_light",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "light.bedroom_bedside_light",
+   "pl": "demo",
+   "di": "bedroom_bedside_light",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "sensor.bedroom_air_sensor_temperature",
+   "pl": "demo",
+   "di": "bedroom_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Temperature"
+  },
+  {
+   "ei": "sensor.bedroom_air_sensor_humidity",
+   "pl": "demo",
+   "di": "bedroom_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Humidity"
+  },
+  {
+   "ei": "sensor.bedroom_air_sensor_battery",
+   "pl": "demo",
+   "di": "bedroom_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Battery",
+   "ec": 1
+  },
+  {
+   "ei": "light.kids_room_ceiling_light",
+   "pl": "demo",
+   "di": "kids_room_ceiling_light",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "light.kids_room_night_light",
+   "pl": "demo",
+   "di": "kids_room_night_light",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "sensor.kids_room_air_sensor_temperature",
+   "pl": "demo",
+   "di": "kids_room_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Temperature"
+  },
+  {
+   "ei": "sensor.kids_room_air_sensor_humidity",
+   "pl": "demo",
+   "di": "kids_room_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Humidity"
+  },
+  {
+   "ei": "sensor.kids_room_air_sensor_battery",
+   "pl": "demo",
+   "di": "kids_room_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Battery",
+   "ec": 1
+  },
+  {
+   "ei": "light.office_desk_light",
+   "pl": "demo",
+   "di": "office_desk_light",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "sensor.office_air_sensor_temperature",
+   "pl": "demo",
+   "di": "office_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Temperature"
+  },
+  {
+   "ei": "sensor.office_air_sensor_humidity",
+   "pl": "demo",
+   "di": "office_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Humidity"
+  },
+  {
+   "ei": "sensor.office_air_sensor_battery",
+   "pl": "demo",
+   "di": "office_air_sensor",
+   "lb": [],
+   "hn": true,
+   "en": "Battery",
+   "ec": 1
+  },
+  {
+   "ei": "climate.living_room_ac",
+   "pl": "demo",
+   "di": "living_room_ac",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "climate.bedroom_ac",
+   "pl": "demo",
+   "di": "bedroom_ac",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "climate.office_ac",
+   "pl": "demo",
+   "di": "office_ac",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "binary_sensor.hallway_door_sensor",
+   "pl": "demo",
+   "di": "hallway_door_sensor",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "binary_sensor.kitchen_leak_sensor",
+   "pl": "demo",
+   "di": "kitchen_leak_sensor",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "binary_sensor.hallway_motion",
+   "pl": "demo",
+   "di": "hallway_motion",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "sensor.office_co2",
+   "pl": "demo",
+   "di": "office_co2",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "switch.kitchen_coffee_machine",
+   "pl": "demo",
+   "di": "kitchen_coffee",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "fan.bedroom_fan",
+   "pl": "demo",
+   "di": "bedroom_fan",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "media_player.living_room_speaker",
+   "pl": "demo",
+   "di": "living_room_speaker",
+   "lb": [],
+   "hn": true
+  },
+  {
+   "ei": "weather.home",
+   "pl": "demo",
+   "lb": [],
+   "hn": false
+  }
+ ]
+}

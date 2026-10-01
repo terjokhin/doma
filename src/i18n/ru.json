@@ -1,0 +1,76 @@
+{
+  "app": {
+    "connecting": "Подключаемся к Home Assistant…",
+    "offline": "Нет связи, переподключаемся…",
+    "otherFloor": "Весь дом"
+  },
+  "setup": {
+    "title": "Подключение к Home Assistant",
+    "lead": "Введите адрес Home Assistant. Вход выполняется на его собственной странице, приложение не видит ваш пароль.",
+    "url": "Адрес Home Assistant",
+    "connect": "Подключиться",
+    "demo": "Открыть демо-дом",
+    "error": "Не удалось подключиться: {{message}}",
+    "badUrl": "Это не похоже на адрес. Например: 192.168.1.10:8123.",
+    "unreachable": "Не удаётся связаться с {{url}}. Проверьте адрес и порт и что устройство в той же сети.",
+    "checking": "Проверяем…",
+    "errors": {
+      "cannotConnect": "Home Assistant не принял подключение. Он запущен?",
+      "invalidAuth": "Вход устарел или отклонён. Войдите снова.",
+      "httpsToHttp": "Эта страница открыта по HTTPS, а Home Assistant работает по HTTP — браузер это блокирует. Откройте приложение по HTTP или включите HTTPS в Home Assistant.",
+      "authCallback": "Вход не завершился. Попробуйте ещё раз."
+    }
+  },
+  "home": {
+    "greeting_morning": "Доброе утро",
+    "greeting_afternoon": "Добрый день",
+    "greeting_evening": "Добрый вечер",
+    "greeting_night": "Доброй ночи",
+    "lightsOn_zero": "Свет выключен",
+    "lightsOn_one": "Горит {{count}} светильник",
+    "lightsOn_few": "Горят {{count}} светильника",
+    "lightsOn_many": "Горят {{count}} светильников",
+    "lightsOn_other": "Горят {{count}} светильника"
+  },
+  "room": {
+    "back": "Дом",
+    "lights": "Свет",
+    "climate": "Климат",
+    "switches": "Выключатели",
+    "media": "Медиа",
+    "sensors": "Датчики",
+    "allOff": "Выключить всё",
+    "allOn": "Включить всё",
+    "empty": "Здесь пока нечем управлять."
+  },
+  "state": {
+    "on": "Вкл.",
+    "off": "Выкл.",
+    "unavailable": "Недоступно",
+    "unknown": "Неизвестно",
+    "target": "Цель {{value}}",
+    "open": "Открыто",
+    "closed": "Закрыто",
+    "detected": "Обнаружено",
+    "clear": "Нет",
+    "playing": "Играет",
+    "paused": "Пауза",
+    "idle": "Ожидание",
+    "standby": "Ожидание"
+  },
+  "hvac": {
+    "off": "Выкл.",
+    "heat": "Обогрев",
+    "cool": "Охлаждение",
+    "heat_cool": "Авто",
+    "auto": "Авто",
+    "dry": "Осушение",
+    "fan_only": "Вентилятор"
+  },
+  "settings": {
+    "language": "Язык",
+    "logout": "Выйти",
+    "title": "Настройки",
+    "exitDemo": "Выйти из демо"
+  }
+}
