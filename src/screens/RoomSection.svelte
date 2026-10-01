@@ -11,7 +11,6 @@
   import ClimateCompact from "../ui/ClimateCompact.svelte";
   import { formatHumidity, formatTemperature } from "../ui/format";
   import Icon from "../ui/Icon.svelte";
-  import SensorButton from "../ui/SensorButton.svelte";
   import ToggleButton from "../ui/ToggleButton.svelte";
 
   /**
@@ -42,8 +41,6 @@
       <GridItem size={item.size}>
         {#if item.kind === "toggle"}
           <ToggleButton entityId={item.id} area={room.area} />
-        {:else if item.kind === "sensor"}
-          <SensorButton entityId={item.id} area={room.area} />
         {:else if item.kind === "climate"}
           <ClimateCompact entityId={item.id} area={room.area} />
         {:else}

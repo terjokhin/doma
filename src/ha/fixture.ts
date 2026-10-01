@@ -11,7 +11,7 @@ export interface Fixture {
   areas: AreaEntry[];
   devices: DeviceEntry[];
   entities: EntityEntry[];
-  /** A stored house layout, if the snapshot has one. */
+  /** A stored home layout, if the snapshot has one. */
   layout?: unknown;
 }
 

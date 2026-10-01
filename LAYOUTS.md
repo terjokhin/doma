@@ -193,7 +193,7 @@ These rules target Chrome 108 (see the README):
 The layout stores **only the user's changes** on top of the layout generated from HA's floors and areas, never a
 full copy, so new rooms still appear by themselves. It holds two things, **the order of room cards and their
 sizes**, and never pixels or coordinates, so one layout serves every device and orientation; the floor grid does
-the placing. Rooms, areas and floors themselves are HA's and aren't changed here. (`layout/houseLayout.ts`)
+the placing. Rooms, areas and floors themselves are HA's and aren't changed here. (`layout/homeLayout.ts`)
 
 ```json
 {

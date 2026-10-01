@@ -1,6 +1,6 @@
 import { SvelteMap } from "svelte/reactivity";
 import type { HassConfig, HassEntities, HassEntity, HassServiceTarget } from "home-assistant-js-websocket";
-import type { HouseLayout } from "../layout/houseLayout";
+import type { HomeLayout } from "../layout/homeLayout";
 import type { EntityChanges } from "./entities";
 import type { AreaEntry, DeviceEntry, EntityEntry, FloorEntry } from "./types";
 
@@ -17,10 +17,10 @@ export interface Backend {
     entityIds: string[] | "all",
     onChange: (changes: EntityChanges, receivedAt: number) => void,
   ): Promise<() => void>;
-  /** Receive the stored house layout (raw, possibly null), first now and then on every change. */
+  /** Receive the user's stored home layout (raw, possibly null), first now and then on every change. */
   subscribeLayout(onChange: (value: unknown) => void): Promise<() => void>;
-  /** Store the house layout for everyone. Needs an admin login on a live HA. */
-  saveLayout(value: HouseLayout): Promise<void>;
+  /** Store the user's home layout. */
+  saveLayout(value: HomeLayout): Promise<void>;
   /** Close the connection and forget the login. */
   logout(): Promise<void>;
 }

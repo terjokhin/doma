@@ -64,7 +64,7 @@
       async (backend) => {
         setBackend(backend);
         useBackend(backend);
-        // Wait briefly for the house layout, so the home screen doesn't rearrange itself right after showing.
+        // Wait briefly for the home layout, so the home screen doesn't rearrange itself right after showing.
         await Promise.race([useLayoutBackend(backend), new Promise((r) => setTimeout(r, 2000))]);
         boot = { phase: "ready" };
       },
