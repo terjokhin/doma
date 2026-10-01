@@ -40,7 +40,7 @@
         {#if humidity}<span class="room-humidity">{formatHumidity(humidity)}</span>{/if}
       </span>
     </span>
-    <Icon path={mdiChevronRight} size={22} />
+    {#if !editing}<Icon path={mdiChevronRight} size={22} />{/if}
   </button>
   <div class="room-grid" inert={editing}>
     {#each items as item (item.kind === "more" ? "+more" : item.id)}
