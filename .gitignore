@@ -3,3 +3,5 @@ dist/
 .env.local
 # Snapshots of a real home: private, never commit
 fixtures/local*.json
+# Device probe results (probe.html)
+.probe/

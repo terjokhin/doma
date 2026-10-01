@@ -16,8 +16,7 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--bg-glow), var(--bg);
-  background-attachment: fixed;
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font);
   font-feature-settings: "cv11", "ss01", "tnum";
@@ -27,6 +26,20 @@ body {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   overscroll-behavior: none;
+}
+
+/*
+ * The glow lives on its own fixed layer. As a fixed background on <body>, every scroll and every
+ * screen change repainted two full-screen gradients, which old tablets can't do within a frame.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg-glow);
+  pointer-events: none;
+  will-change: transform;
 }
 
 button {
@@ -226,6 +239,8 @@ button {
 }
 
 .room-card {
+  /* Each card is its own layout and paint island: an update inside it never touches the others. */
+  contain: content;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -357,6 +372,7 @@ button {
 }
 
 .tile {
+  contain: content; /* see .room-card */
   display: flex;
   align-items: center;
   gap: var(--space-4);
@@ -374,6 +390,7 @@ button.tile:active {
 }
 
 .tile-icon {
+  /* Also a button: the power switch on climate tiles. */
   display: grid;
   place-items: center;
   flex: none;
@@ -382,7 +399,7 @@ button.tile:active {
   border-radius: 50%;
   background: var(--surface-2);
   color: var(--text-dim);
-  transition: background var(--slow) var(--ease), color var(--slow) var(--ease);
+  transition: background var(--slow) var(--ease), color var(--slow) var(--ease), transform var(--fast) var(--ease);
 }
 
 .tile-body {
@@ -420,6 +437,16 @@ button.tile:active {
 .tile.climate {
   grid-column: span 2;
   min-height: 8rem;
+}
+
+.tile.climate button.tile-icon:active {
+  transform: scale(0.92);
+}
+
+/* On in a mode without its own colour (auto, dry, fan). */
+.tile.climate.active .tile-icon {
+  background: var(--surface-3);
+  color: var(--text);
 }
 
 .tile.climate.heat .tile-icon {

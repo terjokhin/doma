@@ -65,6 +65,10 @@
     "dry": "Dry",
     "fan_only": "Fan"
   },
+  "climate": {
+    "turnOn": "Turn on",
+    "turnOff": "Turn off"
+  },
   "settings": {
     "language": "Language",
     "logout": "Log out",

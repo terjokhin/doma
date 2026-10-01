@@ -67,6 +67,10 @@
     "dry": "Осушение",
     "fan_only": "Вентилятор"
   },
+  "climate": {
+    "turnOn": "Включить",
+    "turnOff": "Выключить"
+  },
   "settings": {
     "language": "Язык",
     "logout": "Выйти",

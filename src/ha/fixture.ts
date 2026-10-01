@@ -1,5 +1,6 @@
 import type { HassConfig, HassEntity } from "home-assistant-js-websocket";
-import { store, type Backend } from "./store";
+import type { EntityChanges } from "./entities";
+import { home, type Backend } from "./store.svelte";
 import type { AreaEntry, DeviceEntry, EntityEntry, FloorEntry } from "./types";
 
 /** A snapshot of a home: the committed `demo` one, or `local` captured from your HA (git-ignored). */
@@ -22,34 +23,59 @@ export async function connectFixture(name: string): Promise<Backend> {
   if (!load) throw new Error(`No fixture "${name}". Available: ${Object.keys(FIXTURES).join(", ")}`);
   const f = await load();
 
-  store.set({
-    status: "ready",
-    config: f.config as HassConfig,
-    entities: Object.fromEntries(f.states.map((s) => [s.entity_id, s])),
-    floors: f.floors,
-    areas: f.areas,
-    devices: Object.fromEntries(f.devices.map((d) => [d.id, d])),
-    registry: Object.fromEntries(f.entities.map((e) => [e.ei, e])),
-  });
+  // The fixture's "server side": all states, and who is subscribed to which of them.
+  const states: Record<string, HassEntity> = Object.fromEntries(f.states.map((s) => [s.entity_id, s]));
+  const listeners = new Set<{ ids: Set<string> | "all"; onChange: (changes: EntityChanges, at: number) => void }>();
+
+  const pick = (ids: Iterable<string>) => {
+    const changed: Record<string, HassEntity> = {};
+    for (const id of ids) if (states[id]) changed[id] = states[id];
+    return changed;
+  };
+
+  home.config = f.config as HassConfig;
+  home.floors = f.floors;
+  home.areas = f.areas;
+  home.devices = Object.fromEntries(f.devices.map((d) => [d.id, d]));
+  home.registry = Object.fromEntries(f.entities.map((e) => [e.ei, e]));
+  home.catalog = { ...states };
+  home.status = "ready";
 
   return {
     async callService(domain, service, data, target) {
-      simulate(domain, service, { ...(data as Record<string, unknown>), ...target });
+      const changed = simulate(states, domain, service, { ...(data as Record<string, unknown>), ...target });
+      Object.assign(states, changed);
+      // Like HA: deliver asynchronously, only to subscriptions that include the entity.
+      setTimeout(() => {
+        for (const l of listeners) {
+          const mine = l.ids === "all" ? changed : pick(Object.keys(changed).filter((id) => (l.ids as Set<string>).has(id)));
+          if (Object.keys(mine).length) l.onChange({ changed: mine, removed: [] }, performance.now());
+        }
+      });
+    },
+    async subscribeEntities(entityIds, onChange) {
+      const listener = { ids: entityIds === "all" ? ("all" as const) : new Set(entityIds), onChange };
+      listeners.add(listener);
+      setTimeout(() => onChange({ changed: entityIds === "all" ? { ...states } : pick(entityIds), removed: [] }, performance.now()));
+      return () => void listeners.delete(listener);
     },
     async logout() {},
   };
 }
 
-/** Just enough service behaviour to click around the UI. */
-function simulate(domain: string, service: string, data: Record<string, unknown>) {
+/** Just enough service behaviour to click around the UI. Returns the new states of the entities it changed. */
+function simulate(states: Record<string, HassEntity>, domain: string, service: string, data: Record<string, unknown>) {
   const ids = ([] as string[]).concat((data.entity_id as string | string[]) ?? []);
-  const entities = { ...store.get().entities };
+  const changed: Record<string, HassEntity> = {};
 
   for (const id of ids) {
-    const e = entities[id];
+    const e = states[id];
     if (!e) continue;
     let next: HassEntity = e;
-    if (["turn_on", "turn_off", "toggle"].includes(service)) {
+    if (domain === "climate" && (service === "turn_on" || service === "turn_off")) {
+      const modes = (e.attributes.hvac_modes as string[] | undefined) ?? [];
+      next = { ...e, state: service === "turn_off" ? "off" : (modes.find((m) => m !== "off") ?? "heat") };
+    } else if (["turn_on", "turn_off", "toggle"].includes(service)) {
       const on = service === "toggle" ? e.state !== "on" : service === "turn_on";
       next = { ...e, state: on ? "on" : "off" };
     } else if (domain === "climate" && service === "set_temperature") {
@@ -57,7 +83,7 @@ function simulate(domain: string, service: string, data: Record<string, unknown>
     } else if (domain === "climate" && service === "set_hvac_mode") {
       next = { ...e, state: String(data.hvac_mode) };
     }
-    entities[id] = { ...next, last_changed: new Date().toISOString() };
+    changed[id] = { ...next, last_changed: new Date().toISOString() };
   }
-  store.set({ entities });
+  return changed;
 }

@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ha-ui device probe</title>
+<!--
+  Device probe for picking build targets and checking performance on a tablet.
+  Dev server only (not part of the production build): open http://<dev-machine>:5173/probe.html.
+  Deliberately plain ES5 with no framework, so it runs on old browsers.
+  Results are shown here and POSTed to the dev server, which saves them to .probe/.
+-->
+<style>
+  body { margin: 0; padding: 16px; background: #0e1013; color: #eef1f5; font: 15px/1.4 system-ui, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  #status { color: #ffc56b; margin-bottom: 12px; }
+  pre { white-space: pre-wrap; word-break: break-word; font-size: 13px; background: #171a1f; padding: 12px; border-radius: 8px; }
+  button { font-size: 16px; padding: 10px 16px; margin: 0 8px 12px 0; }
+  #stage { position: absolute; left: 0; top: 0; width: 1280px; opacity: 0.01; pointer-events: none; }
+  .grid { display: flex; flex-wrap: wrap; }
+  .tile { box-sizing: border-box; width: 150px; height: 72px; margin: 4px; padding: 8px; border-radius: 12px; background: #1f232a; color: #eef1f5; }
+  .tile.on { background: #3a3020; }
+  .tile svg { width: 20px; height: 20px; fill: currentColor; }
+  .tile b { display: block; font-weight: 600; font-size: 14px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .tile span { font-size: 12px; color: #9aa3ae; }
+  #spinner { width: 40px; height: 40px; background: #ffc56b; border-radius: 8px; }
+</style>
+</head>
+<body>
+<h1>ha-ui device probe</h1>
+<div id="status">Running…</div>
+<button id="again">Run again</button><button id="send">Send again</button>
+<pre id="out"></pre>
+<div id="spinner"></div>
+<div id="stage"></div>
+
+<script>
+(function () {
+  var out = document.getElementById("out");
+  var statusEl = document.getElementById("status");
+  var result = {};
+
+  function now() { return performance.now(); }
+  function show(msg) { statusEl.textContent = msg; }
+  function render() { out.textContent = JSON.stringify(result, null, 2); }
+
+  function stats(xs) {
+    var s = xs.slice().sort(function (a, b) { return a - b; });
+    function q(p) { return s[Math.min(s.length - 1, Math.floor(p * s.length))]; }
+    var sum = 0;
+    for (var i = 0; i < s.length; i++) sum += s[i];
+    return { n: s.length, mean: round(sum / s.length), median: round(q(0.5)), p95: round(q(0.95)), max: round(s[s.length - 1]) };
+  }
+  function round(x) { return Math.round(x * 100) / 100; }
+
+  // ---------- Environment ----------
+  function environment() {
+    var ua = navigator.userAgent;
+    var chrome = /Chrome\/(\d+)/.exec(ua);
+    var silk = /Silk\/([\d.]+)/.exec(ua);
+    var webview = /; wv\)/.test(ua);
+    var conn = navigator.connection || {};
+    return {
+      userAgent: ua,
+      chromeVersion: chrome ? +chrome[1] : null,
+      silkVersion: silk ? silk[1] : null,
+      androidWebView: webview,
+      fullyKiosk: typeof window.fully !== "undefined",
+      screen: screen.width + "x" + screen.height,
+      viewport: window.innerWidth + "x" + window.innerHeight,
+      devicePixelRatio: window.devicePixelRatio,
+      cpuCores: navigator.hardwareConcurrency || null,
+      deviceMemoryGB: navigator.deviceMemory || null,
+      jsHeapLimitMB: performance.memory ? Math.round(performance.memory.jsHeapSizeLimit / 1048576) : null,
+      network: conn.effectiveType ? { type: conn.effectiveType, downlinkMbps: conn.downlink, rttMs: conn.rtt } : null,
+      language: navigator.language,
+      timeZone: (window.Intl && Intl.DateTimeFormat().resolvedOptions().timeZone) || null
+    };
+  }
+
+  // ---------- Features that decide the Vite build target ----------
+  function syntax(code) {
+    try { new Function(code); return true; } catch (e) { return false; }
+  }
+  function css(prop, value) {
+    return !!(window.CSS && CSS.supports && CSS.supports(prop, value));
+  }
+  function features() {
+    return {
+      js: {
+        es2015_arrowClassLetConst: syntax("let a = () => 1; class A {}; const b = `x`;"),
+        es2017_asyncAwait: syntax("async function f() { await 1; }"),
+        es2018_objectSpread: syntax("var a = {...{b: 1}};"),
+        es2018_asyncIteration: syntax("async function f() { for await (const x of []) {} }"),
+        es2019_optionalCatch: syntax("try {} catch {}"),
+        es2020_optionalChaining: syntax("var a = null; a?.b;"),
+        es2020_nullish: syntax("var a = null ?? 1;"),
+        es2020_bigint: typeof BigInt === "function",
+        es2021_logicalAssign: syntax("var a; a ??= 1;"),
+        es2022_classFields: syntax("class A { x = 1; static y = 2; }"),
+        es2022_privateFields: syntax("class A { #x = 1; m() { return this.#x; } }"),
+        es2022_privateIn: syntax("class A { #x; static is(o) { return #x in o; } }"),
+        es2022_staticBlock: syntax("class A { static { } }"),
+        es2022_arrayAt: typeof [].at === "function",
+        es2022_objectHasOwn: typeof Object.hasOwn === "function",
+        es2023_findLast: typeof [].findLast === "function",
+        es2023_toSorted: typeof [].toSorted === "function",
+        esModules: "noModule" in document.createElement("script"),
+        dynamicImport: syntax("import('./x.js')"),
+        importMeta: null, // can't be tested from a classic script; implied by Chrome >= 64
+        proxy: typeof Proxy === "function",
+        weakRef: typeof WeakRef === "function",
+        queueMicrotask: typeof queueMicrotask === "function",
+        structuredClone: typeof structuredClone === "function",
+        intlRelativeTime: !!(window.Intl && Intl.RelativeTimeFormat),
+        intlPluralRules: !!(window.Intl && Intl.PluralRules),
+        resizeObserver: typeof ResizeObserver === "function",
+        intersectionObserver: typeof IntersectionObserver === "function",
+        webSocket: typeof WebSocket === "function",
+        localStorage: (function () { try { localStorage.setItem("probe", "1"); localStorage.removeItem("probe"); return true; } catch (e) { return false; } })(),
+        wakeLock: "wakeLock" in navigator
+      },
+      css: {
+        customProperties: css("--a", "1"),
+        flexGap: flexGap(),
+        grid: css("display", "grid"),
+        aspectRatio: css("aspect-ratio", "1"),
+        inset: css("inset", "0"),
+        clamp: css("width", "clamp(1px, 2vw, 3px)"),
+        dvh: css("height", "100dvh"),
+        has: (function () { try { document.querySelector(":has(*)"); return true; } catch (e) { return false; } })(),
+        containerQueries: css("container-type", "inline-size"),
+        colorMix: css("color", "color-mix(in srgb, red 50%, blue)"),
+        oklch: css("color", "oklch(70% 0.1 200)"),
+        nesting: (function () { try { var s = new CSSStyleSheet(); s.replaceSync("a { & b { color: red } }"); return s.cssRules[0].cssRules && s.cssRules[0].cssRules.length === 1; } catch (e) { return false; } })(),
+        backdropFilter: css("backdrop-filter", "blur(2px)") || css("-webkit-backdrop-filter", "blur(2px)"),
+        variableFonts: css("font-variation-settings", "'wght' 500"),
+        touchAction: css("touch-action", "manipulation"),
+        overscrollBehavior: css("overscroll-behavior", "contain")
+      }
+    };
+  }
+  function flexGap() {
+    var d = document.createElement("div");
+    d.style.cssText = "display:flex;flex-direction:column;row-gap:1px;position:absolute";
+    d.appendChild(document.createElement("div"));
+    d.appendChild(document.createElement("div"));
+    document.body.appendChild(d);
+    var ok = d.scrollHeight === 1;
+    document.body.removeChild(d);
+    return ok;
+  }
+
+  // ---------- Benchmarks ----------
+  // Raw CPU: the same work on every device, to compare against the dev machine.
+  function cpuBench() {
+    var times = [];
+    for (var r = 0; r < 5; r++) {
+      var a = [];
+      var seed = 1;
+      for (var i = 0; i < 100000; i++) { seed = (seed * 16807) % 2147483647; a.push(seed); }
+      var t = now();
+      a.sort(function (x, y) { return x - y; });
+      var h = 0;
+      for (var j = 0; j < 200000; j++) h = (h * 31 + j) | 0;
+      times.push(now() - t);
+    }
+    return { sortAndHashMs: stats(times) };
+  }
+
+  // A home's worth of entity states (~420 entities, ~200 KB), like HA's initial state dump.
+  function fakeStates(n) {
+    var domains = ["light", "switch", "sensor", "binary_sensor", "climate", "media_player", "update", "number", "select"];
+    var states = [];
+    for (var i = 0; i < n; i++) {
+      var d = domains[i % domains.length];
+      states.push({
+        entity_id: d + ".room_" + (i % 11) + "_thing_" + i,
+        state: i % 3 ? "on" : "21.4",
+        attributes: {
+          friendly_name: "Room " + (i % 11) + " thing " + i,
+          device_class: i % 2 ? "temperature" : "battery",
+          unit_of_measurement: "°C",
+          state_class: "measurement",
+          supported_features: 44,
+          supported_color_modes: ["color_temp", "xy"],
+          min_color_temp_kelvin: 2200, max_color_temp_kelvin: 6500,
+          icon: "mdi:lightbulb",
+          extra: "padding to approximate real attribute sizes: brightness, xy_color, hs_color, rgb_color"
+        },
+        last_changed: "2026-10-01T09:14:00.000000+00:00",
+        last_reported: "2026-10-01T09:14:00.000000+00:00",
+        last_updated: "2026-10-01T09:14:00.000000+00:00",
+        context: { id: "01J9ZQ" + i + "ABCDEFGHIJKLMNOP", parent_id: null, user_id: null }
+      });
+    }
+    return states;
+  }
+  function parseBench() {
+    var json = JSON.stringify(fakeStates(420));
+    var times = [];
+    for (var r = 0; r < 5; r++) {
+      var t = now();
+      JSON.parse(json);
+      times.push(now() - t);
+    }
+    // One state-change message, as sent many times a minute.
+    var one = JSON.stringify({ id: 5, type: "event", event: { c: { "sensor.x": { "+": { s: "21.5", lc: 1727773000.1, a: { brightness: 120 } } } } } });
+    var t2 = now();
+    for (var k = 0; k < 1000; k++) JSON.parse(one);
+    return { fullStatesKB: Math.round(json.length / 1024), fullStatesParseMs: stats(times), oneUpdateParseUs: round((now() - t2) / 1000 * 1000) };
+  }
+
+  var ICON = "M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21Z";
+  var SVGNS = "http://www.w3.org/2000/svg";
+
+  function makeTile(i) {
+    var el = document.createElement("div");
+    el.className = "tile";
+    var svg = document.createElementNS(SVGNS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    var path = document.createElementNS(SVGNS, "path");
+    path.setAttribute("d", ICON);
+    svg.appendChild(path);
+    var b = document.createElement("b");
+    b.textContent = "Ceiling light " + i;
+    var span = document.createElement("span");
+    span.textContent = "Off";
+    el.appendChild(svg);
+    el.appendChild(b);
+    el.appendChild(span);
+    return el;
+  }
+
+  // Building a full screen of tiles, as on opening a room or the home screen.
+  function buildBench(stage) {
+    var times = [];
+    var grid;
+    for (var r = 0; r < 5; r++) {
+      stage.innerHTML = "";
+      var t = now();
+      grid = document.createElement("div");
+      grid.className = "grid";
+      for (var i = 0; i < 120; i++) grid.appendChild(makeTile(i));
+      stage.appendChild(grid);
+      stage.getBoundingClientRect(); // force style + layout
+      times.push(now() - t);
+    }
+    return { tiles: 120, buildAndLayoutMs: stats(times), grid: grid };
+  }
+
+  // One entity changes: update one tile's text and state class, once per frame, like a live update.
+  function updateBench(grid, done) {
+    var tiles = grid.children;
+    var work = [];
+    var frames = [];
+    var last = null;
+    var i = 0;
+    var N = 240;
+    function step(ts) {
+      if (last !== null) frames.push(ts - last);
+      last = ts;
+      if (i >= N) {
+        var long = 0;
+        for (var k = 0; k < frames.length; k++) if (frames[k] > 25) long++;
+        return done({ updates: N, updateAndLayoutMs: stats(work), frameIntervalMs: stats(frames), framesOver25ms: long });
+      }
+      var tile = tiles[(i * 37) % tiles.length];
+      var t = now();
+      var on = tile.className.indexOf("on") < 0;
+      tile.className = on ? "tile on" : "tile";
+      tile.lastChild.textContent = on ? (40 + (i % 60)) + "%" : "Off";
+      tile.getBoundingClientRect(); // force style + layout
+      work.push(now() - t);
+      i++;
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // A transform/opacity animation with nothing else going on: the best-case frame rate.
+  function fpsBench(done) {
+    var el = document.getElementById("spinner");
+    var frames = [];
+    var start = null;
+    var last = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      if (last !== null) frames.push(ts - last);
+      last = ts;
+      var p = (ts - start) / 1000;
+      el.style.transform = "translateX(" + Math.round(Math.sin(p * 3) * 100 + 100) + "px) rotate(" + Math.round(p * 180) + "deg)";
+      el.style.opacity = String(0.6 + 0.4 * Math.sin(p * 5));
+      if (ts - start < 3000) return requestAnimationFrame(step);
+      el.style.transform = "";
+      var long = 0;
+      for (var k = 0; k < frames.length; k++) if (frames[k] > 25) long++;
+      done({ seconds: 3, fps: round(frames.length / 3), frameIntervalMs: stats(frames), framesOver25ms: long });
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- Reporting ----------
+  function send() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/__probe");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onload = function () { show(xhr.status === 200 ? "Done. Results sent to the dev server." : "Done, but sending failed (HTTP " + xhr.status + "). Results are below."); };
+    xhr.onerror = function () { show("Done, but sending failed. Results are below."); };
+    xhr.send(JSON.stringify(result));
+  }
+
+  function run() {
+    result = { takenAt: new Date().toISOString(), page: location.href };
+    show("Running… keep the screen on, takes ~10 seconds.");
+    try {
+      result.environment = environment();
+      result.features = features();
+    } catch (e) {
+      result.error = "features: " + e;
+    }
+    render();
+    // Let the page settle before timing anything.
+    setTimeout(function () {
+      try {
+        result.cpu = cpuBench();
+        result.json = parseBench();
+        var stage = document.getElementById("stage");
+        var built = buildBench(stage);
+        result.render = { tiles: built.tiles, buildAndLayoutMs: built.buildAndLayoutMs };
+        render();
+        updateBench(built.grid, function (u) {
+          result.render.oneTileUpdate = u;
+          render();
+          fpsBench(function (f) {
+            result.animation = f;
+            stage.innerHTML = "";
+            render();
+            send();
+          });
+        });
+      } catch (e) {
+        result.error = "benchmarks: " + e;
+        render();
+        send();
+      }
+    }, 1000);
+  }
+
+  document.getElementById("again").onclick = run;
+  document.getElementById("send").onclick = send;
+  run();
+})();
+</script>
+</body>
+</html>

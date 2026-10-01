@@ -21,14 +21,6 @@ import {
 import type { HassEntity } from "home-assistant-js-websocket";
 import { deviceClass, domainOf, isLight } from "../model/home";
 
-export function Icon({ path, size = 24 }: { path: string; size?: number }) {
-  return (
-    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
-      <path d={path} fill="currentColor" />
-    </svg>
-  );
-}
-
 const BY_CLASS: Record<string, string> = {
   temperature: mdiThermometer,
   humidity: mdiWaterPercent,

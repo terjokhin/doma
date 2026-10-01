@@ -1,24 +1,33 @@
 import type { HassEntity } from "home-assistant-js-websocket";
-import i18n from "../i18n";
+import { exists, language, t } from "../i18n/index.svelte";
 
 export const isUnavailable = (s: HassEntity | undefined) => !s || s.state === "unavailable" || s.state === "unknown";
+
+// Building an Intl.NumberFormat is slow on old tablets; keep one per language and precision.
+const numberFormats = new Map<string, Intl.NumberFormat>();
 
 /** A number in the current language, e.g. 21.5 → "21.5" / "21,5". */
 export function formatNumber(value: unknown, maxDigits = 1) {
   const n = Number(value);
   if (!Number.isFinite(n)) return String(value ?? "");
-  return new Intl.NumberFormat(i18n.language, { maximumFractionDigits: maxDigits }).format(n);
+  const lang = language();
+  let format = numberFormats.get(`${lang}/${maxDigits}`);
+  if (!format) {
+    format = new Intl.NumberFormat(lang, { maximumFractionDigits: maxDigits });
+    numberFormats.set(`${lang}/${maxDigits}`, format);
+  }
+  return format.format(n);
 }
 
 /** "21.5 °C", "48 %", or a translated state ("On", "Open", …). */
 export function formatState(s: HassEntity | undefined): { value: string; unit?: string } {
   if (!s) return { value: "—" };
-  if (s.state === "unavailable" || s.state === "unknown") return { value: i18n.t(`state.${s.state}`) };
+  if (s.state === "unavailable" || s.state === "unknown") return { value: t(`state.${s.state}`) };
   const unit = s.attributes.unit_of_measurement as string | undefined;
   if (unit !== undefined) return { value: formatNumber(s.state), unit };
-  if (s.entity_id.startsWith("binary_sensor.")) return { value: i18n.t(binaryState(s)) };
+  if (s.entity_id.startsWith("binary_sensor.")) return { value: t(binaryState(s)) };
   const key = `state.${s.state}`;
-  return { value: i18n.exists(key) ? i18n.t(key) : s.state };
+  return { value: exists(key) ? t(key) : s.state };
 }
 
 function binaryState(s: HassEntity) {

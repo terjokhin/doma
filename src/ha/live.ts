@@ -3,11 +3,12 @@ import {
   createConnection,
   getAuth,
   subscribeConfig,
-  subscribeEntities,
   type AuthData,
   type Connection,
+  type HassEntity,
 } from "home-assistant-js-websocket";
-import { store, type Backend } from "./store";
+import { decodeEntitiesEvent, type EntitiesEvent } from "./entities";
+import { home, type Backend } from "./store.svelte";
 import type { AreaEntry, DeviceEntry, EntityRegistryDisplay, FloorEntry } from "./types";
 
 const TOKENS_KEY = "ha-ui.tokens";
@@ -40,19 +41,20 @@ const REGISTRY_EVENTS = [
   "entity_registry_updated",
 ];
 
+/** Registries, plus one snapshot of all states for the model (it isn't kept up to date). */
 async function loadRegistries(conn: Connection) {
-  const [floors, areas, devices, display] = await Promise.all([
+  const [floors, areas, devices, display, states] = await Promise.all([
     conn.sendMessagePromise<FloorEntry[]>({ type: "config/floor_registry/list" }),
     conn.sendMessagePromise<AreaEntry[]>({ type: "config/area_registry/list" }),
     conn.sendMessagePromise<DeviceEntry[]>({ type: "config/device_registry/list" }),
     conn.sendMessagePromise<EntityRegistryDisplay>({ type: "config/entity_registry/list_for_display" }),
+    conn.sendMessagePromise<HassEntity[]>({ type: "get_states" }),
   ]);
-  store.set({
-    floors,
-    areas,
-    devices: Object.fromEntries(devices.map((d) => [d.id, d])),
-    registry: Object.fromEntries(display.entities.map((e) => [e.ei, e])),
-  });
+  home.floors = floors;
+  home.areas = areas;
+  home.devices = Object.fromEntries(devices.map((d) => [d.id, d]));
+  home.registry = Object.fromEntries(display.entities.map((e) => [e.ei, e]));
+  home.catalog = Object.fromEntries(states.map((s) => [s.entity_id, s]));
 }
 
 /**
@@ -68,14 +70,13 @@ export async function connectLive(hassUrl?: string): Promise<Backend> {
 
   const conn = await createConnection({ auth });
   conn.addEventListener("ready", () => {
-    store.set({ status: "ready" });
+    home.status = "ready";
     void loadRegistries(conn); // may have changed while we were offline
   });
-  conn.addEventListener("disconnected", () => store.set({ status: "disconnected" }));
+  conn.addEventListener("disconnected", () => (home.status = "disconnected"));
 
   await loadRegistries(conn);
-  subscribeConfig(conn, (config) => store.set({ config }));
-  subscribeEntities(conn, (entities) => store.set({ entities }));
+  subscribeConfig(conn, (config) => (home.config = config));
 
   let reload: ReturnType<typeof setTimeout> | undefined;
   for (const type of REGISTRY_EVENTS) {
@@ -85,9 +86,21 @@ export async function connectLive(hassUrl?: string): Promise<Backend> {
     }, type);
   }
 
-  store.set({ status: "ready" });
+  home.status = "ready";
   return {
     callService: (domain, service, data, target) => callService(conn, domain, service, data, target),
+    async subscribeEntities(entityIds, onChange) {
+      // The library's subscribeEntities() always subscribes to every entity; send the filter ourselves.
+      // subscribeMessage re-sends it after a reconnect, and HA then sends the full states again.
+      const unsubscribe = await conn.subscribeMessage<EntitiesEvent>(
+        (ev) => {
+          const receivedAt = performance.now();
+          onChange(decodeEntitiesEvent(ev, (id) => home.peek(id)), receivedAt);
+        },
+        entityIds === "all" ? { type: "subscribe_entities" } : { type: "subscribe_entities", entity_ids: entityIds },
+      );
+      return () => void unsubscribe().catch(() => {}); // fails only when already disconnected
+    },
     async logout() {
       conn.close();
       try {

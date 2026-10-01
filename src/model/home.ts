@@ -1,6 +1,4 @@
-import { useMemo } from "react";
 import type { HassEntities, HassEntity } from "home-assistant-js-websocket";
-import { store, useHome } from "../ha/store";
 import type { AreaEntry, DeviceEntry, EntityEntry, FloorEntry } from "../ha/types";
 
 /**
@@ -107,28 +105,4 @@ export function entityName(s: HassEntity | undefined, reg?: EntityEntry, area?: 
     return rest.charAt(0).toUpperCase() + rest.slice(1);
   }
   return name;
-}
-
-/**
- * The home model. It only rebuilds when a registry changes, not on every state update:
- * which room an entity is in and its device class don't change with its state.
- */
-export function useHomeModel(): FloorGroup[] {
-  const floors = useHome((s) => s.floors);
-  const areas = useHome((s) => s.areas);
-  const devices = useHome((s) => s.devices);
-  const registry = useHome((s) => s.registry);
-  const loaded = useHome((s) => Object.keys(s.entities).length > 0);
-  return useMemo(
-    () => buildHome(floors, areas, devices, registry, store.get().entities),
-    [floors, areas, devices, registry, loaded],
-  );
-}
-
-export function useRoom(areaId: string): Room | undefined {
-  const home = useHomeModel();
-  return useMemo(
-    () => home.flatMap((g) => g.rooms).find((r) => r.area.area_id === areaId),
-    [home, areaId],
-  );
 }
