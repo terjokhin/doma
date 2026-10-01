@@ -15,6 +15,13 @@ export type CardKind = (typeof CARD_KINDS)[number];
 /** What a room card shows when the layout doesn't say. */
 export const DEFAULT_CARD: CardKind[] = ["lights", "climate"];
 
+/** A room card's size on the home screen (LAYOUTS.md, "Room cards"); the cells are in `CARD_CELLS`. */
+export const CARD_SIZES = ["s", "m", "l", "wide"] as const;
+export type CardSize = (typeof CARD_SIZES)[number];
+
+/** A card's size when the layout doesn't say. */
+export const DEFAULT_CARD_SIZE: CardSize = "m";
+
 export interface RoomLayout {
   /** The kinds of controls on the room's card, in this order. Default: DEFAULT_CARD. */
   card?: CardKind[];
@@ -30,6 +37,8 @@ export interface HouseLayout {
   order?: string[];
   /** Rooms left off the home screen, by area ID. Their room screens still work. */
   hidden?: string[];
+  /** Room card sizes, by area ID. Unlisted rooms: DEFAULT_CARD_SIZE. */
+  sizes?: Record<string, CardSize>;
   /** Per-room changes, by area ID. */
   rooms?: Record<string, RoomLayout>;
 }
@@ -57,6 +66,12 @@ export function parseLayout(value: unknown): HouseLayout {
   const hidden = strings(value.hidden);
   if (order) layout.order = order;
   if (hidden) layout.hidden = hidden;
+  if (isObject(value.sizes)) {
+    layout.sizes = {};
+    for (const [areaId, size] of Object.entries(value.sizes)) {
+      if ((CARD_SIZES as readonly unknown[]).includes(size)) layout.sizes[areaId] = size as CardSize;
+    }
+  }
   if (isObject(value.rooms)) {
     layout.rooms = {};
     for (const [areaId, room] of Object.entries(value.rooms)) {

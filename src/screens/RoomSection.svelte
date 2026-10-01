@@ -26,12 +26,14 @@
   const open = () => navigate(`/room/${room.area.area_id}`);
 </script>
 
-<section class="room-card" style:--card-w={size.w} style:--card-rows={size.h - 1}>
+<section class="room-card" class:narrow={size.w < 4} style:--card-w={size.w} style:--card-rows={size.h - 1}>
   <button class="room-title" onclick={open}>
-    <span class="room-name">{room.area.name}</span>
-    <span class="room-climate">
-      {#if temperature}<span>{formatTemperature(temperature)}</span>{/if}
-      {#if humidity}<span>{formatHumidity(humidity)}</span>{/if}
+    <span class="room-label">
+      <span class="room-name">{room.area.name}</span>
+      <span class="room-climate">
+        {#if temperature}<span>{formatTemperature(temperature)}</span>{/if}
+        {#if humidity}<span>{formatHumidity(humidity)}</span>{/if}
+      </span>
     </span>
     <Icon path={mdiChevronRight} size={22} />
   </button>

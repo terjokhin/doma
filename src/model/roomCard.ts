@@ -1,13 +1,18 @@
-import { DEFAULT_CARD, type CardKind, type RoomLayout } from "../layout/houseLayout";
+import { DEFAULT_CARD, type CardKind, type CardSize, type RoomLayout } from "../layout/houseLayout";
 import { denseRows, type Size } from "../layout/pack";
 import { SIZES } from "../layout/sizes";
 import type { Room } from "./home";
 
 /**
- * A room card's size in whole cells (LAYOUTS.md, "Room cards"): its top cell row is the title band, each row
- * below holds one row of `w` controls. The default, M: a title row and 2 rows of 4.
+ * Each room card size in whole cells (LAYOUTS.md, "Room cards"): the top cell row is the title band, each row
+ * below holds one row of `w` controls.
  */
-export const DEFAULT_CARD_SIZE: Size = { w: 4, h: 3 };
+export const CARD_CELLS: Record<CardSize, Size> = {
+  s: { w: 2, h: 2 },
+  m: { w: 4, h: 3 },
+  l: { w: 4, h: 4 },
+  wide: { w: 8, h: 3 },
+};
 
 /** A card's size on a screen `cols` cells wide: never wider than the screen. */
 export const fitCard = (size: Size, cols: number): Size => ({ w: Math.min(size.w, cols), h: size.h });

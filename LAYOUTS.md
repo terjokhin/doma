@@ -131,7 +131,7 @@ S card the readings go under the name. Below the band, the room's controls:
   When something has to go, climate is kept before lights; the order on screen stays lights first.
 - A room without lights or climate keeps an empty card.
 
-In code: `roomCardItems` in `model/roomCard.ts` (given the card's size), rendered by
+In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) in `model/roomCard.ts`, rendered by
 `screens/RoomSection.svelte`.
 
 ### The floor grid
