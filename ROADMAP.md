@@ -15,14 +15,15 @@ Where the app is going, in order, and how each step is checked. The README cover
   - the cell grid ([LAYOUTS.md](LAYOUTS.md)), reflowing on rotation;
   - room cards on the home screen: floors as headings, equal-height cards with light and climate controls,
     at most 2 rows plus "+N";
-  - the house layout model: one shared layout per house in HA's system data (`ha-ui.layout`), live-synced to
-    every screen. Nothing has been saved to it yet, so every screen shows the generated layout.
+  - a first layout model, shared by the whole house in HA's system data. Nothing was ever saved to it; it is
+    being reworked (below).
 - Along the way: a power button on climate tiles (devices that were off couldn't be switched on).
 
-**Next: Phase 3, step 4, edit mode.** Open it with an admin login; move and hide rooms, choose what each card
-shows, pin and hide entities, "Reset to default"; save to HA. To do with it:
-- confirm before the first save to a real HA;
-- check that a non-admin kiosk user can read the saved layout.
+**Next: Phase 3 reworked: arrange the home screen** (steps 3–6 below). Phase 3 is only about the layout: move
+room cards and pick their size, saved per HA user, no admin login. Rooms, areas and floors stay as HA has
+them; choosing what a card shows, hiding rooms and pinning entities moved to [Later](#later). To do with it:
+- confirm before the first save to our real HA;
+- check that dragging and the size chips work by touch in Fully, without frames over 25 ms.
 
 **Waiting until later**
 - HVAC mode buttons for air conditioners (listed under [Later](#later)).
@@ -37,7 +38,7 @@ shows, pin and hide entities, "Reset to default"; save to HA. To do with it:
    (areas, floors, labels, domains, device classes), so new devices show up in the right place and renames never
    break it.
 3. **Zero setup, full design freedom.** The first layout is generated from Home Assistant's areas and floors; you
-   rearrange it from there.
+   rearrange it from there, on the screen itself, without an admin login.
 4. **Zero maintenance.** No dependency on Home Assistant's frontend internals, so HA updates can't break it.
 
 ## Target devices and budgets
@@ -112,23 +113,30 @@ Only receive and process what is on screen, and measure it on the slowest device
 
 Done when the Fire HD stays under the budgets above against a real home, and the demo fixture behaves the same.
 
-### 3. Layouts bound to meaning ← in progress
+### 3. Arrange the home screen ← in progress
+Move room cards and pick their size, on the screen, without an admin login. Only the layout changes: rooms,
+areas and floors stay as HA has them, and the cards' contents still come from the room model.
+
 1. ✅ **The grid**: square cells as the unit, sections 4 cells wide, packed into columns
    ([LAYOUTS.md](LAYOUTS.md)). Home and room screens use it; it reflows on rotation.
-2. ✅ **Room cards on the home screen**: floors as headings, each room a section with its lights (1 × 1) and
+2. ✅ **Room cards on the home screen**: floors as headings, each room a card with its lights (1 × 1) and
    climate (2 × 1) controls, at most 2 rows plus "+N".
-3. ✅ **Layout model**: the house layout stores only changes on top of the generated layout (room order, hidden
-   rooms, card kinds, pinned and hidden entities), in HA's shared system data, live-synced to every screen
-   ([LAYOUTS.md](LAYOUTS.md#layout-model)).
-4. **Edit mode** on screen, saving with an admin login.
+3. **One cell grid per floor**: the home screen drops the 4-wide section columns; each floor is one grid as
+   wide as the screen, and each card covers whole cells (default M, 4 × 3). Check: demo and local fixtures look
+   as today at 4, 8, 12 and 16 columns; bundle under budget.
+4. **Card sizes**: S 2 × 2, M 4 × 3, L 4 × 4, Wide 8 × 3 ([LAYOUTS.md](LAYOUTS.md#room-cards-home-screen)).
+   A card shows as many controls as its size holds, "+N" for the rest.
+5. **Layout model, per HA user**: room order and card sizes only, stored in HA's per-user frontend data
+   ([LAYOUTS.md](LAYOUTS.md#layout-model)). Any logged-in user can save, so the kiosk arranges its own screen;
+   every screen logged in as the same user follows it live. Replaces the first, shared model (never used).
+6. **Edit mode**: "Edit layout" in the settings menu; drag a card to move it within its floor, tap its size chip
+   to cycle S → M → L → Wide; Done saves, Cancel discards, "Reset to default" clears it. Controls don't react
+   while editing. Pointer events, no drag library; while dragging only the dragged card moves (`transform`),
+   the others reflow when the drop target changes. Check on the Fire HD with `?debug`: no frames over 25 ms
+   while dragging, the layout survives a reload, a second screen follows live.
 
-A layout is a list of sections that select entities by area, domain, device class, label or role, resolved against
-the registries at runtime. Today's room model becomes the default generator; you can reorder, hide and pin.
-
-**One layout per house**, shared by every user and screen. It's stored in Home Assistant's frontend *system* data
-(`frontend/get_system_data` / `set_system_data`, HA 2026.x), so it survives a cleared browser and needs no
-database. Any user can read it, so a non-admin kiosk shows it; saving needs an admin login. (Per-device or
-per-person variations are a later step.)
+Positions are an **order**, not coordinates: cards fill each floor's grid in order, so one layout works on a
+phone, a tablet in either orientation and a desktop.
 
 ### 4. Showcase screens
 - **Heating**: current vs target temperature per room for any `climate` entity, heating switches and valves by role;
@@ -144,5 +152,12 @@ Version history with undo for layouts. A static build in a small container image
 add-on for HA OS users.
 
 ### Later
-HVAC mode buttons on climate tiles (heat / cool / dry / fan for air conditioners; today a tile only switches
-on and off, into the last mode). Per-person and per-tablet views, editing on the tablet itself, importers from Lovelace and ha-fusion, e-ink output.
+- HVAC mode buttons on climate tiles (heat / cool / dry / fan for air conditioners; today a tile only switches
+  on and off, into the last mode).
+- What a card shows: kinds of controls per card (lights, climate, switches, sensors), pinned and hidden
+  entities, hidden rooms.
+- Layouts bound to meaning beyond rooms: sections that select entities by area, domain, device class, label or
+  role, resolved against the registries at runtime.
+- A layout shared by the whole house (HA's system data, saving needs an admin), with per-user layouts on top.
+- Free card sizes (drag a corner) instead of fixed ones; arranging room screens, not only the home screen.
+- Importers from Lovelace and ha-fusion, e-ink output.

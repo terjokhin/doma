@@ -2,7 +2,8 @@
 
 How ha-ui divides the screen and sizes everything on it. The short version: **one square cell is the unit for
 everything**, elements are sized in whole cells, sections are 4 cells wide, and a small packer arranges sections
-in columns like a masonry layout. Nothing is sized in pixels except a few readability minimums.
+in columns like a masonry layout. On the home screen, room cards come in a few fixed sizes and fill one cell grid
+per floor, in an order you can change. Nothing is sized in pixels except a few readability minimums.
 
 ## Goals
 
@@ -80,10 +81,10 @@ Every element has a size in cells, `w × h`. Starting set:
 | Light button (room card) | 1 × 1 |
 | Compact climate (room card) | 2 × 1 |
 | "+N" button (room card) | 1 × 1 |
+| Room card | S 2 × 2, M 4 × 3, L 4 × 4, Wide 8 × 3 (see "Room cards") |
 | Header (clock, date, weather) | full width × 2 |
 
-An element is never wider than its section (4 cells). Later, layouts may offer S / M / L variants per element,
-still in whole cells.
+An element is never wider than its section (4 cells), or than its card's width on the home screen.
 
 ## Sections
 
@@ -100,32 +101,54 @@ packed the same way, but have a fixed size (see "Room cards").
 
 **Full-width bands** sit above the sections and span all columns: the home header (clock, date, weather) is
 2 rows, the room header (back, name, climate) 1 row, and each floor heading on the home screen half a cell. Each
-floor's rooms are packed into columns separately, under its heading.
+floor's room cards fill their own grid under its heading (see "Room cards").
 
 ## Room cards (home screen)
 
-Each room is a card, and **every room card has the same size**, whatever it shows: 4 cells wide, and
-`0.5 + 2 + 2 × 0.1 = 2.7` cells tall (title band, 2 rows, the gap between them and a gap below; `CARD_HEIGHT` in
-`model/roomCard.ts`). Equal heights make the cards line up in rows. Its controls sit in an inset 4 × 2 grid, so
-they're slightly smaller than a page cell.
+Each room is a card in one of **four fixed sizes**, in whole cells:
+
+| Size | Cells (w × h) | Controls |
+|---|---|---|
+| S | 2 × 2 | 1 row of 2 |
+| **M** (default) | 4 × 3 | 2 rows of 4 |
+| L | 4 × 4 | 3 rows of 4 |
+| Wide | 8 × 3 | 2 rows of 8 |
+
+A card covers its cells and the gaps between them: `w × c + (w − 1) × g` wide, likewise tall. **Its top cell row
+is the title band**; each row below holds one row of controls, in an inset grid of `w` columns, so controls are
+slightly smaller than a page cell. A card is never wider than the screen: on a 4-column phone a Wide card is
+4 cells wide (and shows 4 controls per row).
 
 Cards are clearly lifted off the background, and their controls are a step lighter again: three tokens in
 `styles/tokens.css`, `--card`, `--card-control` and `--card-control-icon`, with a `--line-strong` edge.
 
-The title band shows the room's name, temperature and humidity, and an arrow; tapping it opens the room. Below
-it, the room's controls:
+The title band shows the room's name, temperature and humidity, and an arrow; tapping it opens the room. On an
+S card the readings go under the name. Below the band, the room's controls:
 
 - lights as 1 × 1 buttons (tap to toggle), then climate devices as compact 2 × 1 controls (power, and the target
   temperature while on);
-- **at most 2 rows**. What doesn't fit is replaced by a 1 × 1 "+N" button that opens the room. When something has
-  to go, climate is kept before lights; the order on screen stays lights first.
+- **as many rows as the size has**. What doesn't fit is replaced by a 1 × 1 "+N" button that opens the room.
+  When something has to go, climate is kept before lights; the order on screen stays lights first.
 - A room without lights or climate keeps an empty card.
 
-In code: `roomCardItems` in
-`model/roomCard.ts`, rendered by `screens/RoomSection.svelte`.
+In code: `roomCardItems` in `model/roomCard.ts` (given the card's size), rendered by
+`screens/RoomSection.svelte`.
+
+### The floor grid
+
+Each floor's cards fill one CSS grid as wide as the page: `cols` columns of `--cell`, rows of `--cell`, gap
+`--gap`; a card spans its `w × h` cells. Cards are placed **strictly in layout order** (`grid-auto-flow: row`,
+not `dense`): each goes into the first spot after the previous card where it fits. So what you see is the order
+you set, on every screen width; the price is that a card too wide for the rest of a row leaves a hole there,
+which you fill by moving a smaller card. Rotating or resizing only re-flows the same order into a different
+number of columns.
+
+The browser places the cards; nothing is computed in JavaScript, and a card's size never depends on its
+contents.
 
 ## Packing sections
 
+Room screens pack their sections into columns (the home screen uses floor grids instead, above).
 The page has `cols / 4` section columns: 1 on a phone, 2 in portrait, 3 in landscape. Sections are assigned to
 columns by a deterministic packer:
 
@@ -151,8 +174,9 @@ Properties:
 
 ## Rotation and resizing
 
-When `cols` changes, the packer runs again and the sections move to their new columns. A change of `c` alone
-(same `cols`) only rescales through the CSS variables. A short opacity fade may cover the switch; no layout
+When `cols` changes, the packer runs again and the sections move to their new columns, and each floor grid
+re-flows its cards into the new number of columns. A change of `c` alone (same `cols`) only rescales through the
+CSS variables. A short opacity fade may cover the switch; no layout
 animations.
 
 ## Browser constraints
@@ -166,41 +190,46 @@ These rules target Chrome 108 (see the README):
 
 ## Layout model
 
-The house layout stores **only the user's changes** on top of the layout generated from HA's floors and areas,
-never a full copy, so new rooms and devices still appear by themselves. It never stores pixels or positions, so
-one layout serves every device and orientation; the packer does the placing. (`layout/houseLayout.ts`)
+The layout stores **only the user's changes** on top of the layout generated from HA's floors and areas, never a
+full copy, so new rooms still appear by themselves. It holds two things, **the order of room cards and their
+sizes**, and never pixels or coordinates, so one layout serves every device and orientation; the floor grid does
+the placing. Rooms, areas and floors themselves are HA's and aren't changed here. (`layout/houseLayout.ts`)
 
 ```json
 {
   "version": 1,
   "order": ["kitchen", "living_room"],
-  "hidden": ["hallway"],
-  "rooms": {
-    "living_room": { "card": ["lights"], "hide": ["light.living_room_wall_sconce"] },
-    "office": { "card": ["sensors"], "pin": ["climate.office_ac"] }
-  }
+  "sizes": { "kitchen": "wide", "hallway": "s" }
 }
 ```
 
-- **`order`**: room order on the home screen, by area ID, within each floor. Listed rooms come first; unlisted
-  ones follow in their default order, so a new room appears at the end of its floor.
-- **`hidden`**: rooms left off the home screen. Their room screens still work.
-- **`rooms.<area>.card`**: what the room's card shows, by kind, in this order: `lights`, `climate`, `switches`,
-  `sensors`. Default `["lights", "climate"]`. Lights and switches are 1 × 1 buttons, sensors 1 × 1 readings,
-  climate a 2 × 1 control.
-- **`rooms.<area>.pin`** / **`hide`**: entities shown first on the card (whatever their kind), or never.
-- When a card overflows its 2 rows, pinned entities are kept first, then climate, then the rest.
+- **`order`**: room order on the home screen, by area ID, applied within each floor (a card can't move to another
+  floor; that's the area's floor in HA). Listed rooms come first; unlisted ones follow in their default order, so
+  a new room appears at the end of its floor.
+- **`sizes`**: each card's size, `s`, `m`, `l` or `wide`; unlisted rooms are `m`.
 
-Rooms are referenced by area ID, which stays the same when a room is renamed. Pinned and hidden entities are
-referenced by entity ID; a stale one is simply ignored. The stored value is read defensively: unknown fields are
-dropped, and a version this app doesn't know gives the generated layout. (`homeView` in `model/homeView.ts`
-applies the layout to the model.)
+Rooms are referenced by area ID, which stays the same when a room is renamed; a stale one is simply ignored. The
+stored value is read defensively: unknown fields and sizes are dropped, and a version this app doesn't know gives
+the generated layout. (`homeView` in `model/homeView.ts` applies the layout to the model.)
 
 ### Storage
 
-There is **one layout per house**: every user and every screen (wall tablet, laptop, phone) shows the same one.
-It lives in Home Assistant's shared frontend storage under the key `ha-ui.layout`
-(`frontend/subscribe_system_data` / `set_system_data`). Any user can read it, so the kiosk just displays it;
-saving needs an admin login. The app subscribes to it, so a change saved on one screen shows up on every other
-screen at once. At start the app waits briefly (up to 2 s) for the layout, so the home screen doesn't rearrange
-itself right after appearing. (`layout/layoutStore.svelte.ts`)
+The layout belongs to the **HA user** the screen is logged in as, and lives in Home Assistant's per-user frontend
+storage under the key `ha-ui.layout` (`frontend/subscribe_user_data` / `set_user_data`). Any logged-in user can
+save their own, so a non-admin kiosk account arranges its own screen; it survives a cleared browser, and every
+screen logged in as the same user follows a change at once. If two screens save at the same time, the last save
+wins. At start the app waits briefly (up to 2 s) for the layout, so the home screen doesn't rearrange itself
+right after appearing. (`layout/layoutStore.svelte.ts`)
+
+### Edit mode
+
+"Edit layout" in the settings menu turns the home screen into an editor; nothing is saved until **Done**.
+
+- Controls on the cards don't react; each card shows an outline and a **size chip** (S / M / L / Wide). Tapping the
+  chip cycles to the next size.
+- **Drag a card** to move it within its floor. Only the dragged card moves, with `transform`; the drop target is
+  the card under the finger, and the others re-flow only when it changes, not on every pointer move.
+- The bar at the top has **Done** (saves), **Cancel** (discards) and **Reset to default** (an empty layout, saved
+  on Done).
+- Pointer events with `touch-action: none` on the cards while editing, so dragging doesn't scroll the page; near
+  the top or bottom edge the page scrolls by itself.
