@@ -26,11 +26,7 @@
     "greeting_afternoon": "Добрый день",
     "greeting_evening": "Добрый вечер",
     "greeting_night": "Доброй ночи",
-    "lightsOn_zero": "Свет выключен",
-    "lightsOn_one": "Горит {{count}} светильник",
-    "lightsOn_few": "Горят {{count}} светильника",
-    "lightsOn_many": "Горят {{count}} светильников",
-    "lightsOn_other": "Горят {{count}} светильника"
+    "more": "Ещё {{count}}"
   },
   "room": {
     "back": "Дом",

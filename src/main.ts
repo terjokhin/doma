@@ -1,5 +1,6 @@
 import { mount } from "svelte";
 import "./styles/app.css";
+import "./layout/grid.svelte"; // sets the grid's CSS variables before the first render
 import App from "./App.svelte";
 import { debugEnabled } from "./debug/stats";
 

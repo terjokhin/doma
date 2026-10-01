@@ -80,6 +80,18 @@ over Wi-Fi (no USB needed). If it can't connect, check your computer's firewall.
 4. Old Android devices (5.x) don't trust current Let's Encrypt certificates. On a home network,
    plain `http://` to Home Assistant avoids that.
 
+## Layouts
+
+The home screen shows each floor as a heading and each room as a card of the same size: its name, temperature
+and humidity, and up to two rows of controls (lights, climate), with "+N" for the rest. Tapping a card's title
+opens the room. Everything is placed on a grid of square cells that adapts to the screen and reflows on rotation;
+the rules are in [LAYOUTS.md](LAYOUTS.md).
+
+Today the layout is generated from your HA floors and areas. Next (see the [roadmap](ROADMAP.md)), you'll be able
+to adjust it: room order, hidden rooms, which controls a card shows, sizes. There is **one layout per house**,
+shared by every user and screen and stored in Home Assistant itself (`frontend/set_system_data`): a non-admin kiosk
+user can display it, and changing it needs an admin login.
+
 ## Architecture
 
 How the screen is divided into cells and sections, and how elements are sized: [LAYOUTS.md](LAYOUTS.md).

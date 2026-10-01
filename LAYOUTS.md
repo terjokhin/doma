@@ -52,18 +52,20 @@ Rows are the same size as columns: an element 1 cell tall is `c` high. The page 
 content is taller than the screen. (Shrinking cells so that a wall panel fits without scrolling is a possible
 later option, not a rule today.)
 
-**Where it's computed.** One module computes `cols` and `c` from the viewport at start and on `resize` /
-orientation change, and sets them on `:root` as `--cols`, `--cell`, `--gap` and `--pad`. Nothing else reads the
-viewport size.
+**Where it's computed.** `layout/grid.svelte.ts` computes `cols` and `c` from the viewport at start and on
+`resize` / orientation change, and sets them on `:root` as `--cols`, `--cell`, `--gap` and `--pad`. Nothing else
+reads the viewport size. `W` is `clientWidth`, and `scrollbar-gutter: stable` keeps it from changing when the page
+starts to scroll.
 
 ## Sizing inside elements
 
-Everything inside an element derives from `--cell`, never from fixed pixels:
+Everything inside an element derives from `--cell`, never from fixed pixels. The mechanism is simple:
+**`1rem` is tied to the cell**, `html { font-size: max(12px, 0.16 × cell) }` (about 15 px at 94 px cells, 12 px
+at least), and every size in `styles/tokens.css` and `app.css` is in `rem`: text, icons, round buttons, padding,
+corner radius. So components never compute sizes themselves, and the whole UI scales with the cell.
 
-- **Text**: e.g. body `0.16 × cell` (about 15 px at 94 px cells), small `0.13 × cell`, large values
-  `0.3 × cell`. Every text size has a readable minimum: `max(12px, …)`.
-- **Icons, round buttons, padding, corner radius**: fractions of `--cell` as well.
-- Tokens for these live in `styles/tokens.css`, so components never compute sizes themselves.
+- The clock also scales with the column count, so the header fits a phone: `clamp(3.5rem, cols × 0.5rem, 6rem)`.
+- Tile names may wrap to two lines: a 2 × 1 tile is narrow.
 
 ## Element sizes
 
@@ -75,7 +77,9 @@ Every element has a size in cells, `w × h`. Starting set:
 | Sensor tile | 2 × 1 |
 | Media tile | 2 × 1 |
 | Climate tile | 4 × 2 |
-| Room card (home screen) | 2 × 2 |
+| Light button (room card) | 1 × 1 |
+| Compact climate (room card) | 2 × 1 |
+| "+N" button (room card) | 1 × 1 |
 | Header (clock, date, weather) | full width × 2 |
 
 An element is never wider than its section (4 cells). Later, layouts may offer S / M / L variants per element,
@@ -83,16 +87,42 @@ still in whole cells.
 
 ## Sections
 
-A **section** is a titled group: a room on the home screen, or "Lights" / "Climate" / … on a room screen.
+A **section** is a titled group: "Lights" / "Climate" / … on a room screen. Room cards on the home screen are
+packed the same way, but have a fixed size (see "Room cards").
 
 - A section is **4 cells wide**.
 - Its title band is **0.5 cell** tall.
 - Its content is a 4-column CSS grid with rows of `--cell`, gap `--gap` and `grid-auto-flow: row dense`, so the
   browser packs tiles without holes.
-- **A section's height is known before rendering**: `0.5 + rows`, where `rows` comes from simulating the same
-  dense packing of the element sizes on 4 columns (a few lines of arithmetic).
+- **A section's height is known before rendering**: `0.5 + rows + (rows − 1) × 0.1` cells (title band, rows,
+  gaps between rows), where `rows` comes from simulating the same dense packing of the element sizes on
+  4 columns (`denseRows` in `layout/pack.ts`).
 
-**Full-width bands** such as the header sit above the sections and span all columns.
+**Full-width bands** sit above the sections and span all columns: the home header (clock, date, weather) is
+2 rows, the room header (back, name, climate) 1 row, and each floor heading on the home screen half a cell. Each
+floor's rooms are packed into columns separately, under its heading.
+
+## Room cards (home screen)
+
+Each room is a card, and **every room card has the same size**, whatever it shows: 4 cells wide, and
+`0.5 + 2 + 2 × 0.1 = 2.7` cells tall (title band, 2 rows, the gap between them and a gap below; `CARD_HEIGHT` in
+`model/roomCard.ts`). Equal heights make the cards line up in rows. Its controls sit in an inset 4 × 2 grid, so
+they're slightly smaller than a page cell.
+
+Cards are clearly lifted off the background, and their controls are a step lighter again: three tokens in
+`styles/tokens.css`, `--card`, `--card-control` and `--card-control-icon`, with a `--line-strong` edge.
+
+The title band shows the room's name, temperature and humidity, and an arrow; tapping it opens the room. Below
+it, the room's controls:
+
+- lights as 1 × 1 buttons (tap to toggle), then climate devices as compact 2 × 1 controls (power, and the target
+  temperature while on);
+- **at most 2 rows**. What doesn't fit is replaced by a 1 × 1 "+N" button that opens the room. When something has
+  to go, climate is kept before lights; the order on screen stays lights first.
+- A room without lights or climate keeps an empty card.
+
+In code: `roomCardItems` in
+`model/roomCard.ts`, rendered by `screens/RoomSection.svelte`.
 
 ## Packing sections
 
@@ -107,7 +137,9 @@ for section in sections (in layout order):
     heights[k] += section.height + 0.1   // 0.1 = the gap, in cells
 ```
 
-Each column is then a plain vertical stack (flex column), so the browser only stacks blocks. The packer runs at
+Each column is then a plain vertical stack (flex column), so the browser only stacks blocks. In code:
+`packColumns` in `layout/pack.ts`, rendered by `layout/SectionColumns.svelte`; a section is
+`layout/Section.svelte`, and each element sits in a `layout/GridItem.svelte` that spans its cells. The packer runs at
 start, on rotation or resize (when `cols` changes) and when the layout changes, never on state updates.
 
 Properties:
@@ -137,3 +169,7 @@ These rules target Chrome 108 (see the README):
 A layout stores sections, their selectors (area, domain, device class, label), the order, and each element's
 size in cells. It never stores pixels or positions, so one layout serves every device and orientation. Editing a
 layout means changing the order or a size, and the packer does the rest.
+
+There is **one layout per house**: every user and every screen (wall tablet, laptop, phone) shows the same one.
+It lives in Home Assistant's shared frontend storage (`frontend/set_system_data`), which any user can read and only
+an admin can write, so layouts are edited from an admin login and the kiosk just displays them.

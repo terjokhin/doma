@@ -1,9 +1,13 @@
 <script lang="ts">
   import { mdiChevronLeft } from "@mdi/js";
-  import type { Snippet } from "svelte";
   import { callService, home } from "../ha/store.svelte";
   import { watchEntities } from "../ha/subscriptions.svelte";
   import { t } from "../i18n/index.svelte";
+  import GridItem from "../layout/GridItem.svelte";
+  import { sectionHeight, type Size } from "../layout/pack";
+  import Section from "../layout/Section.svelte";
+  import SectionColumns from "../layout/SectionColumns.svelte";
+  import { SIZES } from "../layout/sizes";
   import { findRoom } from "../model/model.svelte";
   import { navigate } from "../router.svelte";
   import ClimateTile from "../ui/ClimateTile.svelte";
@@ -19,43 +23,58 @@
   const temperature = $derived(home.entity(room?.temperature));
   const humidity = $derived(home.entity(room?.humidity));
   const lightsOn = $derived(room?.lights.some((id) => home.entity(id)?.state === "on") ?? false);
-  const empty = $derived(
-    !!room && [room.lights, room.climate, room.switches, room.media, room.sensors].every((l) => l.length === 0),
-  );
+
+  interface Group {
+    kind: "lights" | "climate" | "switches" | "media" | "sensors";
+    title: string;
+    ids: string[];
+    size: Size;
+  }
+
+  // The room's sections, in reading order; empty ones are left out.
+  const groups = $derived.by((): Group[] => {
+    if (!room) return [];
+    const all: Group[] = [
+      { kind: "lights", title: t("room.lights"), ids: room.lights, size: SIZES.toggle },
+      { kind: "climate", title: t("room.climate"), ids: room.climate, size: SIZES.climate },
+      { kind: "switches", title: t("room.switches"), ids: room.switches, size: SIZES.toggle },
+      { kind: "media", title: t("room.media"), ids: room.media, size: SIZES.media },
+      { kind: "sensors", title: t("room.sensors"), ids: room.sensors, size: SIZES.sensor },
+    ];
+    return all.filter((g) => g.ids.length > 0);
+  });
+  const empty = $derived(groups.length === 0);
 
   function toggleAll() {
     if (room) void callService("homeassistant", lightsOn ? "turn_off" : "turn_on", {}, { entity_id: room.lights });
   }
 </script>
 
-{#snippet section(title: string, ids: string[], tile: Snippet<[string]>, action?: Snippet)}
-  {#if ids.length > 0}
-    <section class="section">
-      <div class="section-head">
-        <h2>{title}</h2>
-        {@render action?.()}
-      </div>
-      <div class="grid">
-        {#each ids as id (id)}
-          {@render tile(id)}
-        {/each}
-      </div>
-    </section>
-  {/if}
-{/snippet}
-
 {#if !room}
   <div class="center">{t("app.connecting")}</div>
 {:else}
   {@const area = room.area}
 
-  {#snippet toggle(id: string)}<ToggleTile entityId={id} {area} />{/snippet}
-  {#snippet climate(id: string)}<ClimateTile entityId={id} {area} />{/snippet}
-  {#snippet sensor(id: string)}<SensorTile entityId={id} {area} />{/snippet}
   {#snippet allLights()}
     {#if room.lights.length > 1}
       <button class="chip" onclick={toggleAll}>{lightsOn ? t("room.allOff") : t("room.allOn")}</button>
     {/if}
+  {/snippet}
+
+  {#snippet group(g: Group)}
+    <Section title={g.title} action={g.kind === "lights" ? allLights : undefined}>
+      {#each g.ids as id (id)}
+        <GridItem size={g.size}>
+          {#if g.kind === "climate"}
+            <ClimateTile entityId={id} {area} />
+          {:else if g.kind === "lights" || g.kind === "switches"}
+            <ToggleTile entityId={id} {area} />
+          {:else}
+            <SensorTile entityId={id} {area} />
+          {/if}
+        </GridItem>
+      {/each}
+    </Section>
   {/snippet}
 
   <main class="screen">
@@ -72,10 +91,6 @@
 
     {#if empty}<p class="empty">{t("room.empty")}</p>{/if}
 
-    {@render section(t("room.lights"), room.lights, toggle, allLights)}
-    {@render section(t("room.climate"), room.climate, climate)}
-    {@render section(t("room.switches"), room.switches, toggle)}
-    {@render section(t("room.media"), room.media, sensor)}
-    {@render section(t("room.sensors"), room.sensors, sensor)}
+    <SectionColumns sections={groups} key={(g) => g.kind} height={(g) => sectionHeight(g.ids.map(() => g.size))} section={group} />
   </main>
 {/if}

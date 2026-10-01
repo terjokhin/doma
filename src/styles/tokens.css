@@ -12,6 +12,11 @@
   --surface-2: #1f232a;
   --surface-3: #292e37;
   --line: rgb(255 255 255 / 0.06);
+  --line-strong: rgb(255 255 255 / 0.1);
+  /* Room cards: clearly lifted off the background, with their controls a step lighter again. */
+  --card: #1b1f25;
+  --card-control: #252a32;
+  --card-control-icon: #313741;
 
   --text: #eef1f5;
   --text-dim: #9aa3ae;
@@ -25,9 +30,10 @@
   --good: #6fdc9b;
   --alert: #ff6b6b;
 
-  --radius-s: 14px;
-  --radius-m: 22px;
-  --radius-l: 30px;
+  /* Sizes are in rem, and 1rem is tied to the grid cell (see app.css), so everything scales with the cell. */
+  --radius-s: 0.9rem;
+  --radius-m: 1.45rem;
+  --radius-l: 2rem;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -43,12 +49,12 @@
   --text-m: 1.0625rem;
   --text-l: 1.375rem;
   --text-xl: 2rem;
-  --text-hero: clamp(3.5rem, 7vw, 6.5rem);
+  /* Smaller on narrow screens (4 columns on a phone), full size from 12 columns up. */
+  --text-hero: clamp(3.5rem, calc(var(--cols) * 0.5rem), 6rem);
 
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --fast: 160ms;
   --slow: 420ms;
 
-  --tile-min: 15rem;
   --touch: 3.25rem; /* smallest tap target */
 }

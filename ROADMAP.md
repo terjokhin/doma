@@ -84,12 +84,20 @@ Only receive and process what is on screen, and measure it on the slowest device
 
 Done when the Fire HD stays under the budgets above against a real home, and the demo fixture behaves the same.
 
-### 3. Layouts bound to meaning
-First the grid: square cells as the unit, sections 4 cells wide, packed into columns ([LAYOUTS.md](LAYOUTS.md)).
+### 3. Layouts bound to meaning ← in progress
+1. ✅ **The grid**: square cells as the unit, sections 4 cells wide, packed into columns
+   ([LAYOUTS.md](LAYOUTS.md)). Home and room screens use it; it reflows on rotation.
+2. ✅ **Room cards on the home screen**: floors as headings, each room a section with its lights (1 × 1) and
+   climate (2 × 1) controls, at most 2 rows plus "+N".
+3. **Layout model** (below), then editing and saving.
+
 A layout is a list of sections that select entities by area, domain, device class, label or role, resolved against
-the registries at runtime. Today's room model becomes the default generator; you can reorder, hide and pin. Layouts
-are stored in Home Assistant's per-user data (`frontend/set_user_data`), so they survive a cleared browser and need
-no database.
+the registries at runtime. Today's room model becomes the default generator; you can reorder, hide and pin.
+
+**One layout per house**, shared by every user and screen. It's stored in Home Assistant's frontend *system* data
+(`frontend/get_system_data` / `set_system_data`, HA 2026.x), so it survives a cleared browser and needs no
+database. Any user can read it, so a non-admin kiosk shows it; saving needs an admin login. (Per-device or
+per-person variations are a later step.)
 
 ### 4. Showcase screens
 - **Heating**: current vs target temperature per room for any `climate` entity, heating switches and valves by role;

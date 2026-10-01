@@ -26,9 +26,7 @@
     "greeting_afternoon": "Good afternoon",
     "greeting_evening": "Good evening",
     "greeting_night": "Good night",
-    "lightsOn_zero": "All lights off",
-    "lightsOn_one": "{{count}} light on",
-    "lightsOn_other": "{{count}} lights on"
+    "more": "{{count}} more"
   },
   "room": {
     "back": "Home",
