@@ -7,7 +7,7 @@
   import Icon from "./Icon.svelte";
   import { entityIcon } from "./icons";
 
-  /** A 1×1 light switch for room cards: icon and name, tap to toggle. */
+  /** A 1×1 switch for room cards (lights, switches): icon and name, tap to toggle. */
   let { entityId, area }: { entityId: string; area?: AreaEntry } = $props();
 
   watchEntities(() => [entityId]);

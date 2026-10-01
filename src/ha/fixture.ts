@@ -11,6 +11,8 @@ export interface Fixture {
   areas: AreaEntry[];
   devices: DeviceEntry[];
   entities: EntityEntry[];
+  /** A stored house layout, if the snapshot has one. */
+  layout?: unknown;
 }
 
 // Production builds only carry the demo, never a snapshot of a real home.
@@ -26,6 +28,9 @@ export async function connectFixture(name: string): Promise<Backend> {
   // The fixture's "server side": all states, and who is subscribed to which of them.
   const states: Record<string, HassEntity> = Object.fromEntries(f.states.map((s) => [s.entity_id, s]));
   const listeners = new Set<{ ids: Set<string> | "all"; onChange: (changes: EntityChanges, at: number) => void }>();
+  // The stored layout, in memory: saving works like on a live HA, but is gone on reload.
+  let layout: unknown = f.layout ?? null;
+  const layoutListeners = new Set<(value: unknown) => void>();
 
   const pick = (ids: Iterable<string>) => {
     const changed: Record<string, HassEntity> = {};
@@ -58,6 +63,15 @@ export async function connectFixture(name: string): Promise<Backend> {
       listeners.add(listener);
       setTimeout(() => onChange({ changed: entityIds === "all" ? { ...states } : pick(entityIds), removed: [] }, performance.now()));
       return () => void listeners.delete(listener);
+    },
+    async subscribeLayout(onChange) {
+      layoutListeners.add(onChange);
+      setTimeout(() => onChange(layout));
+      return () => void layoutListeners.delete(onChange);
+    },
+    async saveLayout(value) {
+      layout = value;
+      setTimeout(() => layoutListeners.forEach((l) => l(layout)));
     },
     async logout() {},
   };

@@ -87,10 +87,13 @@ and humidity, and up to two rows of controls (lights, climate), with "+N" for th
 opens the room. Everything is placed on a grid of square cells that adapts to the screen and reflows on rotation;
 the rules are in [LAYOUTS.md](LAYOUTS.md).
 
-Today the layout is generated from your HA floors and areas. Next (see the [roadmap](ROADMAP.md)), you'll be able
-to adjust it: room order, hidden rooms, which controls a card shows, sizes. There is **one layout per house**,
-shared by every user and screen and stored in Home Assistant itself (`frontend/set_system_data`): a non-admin kiosk
-user can display it, and changing it needs an admin login.
+The layout is generated from your HA floors and areas, and a **house layout** adjusts it: room order, hidden
+rooms, which kinds of controls each card shows (lights, climate, switches, sensors), pinned and hidden entities. It
+only stores those changes, so new rooms and devices still appear by themselves. There is **one layout per house**,
+shared by every user and screen and stored in Home Assistant itself (`frontend/set_system_data`, key
+`ha-ui.layout`): a non-admin kiosk user displays it, changing it needs an admin login, and every screen picks up
+a change at once. Editing it on screen is next on the [roadmap](ROADMAP.md); the format is in
+[LAYOUTS.md](LAYOUTS.md#layout-model).
 
 ## Architecture
 

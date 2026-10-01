@@ -10,7 +10,8 @@
   import ClimateCompact from "../ui/ClimateCompact.svelte";
   import { formatHumidity, formatTemperature } from "../ui/format";
   import Icon from "../ui/Icon.svelte";
-  import LightButton from "../ui/LightButton.svelte";
+  import SensorButton from "../ui/SensorButton.svelte";
+  import ToggleButton from "../ui/ToggleButton.svelte";
 
   /**
    * A room on the home screen: a card of fixed size (LAYOUTS.md, "Room cards") with a title band that opens
@@ -36,8 +37,10 @@
   <div class="room-grid">
     {#each items as item (item.kind === "more" ? "+more" : item.id)}
       <GridItem size={item.size}>
-        {#if item.kind === "light"}
-          <LightButton entityId={item.id} area={room.area} />
+        {#if item.kind === "toggle"}
+          <ToggleButton entityId={item.id} area={room.area} />
+        {:else if item.kind === "sensor"}
+          <SensorButton entityId={item.id} area={room.area} />
         {:else if item.kind === "climate"}
           <ClimateCompact entityId={item.id} area={room.area} />
         {:else}

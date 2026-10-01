@@ -89,7 +89,10 @@ Done when the Fire HD stays under the budgets above against a real home, and the
    ([LAYOUTS.md](LAYOUTS.md)). Home and room screens use it; it reflows on rotation.
 2. ✅ **Room cards on the home screen**: floors as headings, each room a section with its lights (1 × 1) and
    climate (2 × 1) controls, at most 2 rows plus "+N".
-3. **Layout model** (below), then editing and saving.
+3. ✅ **Layout model**: the house layout stores only changes on top of the generated layout (room order, hidden
+   rooms, card kinds, pinned and hidden entities), in HA's shared system data, live-synced to every screen
+   ([LAYOUTS.md](LAYOUTS.md#layout-model)).
+4. **Edit mode** on screen, saving with an admin login.
 
 A layout is a list of sections that select entities by area, domain, device class, label or role, resolved against
 the registries at runtime. Today's room model becomes the default generator; you can reorder, hide and pin.

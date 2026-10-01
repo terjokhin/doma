@@ -164,12 +164,43 @@ These rules target Chrome 108 (see the README):
   place them.
 - Animate only `transform` and `opacity`.
 
-## Relation to layouts (Phase 3)
+## Layout model
 
-A layout stores sections, their selectors (area, domain, device class, label), the order, and each element's
-size in cells. It never stores pixels or positions, so one layout serves every device and orientation. Editing a
-layout means changing the order or a size, and the packer does the rest.
+The house layout stores **only the user's changes** on top of the layout generated from HA's floors and areas,
+never a full copy, so new rooms and devices still appear by themselves. It never stores pixels or positions, so
+one layout serves every device and orientation; the packer does the placing. (`layout/houseLayout.ts`)
+
+```json
+{
+  "version": 1,
+  "order": ["kitchen", "living_room"],
+  "hidden": ["hallway"],
+  "rooms": {
+    "living_room": { "card": ["lights"], "hide": ["light.living_room_wall_sconce"] },
+    "office": { "card": ["sensors"], "pin": ["climate.office_ac"] }
+  }
+}
+```
+
+- **`order`**: room order on the home screen, by area ID, within each floor. Listed rooms come first; unlisted
+  ones follow in their default order, so a new room appears at the end of its floor.
+- **`hidden`**: rooms left off the home screen. Their room screens still work.
+- **`rooms.<area>.card`**: what the room's card shows, by kind, in this order: `lights`, `climate`, `switches`,
+  `sensors`. Default `["lights", "climate"]`. Lights and switches are 1 × 1 buttons, sensors 1 × 1 readings,
+  climate a 2 × 1 control.
+- **`rooms.<area>.pin`** / **`hide`**: entities shown first on the card (whatever their kind), or never.
+- When a card overflows its 2 rows, pinned entities are kept first, then climate, then the rest.
+
+Rooms are referenced by area ID, which stays the same when a room is renamed. Pinned and hidden entities are
+referenced by entity ID; a stale one is simply ignored. The stored value is read defensively: unknown fields are
+dropped, and a version this app doesn't know gives the generated layout. (`homeView` in `model/homeView.ts`
+applies the layout to the model.)
+
+### Storage
 
 There is **one layout per house**: every user and every screen (wall tablet, laptop, phone) shows the same one.
-It lives in Home Assistant's shared frontend storage (`frontend/set_system_data`), which any user can read and only
-an admin can write, so layouts are edited from an admin login and the kiosk just displays them.
+It lives in Home Assistant's shared frontend storage under the key `ha-ui.layout`
+(`frontend/subscribe_system_data` / `set_system_data`). Any user can read it, so the kiosk just displays it;
+saving needs an admin login. The app subscribes to it, so a change saved on one screen shows up on every other
+screen at once. At start the app waits briefly (up to 2 s) for the layout, so the home screen doesn't rearrange
+itself right after appearing. (`layout/layoutStore.svelte.ts`)

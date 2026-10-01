@@ -7,6 +7,7 @@ import {
   type Connection,
   type HassEntity,
 } from "home-assistant-js-websocket";
+import { LAYOUT_KEY } from "../layout/houseLayout";
 import { decodeEntitiesEvent, type EntitiesEvent } from "./entities";
 import { home, type Backend } from "./store.svelte";
 import type { AreaEntry, DeviceEntry, EntityRegistryDisplay, FloorEntry } from "./types";
@@ -100,6 +101,17 @@ export async function connectLive(hassUrl?: string): Promise<Backend> {
         entityIds === "all" ? { type: "subscribe_entities" } : { type: "subscribe_entities", entity_ids: entityIds },
       );
       return () => void unsubscribe().catch(() => {}); // fails only when already disconnected
+    },
+    async subscribeLayout(onChange) {
+      // Shared frontend storage: sends the current value at once, then every change from any screen.
+      const unsubscribe = await conn.subscribeMessage<{ value: unknown }>((ev) => onChange(ev.value), {
+        type: "frontend/subscribe_system_data",
+        key: LAYOUT_KEY,
+      });
+      return () => void unsubscribe().catch(() => {});
+    },
+    async saveLayout(value) {
+      await conn.sendMessagePromise({ type: "frontend/set_system_data", key: LAYOUT_KEY, value });
     },
     async logout() {
       conn.close();

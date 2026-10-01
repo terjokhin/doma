@@ -424,6 +424,17 @@ button {
   line-height: 1.2;
 }
 
+.mini-value {
+  font-size: var(--text-l);
+  line-height: 1.1;
+}
+
+.mini-value small {
+  margin-left: 2px;
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+}
+
 .mini-state {
   color: var(--text-dim);
   font-size: var(--text-s);

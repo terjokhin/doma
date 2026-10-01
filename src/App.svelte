@@ -11,6 +11,7 @@
   import { connectLive, forgetLogin } from "./ha/live";
   import { home, justLoggedOut, setBackend } from "./ha/store.svelte";
   import { useBackend } from "./ha/subscriptions.svelte";
+  import { useLayoutBackend } from "./layout/layoutStore.svelte";
   import { t } from "./i18n/index.svelte";
   import { route } from "./router.svelte";
   import HomeScreen from "./screens/HomeScreen.svelte";
@@ -60,9 +61,11 @@
     }
     const connect = fixtureName ? connectFixture(fixtureName) : connectLive(hassUrl);
     connect.then(
-      (backend) => {
+      async (backend) => {
         setBackend(backend);
         useBackend(backend);
+        // Wait briefly for the house layout, so the home screen doesn't rearrange itself right after showing.
+        await Promise.race([useLayoutBackend(backend), new Promise((r) => setTimeout(r, 2000))]);
         boot = { phase: "ready" };
       },
       (err) => {
