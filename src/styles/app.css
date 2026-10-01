@@ -312,18 +312,22 @@ button {
   margin-top: calc(0.25 * var(--cell));
 }
 
-/* A floor's room cards: one cell grid as wide as the page, filled strictly in layout order (no `dense`). */
+/*
+ * A floor's room cards: one grid as wide as the page, filled strictly in layout order (no `dense`). Rows are half
+ * a cell (two of them and the gap between make one cell), so an S card can be half as tall as an M.
+ */
 .floor-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols), var(--cell));
-  grid-auto-rows: var(--cell);
+  grid-auto-rows: calc((var(--cell) - var(--gap)) / 2);
   grid-auto-flow: row;
   gap: var(--gap);
 }
 
 /*
- * A room card fills its grid item (w × h cells): the top cell row is the title band, the rows below an inset
- * grid of --card-w × --card-rows controls, so they're a little smaller than a cell.
+ * A room card fills its grid item (w × h cells): at the bottom, an inset grid of --card-w × --card-rows controls,
+ * one cell row each, so they're a little smaller than a cell; above it the title band, one cell tall (half a
+ * cell on an S card).
  */
 .room-card {
   contain: content;
@@ -340,12 +344,12 @@ button {
 /* The title band: name, climate, and an arrow; the whole band opens the room. */
 .room-title {
   display: flex;
-  flex: none;
+  flex: 1;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  height: var(--cell);
   min-width: 0;
+  min-height: 0;
   padding: 0 var(--space-3) 0 var(--space-4);
   color: var(--text-dim);
   text-align: left;
@@ -357,13 +361,6 @@ button {
   align-items: baseline;
   gap: var(--space-3);
   min-width: 0;
-}
-
-/* On a narrow (S) card the readings go under the name. */
-.narrow .room-label {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
 }
 
 .room-title .room-name {
@@ -386,7 +383,8 @@ button {
 
 .room-grid {
   display: grid;
-  flex: 1;
+  flex: none;
+  height: calc(var(--card-rows) * (var(--cell) + var(--gap)));
   grid-template-columns: repeat(var(--card-w), 1fr);
   grid-template-rows: repeat(var(--card-rows), 1fr);
   grid-auto-flow: row dense;
@@ -883,7 +881,8 @@ a.btn {
 
 .size-chip {
   position: absolute;
-  top: calc(var(--cell) / 2);
+  /* The middle of the title band: everything above the controls. */
+  top: calc((100% - var(--card-rows) * (var(--cell) + var(--gap))) / 2);
   right: var(--space-3);
   min-width: var(--touch);
   justify-content: center;
@@ -893,6 +892,11 @@ a.btn {
   font-weight: 600;
 }
 
+/* An S card's title band is half a cell: a smaller chip fits it. */
+.short .size-chip {
+  min-height: 2.5rem;
+}
+
 .size-chip:active {
   transform: translateY(-50%) scale(0.96);
 }
@@ -900,16 +904,16 @@ a.btn {
 /* In the middle of the controls area. Touch drags only here, so the rest of the card scrolls the page. */
 .drag-handle {
   position: absolute;
-  top: calc(50% + var(--cell) / 2);
+  bottom: calc(var(--card-rows) * (var(--cell) + var(--gap)) / 2);
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, 50%);
   background: var(--surface-3);
   color: var(--text);
   touch-action: none;
 }
 
 .drag-handle:active {
-  transform: translate(-50%, -50%) scale(0.92);
+  transform: translate(-50%, 50%) scale(0.92);
 }
 
 /* The card being dragged: above the others, on its own layer, ignored by hit-testing (see dragCard). */

@@ -4,15 +4,21 @@ import { SIZES } from "../layout/sizes";
 import type { Room } from "./home";
 
 /**
- * Each room card size in whole cells (LAYOUTS.md, "Room cards"): the top cell row is the title band, each row
- * below holds one row of `w` controls.
+ * Each room card size in cells (LAYOUTS.md, "Room cards"). Heights come in half cells: the floor grid has
+ * half-cell rows, so two S cards stack exactly as tall as one M.
  */
 export const CARD_CELLS: Record<CardSize, Size> = {
-  s: { w: 2, h: 2 },
+  s: { w: 4, h: 1.5 },
   m: { w: 4, h: 3 },
   l: { w: 4, h: 4 },
   wide: { w: 8, h: 3 },
 };
+
+/**
+ * Rows of controls on a card: one per cell below the title band. The title band takes the rest: one cell, or
+ * half a cell on an S card.
+ */
+export const cardRows = (size: Size) => Math.ceil(size.h) - 1;
 
 /** A card's size on a screen `cols` cells wide: never wider than the screen. */
 export const fitCard = (size: Size, cols: number): Size => ({ w: Math.min(size.w, cols), h: size.h });
@@ -36,7 +42,7 @@ export function roomCardItems(room: Room, size: Size): CardItem[] {
     ...room.climate.map((id): Control => ({ kind: "climate", id, size: SIZES.climateCompact })),
   ];
 
-  const fits = (items: { size: Size }[]) => denseRows(items.map((i) => i.size), size.w) <= size.h - 1;
+  const fits = (items: { size: Size }[]) => denseRows(items.map((i) => i.size), size.w) <= cardRows(size);
   if (fits(all)) return all;
 
   const more = { size: SIZES.more };

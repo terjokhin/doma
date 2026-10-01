@@ -123,7 +123,7 @@ areas and floors stay as HA has them, and the cards' contents still come from th
 3. ✅ **One cell grid per floor**: the home screen drops the 4-wide section columns; each floor is one grid as
    wide as the screen, and each card covers whole cells (default M, 4 × 3). Check: demo and local fixtures look
    as today at 4, 8, 12 and 16 columns; bundle under budget.
-4. ✅ **Card sizes**: S 2 × 2, M 4 × 3, L 4 × 4, Wide 8 × 3 ([LAYOUTS.md](LAYOUTS.md#room-cards-home-screen)).
+4. ✅ **Card sizes**: S 4 × 1.5 (half an M), M 4 × 3, L 4 × 4, Wide 8 × 3 ([LAYOUTS.md](LAYOUTS.md#room-cards-home-screen)).
    A card shows as many controls as its size holds, "+N" for the rest.
 5. ✅ **Layout model, per HA user**: room order and card sizes only, stored in HA's per-user frontend data
    ([LAYOUTS.md](LAYOUTS.md#layout-model)). Any logged-in user can save, so the kiosk arranges its own screen;

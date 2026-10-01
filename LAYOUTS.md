@@ -81,7 +81,7 @@ Every element has a size in cells, `w × h`. Starting set:
 | Light button (room card) | 1 × 1 |
 | Compact climate (room card) | 2 × 1 |
 | "+N" button (room card) | 1 × 1 |
-| Room card | S 2 × 2, M 4 × 3, L 4 × 4, Wide 8 × 3 (see "Room cards") |
+| Room card | S 4 × 1.5, M 4 × 3, L 4 × 4, Wide 8 × 3 (see "Room cards") |
 | Header (clock, date, weather) | full width × 2 |
 
 An element is never wider than its section (4 cells), or than its card's width on the home screen.
@@ -105,25 +105,27 @@ floor's room cards fill their own grid under its heading (see "Room cards").
 
 ## Room cards (home screen)
 
-Each room is a card in one of **four fixed sizes**, in whole cells:
+Each room is a card in one of **four fixed sizes**, in cells:
 
 | Size | Cells (w × h) | Controls |
 |---|---|---|
-| S | 2 × 2 | 1 row of 2 |
+| S | 4 × 1.5 | 1 row of 4 |
 | **M** (default) | 4 × 3 | 2 rows of 4 |
 | L | 4 × 4 | 3 rows of 4 |
 | Wide | 8 × 3 | 2 rows of 8 |
 
-A card covers its cells and the gaps between them: `w × c + (w − 1) × g` wide, likewise tall. **Its top cell row
-is the title band**; each row below holds one row of controls, in an inset grid of `w` columns, so controls are
-slightly smaller than a page cell. A card is never wider than the screen: on a 4-column phone a Wide card is
-4 cells wide (and shows 4 controls per row).
+A card covers its cells and the gaps between them: `w × c + (w − 1) × g` wide. Heights come in half cells, so an
+S card is exactly half an M: two S cards stacked, with the gap between them, are as tall as one M. **At the
+bottom of a card, one row of controls per cell below the title band** (`ceil(h) − 1` rows), in an inset grid of
+`w` columns, so controls are slightly smaller than a page cell; **above them the title band**, one cell tall, or
+half a cell on an S card. A card is never wider than the screen: on a 4-column phone a Wide card is 4 cells wide
+(and shows 4 controls per row).
 
 Cards are clearly lifted off the background, and their controls are a step lighter again: three tokens in
 `styles/tokens.css`, `--card`, `--card-control` and `--card-control-icon`, with a `--line-strong` edge.
 
-The title band shows the room's name, temperature and humidity, and an arrow; tapping it opens the room. On an
-S card the readings go under the name. Below the band, the room's controls:
+The title band shows the room's name, temperature and humidity, and an arrow; tapping it opens the room. Below
+the band, the room's controls:
 
 - lights as 1 × 1 buttons (tap to toggle), then climate devices as compact 2 × 1 controls (power, and the target
   temperature while on);
@@ -136,8 +138,10 @@ In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) 
 
 ### The floor grid
 
-Each floor's cards fill one CSS grid as wide as the page: `cols` columns of `--cell`, rows of `--cell`, gap
-`--gap`; a card spans its `w × h` cells. Cards are placed **strictly in layout order** (`grid-auto-flow: row`,
+Each floor's cards fill one CSS grid as wide as the page: `cols` columns of `--cell`, gap `--gap`, and rows of
+**half a cell**, `(c − g) / 2`, so two rows and the gap between them make one cell. A card spans `w` columns and
+`2h` rows. Two S cards stack under each other when the spot to the right of the first is taken (by the next card
+or the edge of the screen); otherwise they sit side by side. Cards are placed **strictly in layout order** (`grid-auto-flow: row`,
 not `dense`): each goes into the first spot after the previous card where it fits. So what you see is the order
 you set, on every screen width; the price is that a card too wide for the rest of a row leaves a hole there,
 which you fill by moving a smaller card. Rotating or resizing only re-flows the same order into a different

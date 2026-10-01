@@ -7,7 +7,7 @@
   import type { CardSize } from "../layout/homeLayout";
   import type { Size } from "../layout/pack";
   import type { Room } from "../model/home";
-  import type { CardItem } from "../model/roomCard";
+  import { cardRows, type CardItem } from "../model/roomCard";
   import { navigate } from "../router.svelte";
   import ClimateCompact from "../ui/ClimateCompact.svelte";
   import { formatHumidity, formatTemperature } from "../ui/format";
@@ -15,8 +15,8 @@
   import ToggleButton from "../ui/ToggleButton.svelte";
 
   /**
-   * A room on the home screen: a card of `size` cells (LAYOUTS.md, "Room cards"), its top row a title band that
-   * opens the room, each row below a row of its controls (see roomCardItems).
+   * A room on the home screen: a card of `size` cells (LAYOUTS.md, "Room cards"): a title band that opens the
+   * room, then a row of its controls per cell below it (see roomCardItems).
    * With `edit` (LAYOUTS.md, "Edit mode") the card's own controls don't react; an overlay shows its size chip
    * and a drag handle instead. A mouse can drag the card from anywhere on it; touch uses the handle, so the rest
    * of the card still scrolls the page.
@@ -43,7 +43,7 @@
   const open = () => navigate(`/room/${room.area.area_id}`);
 </script>
 
-<section class="room-card" class:narrow={size.w < 4} style:--card-w={size.w} style:--card-rows={size.h - 1}>
+<section class="room-card" class:short={size.h < 2} style:--card-w={size.w} style:--card-rows={cardRows(size)}>
   <button class="room-title" onclick={open} inert={!!edit}>
     <span class="room-label">
       <span class="room-name">{room.area.name}</span>

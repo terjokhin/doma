@@ -43,7 +43,7 @@
           data-card={card.room.area.area_id}
           data-group={floor.key}
           style:grid-column="span {card.size.w}"
-          style:grid-row="span {card.size.h}"
+          style:grid-row="span {card.size.h * 2}"
         >
           <RoomSection
             room={card.room}
