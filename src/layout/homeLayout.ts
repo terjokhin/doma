@@ -9,7 +9,7 @@
 export const LAYOUT_KEY = "ha-ui.layout";
 
 /** A room card's size on the home screen (LAYOUTS.md, "Room cards"); the cells are in `CARD_CELLS`. */
-export const CARD_SIZES = ["s", "m", "l", "wide"] as const;
+export const CARD_SIZES = ["xs", "s", "m", "l", "wide"] as const;
 export type CardSize = (typeof CARD_SIZES)[number];
 
 /** A card's size when the layout doesn't say. */

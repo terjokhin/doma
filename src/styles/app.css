@@ -363,6 +363,11 @@ button {
   min-width: 0;
 }
 
+/* An XS card is 2 cells wide: name and temperature only. */
+.narrow .room-humidity {
+  display: none;
+}
+
 .room-title .room-name {
   max-width: 100%;
   overflow: hidden;

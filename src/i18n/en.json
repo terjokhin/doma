@@ -84,6 +84,7 @@
     "sizeOf": "{{name}}: size {{size}}",
     "saveFailed": "Couldn't save: {{message}}",
     "sizes": {
+      "xs": "XS",
       "s": "S",
       "m": "M",
       "l": "L",

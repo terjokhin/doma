@@ -81,7 +81,7 @@ Every element has a size in cells, `w × h`. Starting set:
 | Light button (room card) | 1 × 1 |
 | Compact climate (room card) | 2 × 1 |
 | "+N" button (room card) | 1 × 1 |
-| Room card | S 4 × 1.5, M 4 × 3, L 4 × 4, Wide 8 × 3 (see "Room cards") |
+| Room card | XS 2 × 1.5, S 4 × 1.5, M 4 × 3, L 4 × 4, Wide 8 × 3 (see "Room cards") |
 | Header (clock, date, weather) | full width × 2 |
 
 An element is never wider than its section (4 cells), or than its card's width on the home screen.
@@ -105,27 +105,28 @@ floor's room cards fill their own grid under its heading (see "Room cards").
 
 ## Room cards (home screen)
 
-Each room is a card in one of **four fixed sizes**, in cells:
+Each room is a card in one of **five fixed sizes**, in cells:
 
 | Size | Cells (w × h) | Controls |
 |---|---|---|
+| XS | 2 × 1.5 | 1 row of 2 |
 | S | 4 × 1.5 | 1 row of 4 |
 | **M** (default) | 4 × 3 | 2 rows of 4 |
 | L | 4 × 4 | 3 rows of 4 |
 | Wide | 8 × 3 | 2 rows of 8 |
 
 A card covers its cells and the gaps between them: `w × c + (w − 1) × g` wide. Heights come in half cells, so an
-S card is exactly half an M: two S cards stacked, with the gap between them, are as tall as one M. **At the
+S card is exactly half an M (and an XS half an S): two S cards stacked, with the gap between them, are as tall as one M. **At the
 bottom of a card, one row of controls per cell below the title band** (`ceil(h) − 1` rows), in an inset grid of
 `w` columns, so controls are slightly smaller than a page cell; **above them the title band**, one cell tall, or
-half a cell on an S card. A card is never wider than the screen: on a 4-column phone a Wide card is 4 cells wide
+half a cell on S and XS cards. A card is never wider than the screen: on a 4-column phone a Wide card is 4 cells wide
 (and shows 4 controls per row).
 
 Cards are clearly lifted off the background, and their controls are a step lighter again: three tokens in
 `styles/tokens.css`, `--card`, `--card-control` and `--card-control-icon`, with a `--line-strong` edge.
 
-The title band shows the room's name, temperature and humidity, and an arrow; tapping it opens the room. Below
-the band, the room's controls:
+The title band shows the room's name, temperature and humidity (on an XS card, which is 2 cells wide, only the
+name and temperature), and an arrow; tapping it opens the room. Below the band, the room's controls:
 
 - lights as 1 × 1 buttons (tap to toggle), then climate devices as compact 2 × 1 controls (power, and the target
   temperature while on);
@@ -210,7 +211,7 @@ the placing. Rooms, areas and floors themselves are HA's and aren't changed here
 - **`order`**: room order on the home screen, by area ID, applied within each floor (a card can't move to another
   floor; that's the area's floor in HA). Listed rooms come first; unlisted ones follow in their default order, so
   a new room appears at the end of its floor.
-- **`sizes`**: each card's size, `s`, `m`, `l` or `wide`; unlisted rooms are `m`.
+- **`sizes`**: each card's size, `xs`, `s`, `m`, `l` or `wide`; unlisted rooms are `m`.
 
 Rooms are referenced by area ID, which stays the same when a room is renamed; a stale one is simply ignored. The
 stored value is read defensively: unknown fields and sizes are dropped, and a version this app doesn't know gives
@@ -229,7 +230,7 @@ right after appearing. (`layout/layoutStore.svelte.ts`)
 
 "Edit layout" in the settings menu turns the home screen into an editor; nothing is saved until **Done**.
 
-- Controls on the cards don't react (`inert`); each card shows an outline, a **size chip** (S / M / L / Wide) in
+- Controls on the cards don't react (`inert`); each card shows an outline, a **size chip** (XS / S / M / L / Wide) in
   its title band and a **drag handle** in the middle. Tapping the chip cycles to the next size; the default size
   isn't stored.
 - **Drag a card** to move it within its floor: by the handle on touch (only the handle has `touch-action: none`,

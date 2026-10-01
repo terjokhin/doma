@@ -83,8 +83,8 @@ over Wi-Fi (no USB needed). If it can't connect, check your computer's firewall.
 ## Layouts
 
 The home screen shows each floor as a heading and each room as a card: its name, temperature and humidity, and
-its controls (lights, climate), with "+N" for what doesn't fit. Cards come in four sizes, S, M (the default), L
-and Wide. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
+its controls (lights, climate), with "+N" for what doesn't fit. Cards come in five sizes, XS, S, M (the default),
+L and Wide. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
 the screen and reflows on rotation; the rules are in [LAYOUTS.md](LAYOUTS.md).
 
 The layout is generated from your HA floors and areas, and a **home layout** adjusts it: the order of the room
@@ -92,7 +92,7 @@ cards and their sizes. It only stores those changes, so new rooms still appear b
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `ha-ui.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
 choose **Edit layout** in the settings menu: drag a card by its handle to move it within its floor, tap its size
-to cycle S → M → L → Wide, then **Done**. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
+to cycle XS → S → M → L → Wide, then **Done**. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
 
 ## Architecture
 

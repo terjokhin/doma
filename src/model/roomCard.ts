@@ -8,6 +8,7 @@ import type { Room } from "./home";
  * half-cell rows, so two S cards stack exactly as tall as one M.
  */
 export const CARD_CELLS: Record<CardSize, Size> = {
+  xs: { w: 2, h: 1.5 },
   s: { w: 4, h: 1.5 },
   m: { w: 4, h: 3 },
   l: { w: 4, h: 4 },

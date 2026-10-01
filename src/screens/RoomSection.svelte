@@ -43,13 +43,13 @@
   const open = () => navigate(`/room/${room.area.area_id}`);
 </script>
 
-<section class="room-card" class:short={size.h < 2} style:--card-w={size.w} style:--card-rows={cardRows(size)}>
+<section class="room-card" class:short={size.h < 2} class:narrow={size.w < 4} style:--card-w={size.w} style:--card-rows={cardRows(size)}>
   <button class="room-title" onclick={open} inert={!!edit}>
     <span class="room-label">
       <span class="room-name">{room.area.name}</span>
       <span class="room-climate">
         {#if temperature}<span>{formatTemperature(temperature)}</span>{/if}
-        {#if humidity}<span>{formatHumidity(humidity)}</span>{/if}
+        {#if humidity}<span class="room-humidity">{formatHumidity(humidity)}</span>{/if}
       </span>
     </span>
     <Icon path={mdiChevronRight} size={22} />

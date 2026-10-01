@@ -42,7 +42,7 @@ export const editor = {
   setOrder(order: string[]) {
     if (draft) draft = { ...draft, order };
   },
-  /** Give a room's card the next size: S → M → L → Wide → S. The default size isn't stored. */
+  /** Give a room's card the next size: XS → S → M → L → Wide → XS. The default size isn't stored. */
   cycleSize(areaId: string) {
     if (!draft) return;
     const next = CARD_SIZES[(CARD_SIZES.indexOf(sizeOf(draft, areaId)) + 1) % CARD_SIZES.length];

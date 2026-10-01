@@ -84,6 +84,7 @@
     "sizeOf": "{{name}}: размер {{size}}",
     "saveFailed": "Не удалось сохранить: {{message}}",
     "sizes": {
+      "xs": "XS",
       "s": "S",
       "m": "M",
       "l": "L",
