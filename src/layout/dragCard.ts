@@ -6,11 +6,12 @@ import { tick } from "svelte";
  * reorders the layout; once the grid has re-flowed, the card is re-based on its new slot, which measures it
  * once per change of target, never per pointer move. Near the top or bottom edge, the page scrolls.
  *
- * Call from a `pointerdown` on an element inside `card`; it captures the pointer until it's released.
+ * Call from a `pointerdown` on an element inside `card`. The pointer is followed on `window`, not through pointer
+ * capture: a reorder moves the card's element in the DOM, which releases any capture, and the release would then
+ * never reach the handle.
  */
 export function dragCard(e: PointerEvent, card: HTMLElement, onOver: (key: string) => void) {
-  const handle = e.currentTarget as HTMLElement;
-  handle.setPointerCapture(e.pointerId);
+  const id = e.pointerId;
   e.preventDefault();
 
   // Page coordinates, so scrolling while dragging needs no special care.
@@ -20,6 +21,7 @@ export function dragCard(e: PointerEvent, card: HTMLElement, onOver: (key: strin
   let pointer = { x: e.clientX, y: e.clientY };
   let last: string | undefined; // the card the pointer was last over: no reorder until it leaves it
   let frame = 0;
+  let ended = false;
   card.classList.add("dragging");
 
   const place = () => {
@@ -29,7 +31,7 @@ export function dragCard(e: PointerEvent, card: HTMLElement, onOver: (key: strin
   };
 
   const rebase = () => {
-    if (!card.isConnected) return;
+    if (ended || !card.isConnected) return;
     card.style.transform = "";
     const r = card.getBoundingClientRect();
     base = { x: r.left + scrollX, y: r.top + scrollY };
@@ -62,22 +64,25 @@ export function dragCard(e: PointerEvent, card: HTMLElement, onOver: (key: strin
   };
 
   const move = (ev: PointerEvent) => {
+    if (ev.pointerId !== id) return;
     pointer = { x: ev.clientX, y: ev.clientY };
     place();
     hit();
     if (!frame) frame = requestAnimationFrame(scroll);
   };
 
-  const end = () => {
+  const end = (ev: PointerEvent) => {
+    if (ev.pointerId !== id) return;
+    ended = true;
     cancelAnimationFrame(frame);
-    handle.removeEventListener("pointermove", move);
-    handle.removeEventListener("pointerup", end);
-    handle.removeEventListener("pointercancel", end);
+    removeEventListener("pointermove", move);
+    removeEventListener("pointerup", end);
+    removeEventListener("pointercancel", end);
     card.classList.remove("dragging");
     card.style.transform = "";
   };
 
-  handle.addEventListener("pointermove", move);
-  handle.addEventListener("pointerup", end);
-  handle.addEventListener("pointercancel", end);
+  addEventListener("pointermove", move);
+  addEventListener("pointerup", end);
+  addEventListener("pointercancel", end);
 }
