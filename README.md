@@ -91,8 +91,8 @@ The layout is generated from your HA floors and areas, and a **home layout** adj
 and its size. It only stores those changes, so new rooms still appear by themselves. Each HA user has
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `ha-ui.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
-choose **Edit layout** in the settings menu: drag a card by its handle to any spot on its floor, tap its size
-to cycle XS → S → M → L → Wide, then **Done**. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
+tap the **edit button** next to the settings gear: drag a card by its handle to any spot on its floor, pick its
+size (XS, S, M, L or Wide) from the chip on the card, then **Done**. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
 
 ## Architecture
 

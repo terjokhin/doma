@@ -1,13 +1,14 @@
 <script lang="ts">
   import { t } from "../i18n/index.svelte";
-  import type { Position } from "../layout/homeLayout";
+  import type { CardSize, Position } from "../layout/homeLayout";
   import { dragCard } from "../layout/dragCard";
   import { grid } from "../layout/grid.svelte";
-  import { editor, nextSize } from "../layout/layoutEditor.svelte";
+  import { editor } from "../layout/layoutEditor.svelte";
   import { compact, moveBox, resizeBox, type Box } from "../layout/place";
   import { gridRows, homeView, type FloorView, type RoomCardView } from "../model/homeView";
   import { homeModel } from "../model/model.svelte";
   import { CARD_CELLS, fitCard } from "../model/roomCard";
+  import CardEditor from "../ui/CardEditor.svelte";
   import EditBar from "../ui/EditBar.svelte";
   import Header from "../ui/Header.svelte";
   import RoomSection from "./RoomSection.svelte";
@@ -33,8 +34,7 @@
 
   const floorOf = (key: string) => floors.find((f) => f.key === key)!;
 
-  function resize(floorKey: string, card: RoomCardView) {
-    const size = nextSize(card.sizeName);
+  function resize(floorKey: string, card: RoomCardView, size: CardSize) {
     const cells = fitCard(CARD_CELLS[size], grid.cols);
     editor.setSize(card.room.area.area_id, size);
     place(floorKey, resizeBox(boxesOf(floorOf(floorKey)), card.room.area.area_id, cells.w, gridRows(cells), grid.cols));
@@ -87,18 +87,16 @@
           style:grid-column="{card.x + 1} / span {card.size.w}"
           style:grid-row="{card.y + 1} / span {gridRows(card.size)}"
         >
-          <RoomSection
-            room={card.room}
-            size={card.size}
-            items={card.items}
-            edit={editor.active
-              ? {
-                  size: card.sizeName,
-                  cycleSize: () => resize(floor.key, card),
-                  drag: (e: PointerEvent) => startDrag(e, floor.key, card),
-                }
-              : undefined}
-          />
+          <RoomSection room={card.room} size={card.size} items={card.items} editing={editor.active} />
+          {#if editor.active}
+            <CardEditor
+              size={card.size}
+              sizeName={card.sizeName}
+              name={card.room.area.name}
+              onSize={(size) => resize(floor.key, card, size)}
+              onDrag={(e) => startDrag(e, floor.key, card)}
+            />
+          {/if}
         </div>
       {/each}
     </div>

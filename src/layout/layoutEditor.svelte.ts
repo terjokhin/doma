@@ -1,4 +1,4 @@
-import { CARD_SIZES, DEFAULT_CARD_SIZE, EMPTY_LAYOUT, type CardSize, type HomeLayout, type Position } from "./homeLayout";
+import { DEFAULT_CARD_SIZE, EMPTY_LAYOUT, type CardSize, type HomeLayout, type Position } from "./homeLayout";
 import { homeLayout, saveLayout } from "./layoutStore.svelte";
 
 /**
@@ -9,9 +9,6 @@ import { homeLayout, saveLayout } from "./layoutStore.svelte";
 let draft = $state.raw<HomeLayout | null>(null);
 let saving = $state(false);
 let error = $state<string | null>(null);
-
-/** The size after `size` on the chip: XS → S → M → L → Wide → XS. */
-export const nextSize = (size: CardSize) => CARD_SIZES[(CARD_SIZES.indexOf(size) + 1) % CARD_SIZES.length];
 
 export const editor = {
   /** Whether the home screen is being edited. Reactive. */

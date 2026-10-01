@@ -16,8 +16,8 @@ Where the app is going, in order, and how each step is checked. The README cover
   - room cards in five sizes (XS, S, M, L, Wide) with light and climate controls, "+N" for the rest;
   - a home layout per HA user (card sizes, and positions per column count) in HA's per-user frontend data, no
     admin login;
-  - edit mode: "Edit layout" in the settings menu, drag cards by their handle, tap the size chip, Done / Cancel /
-    Reset. Tried in desktop Chrome with mouse and emulated touch, on the demo home.
+  - edit mode: the edit button next to the settings gear, drag cards by their handle, pick a size from the chip's
+    menu, Done / Cancel / Reset. Tried in desktop Chrome with mouse and emulated touch, on the demo home.
 - Along the way: a power button on climate tiles (devices that were off couldn't be switched on).
 
 **Next: finish Phase 3 on real devices.**
@@ -129,8 +129,8 @@ areas and floors stay as HA has them, and the cards' contents still come from th
 5. ✅ **Layout model, per HA user**: card sizes and positions per column count, stored in HA's per-user frontend data
    ([LAYOUTS.md](LAYOUTS.md#layout-model)). Any logged-in user can save, so the kiosk arranges its own screen;
    every screen logged in as the same user follows it live. Replaces the first, shared model (never used).
-6. **Edit mode** (built; the tablet check is open): "Edit layout" in the settings menu; drag a card by its handle
-   to any spot on its floor, tap its size chip to cycle XS → S → M → L → Wide; Done saves, Cancel discards,
+6. **Edit mode** (built; the tablet check is open): the edit button next to the settings gear; drag a card by its
+   handle to any spot on its floor, pick its size from the chip's menu (XS, S, M, L, Wide); Done saves, Cancel discards,
    "Reset to default" clears it. Controls don't react while editing. Pointer events, no drag library; while
    dragging only the dragged card moves (`transform`), the others move when its target cell changes. Check on
    the Fire HD with `?debug`: no frames over 25 ms while dragging, the layout survives a reload, a second screen

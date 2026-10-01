@@ -76,7 +76,7 @@
   "edit": {
     "open": "Edit layout",
     "title": "Arrange the home screen",
-    "hint": "Drag a card by its handle to move it; tap its size to change it.",
+    "hint": "Drag a card by its handle to move it; tap its size to pick another.",
     "done": "Done",
     "cancel": "Cancel",
     "reset": "Reset to default",

@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { mdiViewDashboardEditOutline } from "@mdi/js";
   import { home } from "../ha/store.svelte";
   import { watchEntities } from "../ha/subscriptions.svelte";
   import { language, t } from "../i18n/index.svelte";
+  import { editor } from "../layout/layoutEditor.svelte";
   import { weatherEntityId } from "../model/model.svelte";
   import { formatNumber } from "./format";
   import Icon from "./Icon.svelte";
@@ -45,6 +47,9 @@
         <strong>{formatNumber(weather.attributes.temperature)}°</strong>
       </div>
     {/if}
+    <button class="round-btn" aria-label={t("edit.open")} onclick={() => editor.start()}>
+      <Icon path={mdiViewDashboardEditOutline} />
+    </button>
     <SettingsMenu />
   </div>
 </header>

@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { mdiChevronRight, mdiDrag } from "@mdi/js";
+  import { mdiChevronRight } from "@mdi/js";
   import { home } from "../ha/store.svelte";
   import { watchEntities } from "../ha/subscriptions.svelte";
   import { t } from "../i18n/index.svelte";
   import GridItem from "../layout/GridItem.svelte";
-  import type { CardSize } from "../layout/homeLayout";
   import type { Size } from "../layout/pack";
   import type { Room } from "../model/home";
   import { cardRows, type CardItem } from "../model/roomCard";
@@ -17,25 +16,14 @@
   /**
    * A room on the home screen: a card of `size` cells (LAYOUTS.md, "Room cards"): a title band that opens the
    * room, then a row of its controls per cell below it (see roomCardItems).
-   * With `edit` (LAYOUTS.md, "Edit mode") the card's own controls don't react; an overlay shows its size chip
-   * and a drag handle instead. A mouse can drag the card from anywhere on it; touch uses the handle, so the rest
-   * of the card still scrolls the page.
+   * While `editing`, the card's own controls don't react (the edit overlay is ui/CardEditor.svelte).
    */
   let {
     room,
     size,
     items,
-    edit,
-  }: {
-    room: Room;
-    size: Size;
-    items: CardItem[];
-    edit?: { size: CardSize; cycleSize: () => void; drag: (e: PointerEvent) => void };
-  } = $props();
-
-  function mouseDrag(e: PointerEvent) {
-    if (e.pointerType === "mouse" && e.button === 0 && !(e.target as Element).closest("button")) edit?.drag(e);
-  }
+    editing = false,
+  }: { room: Room; size: Size; items: CardItem[]; editing?: boolean } = $props();
 
   watchEntities(() => [room.temperature, room.humidity]);
   const temperature = $derived(home.entity(room.temperature));
@@ -44,7 +32,7 @@
 </script>
 
 <section class="room-card" class:short={size.h < 2} class:narrow={size.w < 4} style:--card-w={size.w} style:--card-rows={cardRows(size)}>
-  <button class="room-title" onclick={open} inert={!!edit}>
+  <button class="room-title" onclick={open} inert={editing}>
     <span class="room-label">
       <span class="room-name">{room.area.name}</span>
       <span class="room-climate">
@@ -54,7 +42,7 @@
     </span>
     <Icon path={mdiChevronRight} size={22} />
   </button>
-  <div class="room-grid" inert={!!edit}>
+  <div class="room-grid" inert={editing}>
     {#each items as item (item.kind === "more" ? "+more" : item.id)}
       <GridItem size={item.size}>
         {#if item.kind === "toggle"}
@@ -69,18 +57,4 @@
       </GridItem>
     {/each}
   </div>
-  {#if edit}
-    <div class="card-edit" role="presentation" onpointerdown={mouseDrag}>
-      <button
-        class="chip size-chip"
-        aria-label={t("edit.sizeOf", { name: room.area.name, size: t(`edit.sizes.${edit.size}`) })}
-        onclick={edit.cycleSize}
-      >
-        {t(`edit.sizes.${edit.size}`)}
-      </button>
-      <button class="round-btn drag-handle" aria-label={t("edit.move", { name: room.area.name })} onpointerdown={edit.drag}>
-        <Icon path={mdiDrag} />
-      </button>
-    </div>
-  {/if}
 </section>

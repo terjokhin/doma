@@ -238,11 +238,12 @@ right after appearing. (`layout/layoutStore.svelte.ts`)
 
 ### Edit mode
 
-"Edit layout" in the settings menu turns the home screen into an editor; nothing is saved until **Done**.
+The **edit button** next to the settings gear turns the home screen into an editor; nothing is saved until **Done**.
 
-- Controls on the cards don't react (`inert`); each card shows an outline, a **size chip** (XS / S / M / L / Wide) in
-  its title band and a **drag handle** in the middle. Tapping the chip cycles to the next size; the default size
-  isn't stored.
+- Controls on the cards don't react (`inert`); each card shows an outline, a small **size chip** in its title band
+  and a **drag handle** in the middle. The chip opens a menu of every size, each with a miniature of its shape,
+  its cells and a check on the current one; picking one applies it, and a tap outside or Escape closes the menu.
+  The default size isn't stored.
 - **Drag a card** to any spot on its floor: by the handle on touch (only the handle has `touch-action: none`,
   so swiping anywhere else on a card still scrolls the page), from anywhere on the card with a mouse. Only the
   dragged card moves, with `transform`. Its target is the cell nearest to where it is; when that changes, the
@@ -254,4 +255,5 @@ right after appearing. (`layout/layoutStore.svelte.ts`)
 - A bar replaces the header and sticks to the top: **Done** (saves, if anything changed), **Cancel** (discards)
   and **Reset to default** (an empty layout, saved on Done). A failed save keeps the draft and says why.
 - In code: the draft in `layout/layoutEditor.svelte.ts`, dragging in `layout/dragCard.ts`, the bar in
-  `ui/EditBar.svelte`, the card overlay in `screens/RoomSection.svelte`.
+  `ui/EditBar.svelte`, the overlay over each card in `ui/CardEditor.svelte`. The overlay sits in the card's grid
+  cell rather than inside the card, so the size menu isn't clipped by the card's `contain`.
