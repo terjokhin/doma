@@ -1,4 +1,4 @@
-import { CARD_SIZES, DEFAULT_CARD_SIZE, EMPTY_LAYOUT, sizeOf, type HomeLayout } from "./homeLayout";
+import { CARD_SIZES, DEFAULT_CARD_SIZE, EMPTY_LAYOUT, type CardSize, type HomeLayout, type Position } from "./homeLayout";
 import { homeLayout, saveLayout } from "./layoutStore.svelte";
 
 /**
@@ -9,6 +9,9 @@ import { homeLayout, saveLayout } from "./layoutStore.svelte";
 let draft = $state.raw<HomeLayout | null>(null);
 let saving = $state(false);
 let error = $state<string | null>(null);
+
+/** The size after `size` on the chip: XS → S → M → L → Wide → XS. */
+export const nextSize = (size: CardSize) => CARD_SIZES[(CARD_SIZES.indexOf(size) + 1) % CARD_SIZES.length];
 
 export const editor = {
   /** Whether the home screen is being edited. Reactive. */
@@ -38,16 +41,15 @@ export const editor = {
   reset() {
     draft = EMPTY_LAYOUT;
   },
-  /** Room card order, by area ID; the home screen passes every room in its new order. */
-  setOrder(order: string[]) {
-    if (draft) draft = { ...draft, order };
+  /** Every card's position on a screen `cols` columns wide; the home screen passes all of them after a change. */
+  place(cols: number, positions: Record<string, Position>) {
+    if (draft) draft = { ...draft, grids: { ...draft.grids, [cols]: positions } };
   },
-  /** Give a room's card the next size: XS → S → M → L → Wide → XS. The default size isn't stored. */
-  cycleSize(areaId: string) {
+  /** A room card's size. The default size isn't stored. */
+  setSize(areaId: string, size: CardSize) {
     if (!draft) return;
-    const next = CARD_SIZES[(CARD_SIZES.indexOf(sizeOf(draft, areaId)) + 1) % CARD_SIZES.length];
     const { [areaId]: _, ...sizes } = draft.sizes ?? {};
-    if (next !== DEFAULT_CARD_SIZE) sizes[areaId] = next;
+    if (size !== DEFAULT_CARD_SIZE) sizes[areaId] = size;
     draft = { ...draft, sizes };
   },
   /** Save the draft (if anything changed) and leave edit mode; on failure, stay and keep the draft. */

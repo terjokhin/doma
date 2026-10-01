@@ -14,7 +14,8 @@ Where the app is going, in order, and how each step is checked. The README cover
 - **Phase 3, arrange the home screen** (built, not yet tried on the tablet):
   - the cell grid ([LAYOUTS.md](LAYOUTS.md)), reflowing on rotation; one grid per floor on the home screen;
   - room cards in five sizes (XS, S, M, L, Wide) with light and climate controls, "+N" for the rest;
-  - a home layout per HA user (card order and sizes) in HA's per-user frontend data, no admin login;
+  - a home layout per HA user (card sizes, and positions per column count) in HA's per-user frontend data, no
+    admin login;
   - edit mode: "Edit layout" in the settings menu, drag cards by their handle, tap the size chip, Done / Cancel /
     Reset. Tried in desktop Chrome with mouse and emulated touch, on the demo home.
 - Along the way: a power button on climate tiles (devices that were off couldn't be switched on).
@@ -123,19 +124,22 @@ areas and floors stay as HA has them, and the cards' contents still come from th
 3. ✅ **One cell grid per floor**: the home screen drops the 4-wide section columns; each floor is one grid as
    wide as the screen, and each card covers whole cells (default M, 4 × 3). Check: demo and local fixtures look
    as today at 4, 8, 12 and 16 columns; bundle under budget.
-4. ✅ **Card sizes**: XS 2 × 1.5, S 4 × 1.5 (half an M), M 4 × 3, L 4 × 4, Wide 8 × 3 ([LAYOUTS.md](LAYOUTS.md#room-cards-home-screen)).
-   A card shows as many controls as its size holds, "+N" for the rest.
-5. ✅ **Layout model, per HA user**: room order and card sizes only, stored in HA's per-user frontend data
+4. ✅ **Card sizes**: XS 2 × 1.5, S 4 × 1.5 (half an M), M 4 × 3, L 4 × 4, Wide 8 × 3
+   ([LAYOUTS.md](LAYOUTS.md#room-cards-home-screen)). A card shows as many controls as its size holds, "+N" for the rest.
+5. ✅ **Layout model, per HA user**: card sizes and positions per column count, stored in HA's per-user frontend data
    ([LAYOUTS.md](LAYOUTS.md#layout-model)). Any logged-in user can save, so the kiosk arranges its own screen;
    every screen logged in as the same user follows it live. Replaces the first, shared model (never used).
 6. **Edit mode** (built; the tablet check is open): "Edit layout" in the settings menu; drag a card by its handle
-   to move it within its floor, tap its size chip to cycle XS → S → M → L → Wide; Done saves, Cancel discards,
+   to any spot on its floor, tap its size chip to cycle XS → S → M → L → Wide; Done saves, Cancel discards,
    "Reset to default" clears it. Controls don't react while editing. Pointer events, no drag library; while
-   dragging only the dragged card moves (`transform`), the others reflow when the drop target changes. Check on the Fire HD with `?debug`: no frames over 25 ms
-   while dragging, the layout survives a reload, a second screen follows live.
+   dragging only the dragged card moves (`transform`), the others move when its target cell changes. Check on
+   the Fire HD with `?debug`: no frames over 25 ms while dragging, the layout survives a reload, a second screen
+   follows live.
 
-Positions are an **order**, not coordinates: cards fill each floor's grid in order, so one layout works on a
-phone, a tablet in either orientation and a desktop.
+Cards are **placed freely** on each floor's grid, and every card floats up so there are no gaps above it.
+Positions are kept per column count (phone, portrait and landscape tablet, large screen); a width you haven't
+arranged follows the reading order of the nearest one. (We started with an order-only model; it couldn't put
+a small card under another while the row still had room.)
 
 ### 4. Showcase screens
 - **Heating**: current vs target temperature per room for any `climate` entity, heating switches and valves by role;

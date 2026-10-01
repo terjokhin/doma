@@ -1,25 +1,36 @@
 import { tick } from "svelte";
+import { GAP } from "./grid.svelte";
 
 /**
- * Drag a card in edit mode (LAYOUTS.md, "Edit mode"). Only the dragged card moves, with `transform`. When the
- * pointer comes over another card of the same `group` (an element with `data-card` and `data-group`), `onOver`
- * reorders the layout; once the grid has re-flowed, the card is re-based on its new slot, which measures it
- * once per change of target, never per pointer move. Near the top or bottom edge, the page scrolls.
+ * Drag a card in edit mode (LAYOUTS.md, "Edit mode"). Only the dragged card moves, with `transform`. Where it is,
+ * snapped to the floor grid, is its target cell: when that changes, `onCell` re-places the cards, and once the
+ * grid has re-rendered the card is re-based on its new slot (measured once per change of cell, never per pointer
+ * move). `onEnd` runs when it's let go. Near the top or bottom edge, the page scrolls.
  *
  * Call from a `pointerdown` on an element inside `card`. The pointer is followed on `window`, not through pointer
- * capture: a reorder moves the card's element in the DOM, which releases any capture, and the release would then
- * never reach the handle.
+ * capture: re-placing can move the card's element in the DOM, which releases any capture, and the release would
+ * then never reach the handle.
  */
-export function dragCard(e: PointerEvent, card: HTMLElement, onOver: (key: string) => void) {
+export function dragCard(
+  e: PointerEvent,
+  card: HTMLElement,
+  floor: HTMLElement,
+  grid: { cols: number; cell: number; w: number },
+  onCell: (x: number, y: number) => void,
+  onEnd: () => void,
+) {
   const id = e.pointerId;
   e.preventDefault();
 
   // Page coordinates, so scrolling while dragging needs no special care.
-  const start = card.getBoundingClientRect();
-  let base = { x: start.left + scrollX, y: start.top + scrollY }; // the card's slot, without the transform
+  const page = (r: DOMRect) => ({ x: r.left + scrollX, y: r.top + scrollY });
+  const origin = page(floor.getBoundingClientRect()); // the floor grid's top left; floors above don't change
+  let base = page(card.getBoundingClientRect()); // the card's slot, without the transform
   const grab = { x: e.pageX - base.x, y: e.pageY - base.y };
+  const pitchX = grid.cell * (1 + GAP); // a column and a gap
+  const pitchY = pitchX / 2; // a row of half a cell and a gap
   let pointer = { x: e.clientX, y: e.clientY };
-  let last: string | undefined; // the card the pointer was last over: no reorder until it leaves it
+  let cell = { x: Math.round((base.x - origin.x) / pitchX), y: Math.round((base.y - origin.y) / pitchY) };
   let frame = 0;
   let ended = false;
   card.classList.add("dragging");
@@ -33,19 +44,18 @@ export function dragCard(e: PointerEvent, card: HTMLElement, onOver: (key: strin
   const rebase = () => {
     if (ended || !card.isConnected) return;
     card.style.transform = "";
-    const r = card.getBoundingClientRect();
-    base = { x: r.left + scrollX, y: r.top + scrollY };
+    base = page(card.getBoundingClientRect());
     place();
   };
 
-  const hit = () => {
-    // The dragged card has pointer-events: none, so this finds the card underneath.
-    const over = document.elementFromPoint(pointer.x, pointer.y)?.closest<HTMLElement>("[data-card]");
-    const key = over?.dataset.card;
-    if (!key || key === last || over.dataset.group !== card.dataset.group) return;
-    last = key;
-    if (key === card.dataset.card) return;
-    onOver(key);
+  const snap = () => {
+    const left = pointer.x + scrollX - grab.x - origin.x;
+    const top = pointer.y + scrollY - grab.y - origin.y;
+    const x = Math.max(0, Math.min(Math.round(left / pitchX), grid.cols - grid.w));
+    const y = Math.max(0, Math.round(top / pitchY));
+    if (x === cell.x && y === cell.y) return;
+    cell = { x, y };
+    onCell(x, y);
     void tick().then(rebase);
   };
 
@@ -59,7 +69,7 @@ export function dragCard(e: PointerEvent, card: HTMLElement, onOver: (key: strin
     }
     scrollBy(0, (depth / edge) * 20);
     place();
-    hit();
+    snap();
     frame = requestAnimationFrame(scroll);
   };
 
@@ -67,7 +77,7 @@ export function dragCard(e: PointerEvent, card: HTMLElement, onOver: (key: strin
     if (ev.pointerId !== id) return;
     pointer = { x: ev.clientX, y: ev.clientY };
     place();
-    hit();
+    snap();
     if (!frame) frame = requestAnimationFrame(scroll);
   };
 
@@ -80,6 +90,7 @@ export function dragCard(e: PointerEvent, card: HTMLElement, onOver: (key: strin
     removeEventListener("pointercancel", end);
     card.classList.remove("dragging");
     card.style.transform = "";
+    onEnd();
   };
 
   addEventListener("pointermove", move);

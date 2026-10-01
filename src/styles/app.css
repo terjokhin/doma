@@ -313,14 +313,13 @@ button {
 }
 
 /*
- * A floor's room cards: one grid as wide as the page, filled strictly in layout order (no `dense`). Rows are half
- * a cell (two of them and the gap between make one cell), so an S card can be half as tall as an M.
+ * A floor's room cards: one grid as wide as the page, each card at the position layout/place.ts gives it. Rows
+ * are half a cell (two of them and the gap between make one cell), so an S card can be half as tall as an M.
  */
 .floor-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols), var(--cell));
   grid-auto-rows: calc((var(--cell) - var(--gap)) / 2);
-  grid-auto-flow: row;
   gap: var(--gap);
 }
 
@@ -919,6 +918,15 @@ a.btn {
 
 .drag-handle:active {
   transform: translate(-50%, 50%) scale(0.92);
+}
+
+/* Where the dragged card will land. */
+.drop-ghost {
+  border-radius: var(--radius-l);
+  background: var(--cool-soft);
+  box-shadow: inset 0 0 0 2px var(--cool);
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 /* The card being dragged: above the others, on its own layer, ignored by hit-testing (see dragCard). */

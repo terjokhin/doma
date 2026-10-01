@@ -1,30 +1,66 @@
 <script lang="ts">
   import { t } from "../i18n/index.svelte";
+  import type { Position } from "../layout/homeLayout";
   import { dragCard } from "../layout/dragCard";
   import { grid } from "../layout/grid.svelte";
-  import { editor } from "../layout/layoutEditor.svelte";
-  import { homeView } from "../model/homeView";
+  import { editor, nextSize } from "../layout/layoutEditor.svelte";
+  import { compact, moveBox, resizeBox, type Box } from "../layout/place";
+  import { gridRows, homeView, type FloorView, type RoomCardView } from "../model/homeView";
   import { homeModel } from "../model/model.svelte";
+  import { CARD_CELLS, fitCard } from "../model/roomCard";
   import EditBar from "../ui/EditBar.svelte";
   import Header from "../ui/Header.svelte";
   import RoomSection from "./RoomSection.svelte";
 
-  // Each floor is a full-width heading; its room cards fill one cell grid under it, in the order and at the
-  // sizes the home layout gives (LAYOUTS.md, "The floor grid"). In edit mode it shows the editor's draft.
+  // Each floor is a full-width heading; its room cards sit on one grid under it, where and at the sizes the home
+  // layout says (LAYOUTS.md, "The floor grid"). In edit mode it shows the editor's draft.
   const floors = $derived(homeView(homeModel(), editor.layout, grid.cols));
 
-  /** Put the dragged card where `target` is: after it when moving forward, before it when moving back. */
-  function moveCard(dragged: string, target: string) {
-    const ids = floors.flatMap((f) => f.rooms.map((r) => r.room.area.area_id));
-    const to = ids.indexOf(target);
-    ids.splice(ids.indexOf(dragged), 1);
-    ids.splice(to, 0, dragged);
-    editor.setOrder(ids);
+  /** The card being dragged, to show where it will land. */
+  let dragging = $state<{ floor: string; id: string } | null>(null);
+
+  const boxesOf = (floor: FloorView): Box[] =>
+    floor.rooms.map((r) => ({ id: r.room.area.area_id, x: r.x, y: r.y, w: r.size.w, h: gridRows(r.size) }));
+
+  /** Store every card's position on this screen width, with `floorKey`'s cards at `boxes`. */
+  function place(floorKey: string, boxes: Box[]) {
+    const positions: Record<string, Position> = {};
+    for (const floor of floors) {
+      for (const b of floor.key === floorKey ? boxes : boxesOf(floor)) positions[b.id] = { x: b.x, y: b.y };
+    }
+    editor.place(grid.cols, positions);
   }
 
-  function startDrag(e: PointerEvent, areaId: string) {
-    const card = (e.currentTarget as HTMLElement).closest<HTMLElement>("[data-card]");
-    if (card) dragCard(e, card, (target) => moveCard(areaId, target));
+  const floorOf = (key: string) => floors.find((f) => f.key === key)!;
+
+  function resize(floorKey: string, card: RoomCardView) {
+    const size = nextSize(card.sizeName);
+    const cells = fitCard(CARD_CELLS[size], grid.cols);
+    editor.setSize(card.room.area.area_id, size);
+    place(floorKey, resizeBox(boxesOf(floorOf(floorKey)), card.room.area.area_id, cells.w, gridRows(cells), grid.cols));
+  }
+
+  function startDrag(e: PointerEvent, floorKey: string, card: RoomCardView) {
+    const target = e.currentTarget as HTMLElement;
+    const el = target.closest<HTMLElement>("[data-card]");
+    const floorEl = target.closest<HTMLElement>(".floor-grid");
+    if (!el || !floorEl) return;
+    const id = card.room.area.area_id;
+    // Every step starts from where the cards were when the drag began: a card the dragged one passes over makes
+    // room, then goes back to its place once it has passed.
+    const start = boxesOf(floorOf(floorKey));
+    dragging = { floor: floorKey, id };
+    dragCard(
+      e,
+      el,
+      floorEl,
+      { cols: grid.cols, cell: grid.cell, w: card.size.w },
+      (x, y) => place(floorKey, moveBox(start, id, x, y, grid.cols)),
+      () => {
+        dragging = null;
+        place(floorKey, compact(boxesOf(floorOf(floorKey))));
+      },
+    );
   }
 </script>
 
@@ -38,12 +74,18 @@
     <h2 class="floor-band">{floor.name ?? t("app.otherFloor")}</h2>
     <div class="floor-grid">
       {#each floor.rooms as card (card.room.area.area_id)}
+        {#if dragging?.floor === floor.key && dragging.id === card.room.area.area_id}
+          <div
+            class="drop-ghost"
+            style:grid-column="{card.x + 1} / span {card.size.w}"
+            style:grid-row="{card.y + 1} / span {gridRows(card.size)}"
+          ></div>
+        {/if}
         <div
           class="grid-item"
           data-card={card.room.area.area_id}
-          data-group={floor.key}
-          style:grid-column="span {card.size.w}"
-          style:grid-row="span {card.size.h * 2}"
+          style:grid-column="{card.x + 1} / span {card.size.w}"
+          style:grid-row="{card.y + 1} / span {gridRows(card.size)}"
         >
           <RoomSection
             room={card.room}
@@ -52,8 +94,8 @@
             edit={editor.active
               ? {
                   size: card.sizeName,
-                  cycleSize: () => editor.cycleSize(card.room.area.area_id),
-                  drag: (e: PointerEvent) => startDrag(e, card.room.area.area_id),
+                  cycleSize: () => resize(floor.key, card),
+                  drag: (e: PointerEvent) => startDrag(e, floor.key, card),
                 }
               : undefined}
           />

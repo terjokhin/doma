@@ -2,13 +2,14 @@
 
 How ha-ui divides the screen and sizes everything on it. The short version: **one square cell is the unit for
 everything**, elements are sized in whole cells, sections are 4 cells wide, and a small packer arranges sections
-in columns like a masonry layout. On the home screen, room cards come in a few fixed sizes and fill one cell grid
-per floor, in an order you can change. Nothing is sized in pixels except a few readability minimums.
+in columns like a masonry layout. On the home screen, room cards come in a few fixed sizes and sit on one cell
+grid per floor, where you place them. Nothing is sized in pixels except a few readability minimums.
 
 ## Goals
 
 - **One layout for every screen.** The same layout works on a 10″ tablet in either orientation, a phone and a
-  24″ panel. Rotating the device reflows it; nothing is stored per device or per orientation.
+  24″ panel. Rotating the device reflows it. Nothing is stored per device; card positions on the home screen are
+  stored per column count (see "Layout model"), and a width without its own arrangement follows the nearest one.
 - **Proportional, not pixel-based.** A tile looks the same on a small and a large screen, just bigger.
 - **Cheap on weak hardware.** Positions come from arithmetic, not from measuring the DOM. The browser only does
   plain grid and flex layout. See the budgets in [ROADMAP.md](ROADMAP.md).
@@ -141,15 +142,21 @@ In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) 
 
 Each floor's cards fill one CSS grid as wide as the page: `cols` columns of `--cell`, gap `--gap`, and rows of
 **half a cell**, `(c − g) / 2`, so two rows and the gap between them make one cell. A card spans `w` columns and
-`2h` rows. Two S cards stack under each other when the spot to the right of the first is taken (by the next card
-or the edge of the screen); otherwise they sit side by side. Cards are placed **strictly in layout order** (`grid-auto-flow: row`,
-not `dense`): each goes into the first spot after the previous card where it fits. So what you see is the order
-you set, on every screen width; the price is that a card too wide for the rest of a row leaves a hole there,
-which you fill by moving a smaller card. Rotating or resizing only re-flows the same order into a different
-number of columns.
+`2h` rows, at an explicit position: `x` in columns, `y` in rows of half a cell.
 
-The browser places the cards; nothing is computed in JavaScript, and a card's size never depends on its
-contents.
+Positions come from a small placement step (`layout/place.ts`), pure arithmetic on the sizes, so nothing is
+measured:
+
+- Cards with a stored position for this column count go there: moved left if the screen is narrower, pushed down
+  if they overlap.
+- **Every card floats up** as far as it can, in reading order, so there are no gaps above a card. Gaps beside
+  cards stay until you fill them.
+- Cards without a position fill the first free spot, scanning rows from the top: a new room, or every card on a
+  column count you haven't arranged yet. Their order is the reading order of the nearest arranged column count,
+  else the default order. So the phone (4 columns) follows what you set on the tablet (12) until you arrange it
+  there too.
+
+A card's size never depends on its contents.
 
 ## Packing sections
 
@@ -196,22 +203,25 @@ These rules target Chrome 108 (see the README):
 ## Layout model
 
 The layout stores **only the user's changes** on top of the layout generated from HA's floors and areas, never a
-full copy, so new rooms still appear by themselves. It holds two things, **the order of room cards and their
-sizes**, and never pixels or coordinates, so one layout serves every device and orientation; the floor grid does
-the placing. Rooms, areas and floors themselves are HA's and aren't changed here. (`layout/homeLayout.ts`)
+full copy, so new rooms still appear by themselves. It holds two things: **card sizes**, and **card positions per
+column count**, in grid units, never pixels. Rooms, areas and floors themselves are HA's and aren't changed here.
+(`layout/homeLayout.ts`)
 
 ```json
 {
   "version": 1,
-  "order": ["kitchen", "living_room"],
-  "sizes": { "kitchen": "wide", "hallway": "s" }
+  "sizes": { "kitchen": "wide", "hallway": "xs" },
+  "grids": {
+    "12": { "garden": { "x": 0, "y": 0 }, "hallway": { "x": 0, "y": 3 }, "kitchen": { "x": 4, "y": 0 } }
+  }
 }
 ```
 
-- **`order`**: room order on the home screen, by area ID, applied within each floor (a card can't move to another
-  floor; that's the area's floor in HA). Listed rooms come first; unlisted ones follow in their default order, so
-  a new room appears at the end of its floor.
-- **`sizes`**: each card's size, `xs`, `s`, `m`, `l` or `wide`; unlisted rooms are `m`.
+- **`sizes`**: each card's size, `xs`, `s`, `m`, `l` or `wide`; unlisted rooms are `m`. The same on every screen.
+- **`grids.<cols>`**: where each card sits on a screen `cols` columns wide (4 on a phone, 8 on a portrait
+  tablet, 12 on a landscape tablet or laptop, 16 on a large screen), by area ID: `x` in columns, `y` in rows of
+  half a cell, from the top left of the card's floor grid. A card stays on its floor (the area's floor in HA).
+  The editor stores every card of a column count once you change anything there.
 
 Rooms are referenced by area ID, which stays the same when a room is renamed; a stale one is simply ignored. The
 stored value is read defensively: unknown fields and sizes are dropped, and a version this app doesn't know gives
@@ -233,11 +243,14 @@ right after appearing. (`layout/layoutStore.svelte.ts`)
 - Controls on the cards don't react (`inert`); each card shows an outline, a **size chip** (XS / S / M / L / Wide) in
   its title band and a **drag handle** in the middle. Tapping the chip cycles to the next size; the default size
   isn't stored.
-- **Drag a card** to move it within its floor: by the handle on touch (only the handle has `touch-action: none`,
+- **Drag a card** to any spot on its floor: by the handle on touch (only the handle has `touch-action: none`,
   so swiping anywhere else on a card still scrolls the page), from anywhere on the card with a mouse. Only the
-  dragged card moves, with `transform`; the drop target is the card under the pointer, and the others re-flow
-  only when it changes, not on every pointer move. The card moves after the target when dragged forward, before
-  it when dragged back. Near the top or bottom edge the page scrolls by itself.
+  dragged card moves, with `transform`. Its target is the cell nearest to where it is; when that changes, the
+  card takes that cell, cards in the way move down, and the rest float up (`moveBox`). Each step starts from
+  where the cards were when the drag began, so a card you pass over goes back to its place. A faint outline shows
+  where the card will land; when it's let go, every card floats up, this one too. Near the top or bottom edge the
+  page scrolls by itself.
+- A new size keeps the card where it is (moved left if it no longer fits); the cards around it make room.
 - A bar replaces the header and sticks to the top: **Done** (saves, if anything changed), **Cancel** (discards)
   and **Reset to default** (an empty layout, saved on Done). A failed save keeps the draft and says why.
 - In code: the draft in `layout/layoutEditor.svelte.ts`, dragging in `layout/dragCard.ts`, the bar in
