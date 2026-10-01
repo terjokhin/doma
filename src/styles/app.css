@@ -889,6 +889,11 @@ a.btn {
   z-index: 30;
 }
 
+/* The open one goes above every other chip: they all share one stacking level, later ones on top. */
+.size-picker.open {
+  z-index: 40;
+}
+
 .size-chip {
   position: relative;
   display: inline-flex;

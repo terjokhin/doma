@@ -69,7 +69,7 @@
   onpointerdown={mouseDrag}
   bind:this={root}
 >
-  <div class="size-picker">
+  <div class="size-picker" class:open>
     <button
       class="size-chip"
       aria-haspopup="menu"
