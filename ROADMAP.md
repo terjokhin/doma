@@ -11,19 +11,28 @@ Where the app is going, in order, and how each step is checked. The README cover
 - **Phase 1, Svelte 5 port**: same screens, start-up JS 98 KB → 33 KB gzipped, build fails above 100 KB.
 - **Phase 2, data layer**: filtered subscriptions, `?debug` overlay, paint fixes. On the tablet, screen changes went
   from a ~300 ms frame to 45–70 ms.
-- **Phase 3, arrange the home screen** (built, not yet tried on the tablet):
-  - the cell grid ([LAYOUTS.md](LAYOUTS.md)), reflowing on rotation; one grid per floor on the home screen;
-  - room cards in five sizes (XS, S, M, L, Wide) with light and climate controls, "+N" for the rest;
-  - a home layout per HA user (card sizes, and positions per column count) in HA's per-user frontend data, no
-    admin login;
+- **Phase 3, arrange the home screen** (built and tried on a laptop against our HA; the tablet check is open):
+  - the cell grid ([LAYOUTS.md](LAYOUTS.md)), reflowing on rotation; one grid per floor on the home screen, with
+    rows of half a cell;
+  - room cards in five sizes: XS 2 × 1.5, S 4 × 1.5 (half an M), M 4 × 3, L 4 × 4, Wide 8 × 3, with light and
+    climate controls, "+N" for the rest;
+  - free placement: cards sit where you put them and float up, so a small card can go under another; positions
+    are kept per column count (phone, portrait and landscape tablet, large screen);
+  - a home layout per HA user (`sizes`, `grids`) in HA's per-user frontend data, no admin login. Saving to our
+    HA, and a second connection receiving the change live, were checked;
   - edit mode: the edit button next to the settings gear, drag cards by their handle, pick a size from the chip's
-    menu, Done / Cancel / Reset. Tried in desktop Chrome with mouse and emulated touch, on the demo home.
+    menu, Done / Cancel / Reset.
 - Along the way: a power button on climate tiles (devices that were off couldn't be switched on).
 
-**Next: finish Phase 3 on real devices.**
-- The first save to our real HA (ask first), then check that a second screen logged in as the same user follows.
-- On the Fire HD in Fully with `?debug`: dragging and the size chips by touch, no frames over 25 ms while
-  dragging, the layout survives a reload.
+**Next: finish Phase 3 on the Fire HD.** In Fully with `?debug`: dragging and the size menu by touch, no frames
+over 25 ms while dragging, the layout survives a reload.
+
+**Open ideas, not decided**
+- Name things after what they are: a floor on the home screen is a *section* (a heading over its own grid), a
+  room is a *card* (`RoomSection` → `RoomCard`), the buttons and tiles in it are *controls*. A rename only, no
+  change in behaviour or format.
+- Sections that aren't floors (e.g. "Favourites" or "Whole house" with scenes, weather, solar), placed like
+  floors: where cards that aren't rooms would live.
 
 **Waiting until later**
 - HVAC mode buttons for air conditioners (listed under [Later](#later)).
