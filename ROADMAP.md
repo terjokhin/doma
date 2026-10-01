@@ -2,6 +2,34 @@
 
 Where the app is going, in order, and how each step is checked. The README covers what exists today.
 
+## Where we stand
+
+*Updated 2026-10-01.*
+
+**Done**
+- **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
+- **Phase 1, Svelte 5 port**: same screens, start-up JS 98 KB → 33 KB gzipped, build fails above 100 KB.
+- **Phase 2, data layer**: filtered subscriptions, `?debug` overlay, paint fixes. On the tablet, screen changes went
+  from a ~300 ms frame to 45–70 ms.
+- **Phase 3, first three steps**:
+  - the cell grid ([LAYOUTS.md](LAYOUTS.md)), reflowing on rotation;
+  - room cards on the home screen: floors as headings, equal-height cards with light and climate controls,
+    at most 2 rows plus "+N";
+  - the house layout model: one shared layout per house in HA's system data (`ha-ui.layout`), live-synced to
+    every screen. Nothing has been saved to it yet, so every screen shows the generated layout.
+- Along the way: a power button on climate tiles (devices that were off couldn't be switched on).
+
+**Next: Phase 3, step 4, edit mode.** Open it with an admin login; move and hide rooms, choose what each card
+shows, pin and hide entities, "Reset to default"; save to HA. To do with it:
+- confirm before the first save to a real HA;
+- check that a non-admin kiosk user can read the saved layout.
+
+**Waiting until later**
+- HVAC mode buttons for air conditioners (listed under [Later](#later)).
+- Scrolling performance on the slowest tablet hasn't been measured on its own; the fade-in on screen changes is
+  the next suspect if they need to get faster.
+- Fitting a wall panel's home screen without scrolling (cells would shrink to fit) is an option, not a rule.
+
 ## What sets it apart
 
 1. **Fast on weak hardware.** Only the entities on screen are subscribed to, and one entity update re-renders one tile.
