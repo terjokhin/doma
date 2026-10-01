@@ -4,6 +4,7 @@
   import { watchEntities } from "../ha/subscriptions.svelte";
   import { t } from "../i18n/index.svelte";
   import GridItem from "../layout/GridItem.svelte";
+  import type { Size } from "../layout/pack";
   import type { Room } from "../model/home";
   import type { CardItem } from "../model/roomCard";
   import { navigate } from "../router.svelte";
@@ -14,10 +15,10 @@
   import ToggleButton from "../ui/ToggleButton.svelte";
 
   /**
-   * A room on the home screen: a card of fixed size (LAYOUTS.md, "Room cards") with a title band that opens
-   * the room, then up to 2 rows of its controls (see roomCardItems).
+   * A room on the home screen: a card of `size` cells (LAYOUTS.md, "Room cards"), its top row a title band that
+   * opens the room, each row below a row of its controls (see roomCardItems).
    */
-  let { room, items }: { room: Room; items: CardItem[] } = $props();
+  let { room, size, items }: { room: Room; size: Size; items: CardItem[] } = $props();
 
   watchEntities(() => [room.temperature, room.humidity]);
   const temperature = $derived(home.entity(room.temperature));
@@ -25,7 +26,7 @@
   const open = () => navigate(`/room/${room.area.area_id}`);
 </script>
 
-<section class="room-card">
+<section class="room-card" style:--card-w={size.w} style:--card-rows={size.h - 1}>
   <button class="room-title" onclick={open}>
     <span class="room-name">{room.area.name}</span>
     <span class="room-climate">

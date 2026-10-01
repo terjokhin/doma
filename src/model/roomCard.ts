@@ -1,17 +1,16 @@
-import { GAP } from "../layout/grid.svelte";
 import { DEFAULT_CARD, type CardKind, type RoomLayout } from "../layout/houseLayout";
-import { denseRows, TITLE, type Size } from "../layout/pack";
+import { denseRows, type Size } from "../layout/pack";
 import { SIZES } from "../layout/sizes";
 import type { Room } from "./home";
 
-/** A room card on the home screen shows at most this many rows of controls; the rest is behind "+N". */
-export const CARD_ROWS = 2;
-
 /**
- * Every room card has the same height, in cells, whatever it shows: a title band of half a cell, CARD_ROWS rows
- * with a gap between them, and a gap below. Must match `.room-card` in app.css.
+ * A room card's size in whole cells (LAYOUTS.md, "Room cards"): its top cell row is the title band, each row
+ * below holds one row of `w` controls. The default, M: a title row and 2 rows of 4.
  */
-export const CARD_HEIGHT = TITLE + CARD_ROWS + CARD_ROWS * GAP;
+export const DEFAULT_CARD_SIZE: Size = { w: 4, h: 3 };
+
+/** A card's size on a screen `cols` cells wide: never wider than the screen. */
+export const fitCard = (size: Size, cols: number): Size => ({ w: Math.min(size.w, cols), h: size.h });
 
 /** How an entity appears on a card. */
 export type CardItem =
@@ -31,12 +30,12 @@ const SOURCES: Record<CardKind, { ids: (room: Room) => string[]; item: (id: stri
 };
 
 /**
- * The controls on a room's card: pinned entities first, then the card's kinds in order (default: lights, then
- * climate), without hidden ones. What doesn't fit in CARD_ROWS is replaced by a "+N" button that opens the room;
+ * The controls on a room's card of `size`: pinned entities first, then the card's kinds in order (default:
+ * lights, then climate), without hidden ones. What doesn't fit in the card's rows is replaced by a "+N" button that opens the room;
  * when something has to go, pinned entities are kept first, then climate, then the rest. The order on screen
  * stays as listed.
  */
-export function roomCardItems(room: Room, layout?: RoomLayout): CardItem[] {
+export function roomCardItems(room: Room, size: Size, layout?: RoomLayout): CardItem[] {
   const hidden = new Set(layout?.hide);
   const seen = new Set<string>();
   const all: Control[] = [];
@@ -55,7 +54,7 @@ export function roomCardItems(room: Room, layout?: RoomLayout): CardItem[] {
   const pinned = all.length;
   for (const kind of layout?.card ?? DEFAULT_CARD) for (const id of SOURCES[kind].ids(room)) add(SOURCES[kind].item(id));
 
-  const fits = (items: { size: Size }[]) => denseRows(items.map((i) => i.size)) <= CARD_ROWS;
+  const fits = (items: { size: Size }[]) => denseRows(items.map((i) => i.size), size.w) <= size.h - 1;
   if (fits(all)) return all;
 
   const more = { size: SIZES.more };

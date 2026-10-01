@@ -304,15 +304,25 @@ button {
   margin-top: calc(0.25 * var(--cell));
 }
 
+/* A floor's room cards: one cell grid as wide as the page, filled strictly in layout order (no `dense`). */
+.floor-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--cell));
+  grid-auto-rows: var(--cell);
+  grid-auto-flow: row;
+  gap: var(--gap);
+}
+
 /*
- * A room card: the same size for every room (4 cells wide; title band, 2 rows, gaps: CARD_HEIGHT in
- * model/roomCard.ts). The controls sit in an inset 4 × 2 grid, so they're a little smaller than a cell.
+ * A room card fills its grid item (w × h cells): the top cell row is the title band, the rows below an inset
+ * grid of --card-w × --card-rows controls, so they're a little smaller than a cell.
  */
 .room-card {
   contain: content;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  height: calc(2.5 * var(--cell) + 2 * var(--gap));
+  min-width: 0;
   border-radius: var(--radius-l);
   background: var(--card);
   box-shadow: inset 0 0 0 1px var(--line-strong);
@@ -325,7 +335,7 @@ button {
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  height: calc(0.5 * var(--cell));
+  height: var(--cell);
   min-width: 0;
   padding: 0 var(--space-3) 0 var(--space-4);
   color: var(--text-dim);
@@ -352,8 +362,8 @@ button {
 .room-grid {
   display: grid;
   flex: 1;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(var(--card-w), 1fr);
+  grid-template-rows: repeat(var(--card-rows), 1fr);
   grid-auto-flow: row dense;
   gap: var(--gap);
   padding: 0 var(--gap) var(--gap);
@@ -774,11 +784,9 @@ a.btn {
   font-size: var(--text-s);
 }
 
-/* Narrow screens (portrait tablet, phone): tighter padding, climate tiles take one column. */
+/* Narrow screens (portrait tablet, phone): climate tiles take one column. Page padding stays --pad, which the
+   cell size is computed for. */
 @media (max-width: 700px) {
-  .screen {
-    padding: var(--space-5) var(--space-4) var(--space-6);
-  }
   .tile.climate {
     grid-column: auto;
   }
