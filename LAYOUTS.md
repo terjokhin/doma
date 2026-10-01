@@ -225,11 +225,15 @@ right after appearing. (`layout/layoutStore.svelte.ts`)
 
 "Edit layout" in the settings menu turns the home screen into an editor; nothing is saved until **Done**.
 
-- Controls on the cards don't react; each card shows an outline and a **size chip** (S / M / L / Wide). Tapping the
-  chip cycles to the next size.
-- **Drag a card** to move it within its floor. Only the dragged card moves, with `transform`; the drop target is
-  the card under the finger, and the others re-flow only when it changes, not on every pointer move.
-- The bar at the top has **Done** (saves), **Cancel** (discards) and **Reset to default** (an empty layout, saved
-  on Done).
-- Pointer events with `touch-action: none` on the cards while editing, so dragging doesn't scroll the page; near
-  the top or bottom edge the page scrolls by itself.
+- Controls on the cards don't react (`inert`); each card shows an outline, a **size chip** (S / M / L / Wide) in
+  its title band and a **drag handle** in the middle. Tapping the chip cycles to the next size; the default size
+  isn't stored.
+- **Drag a card** to move it within its floor: by the handle on touch (only the handle has `touch-action: none`,
+  so swiping anywhere else on a card still scrolls the page), from anywhere on the card with a mouse. Only the
+  dragged card moves, with `transform`; the drop target is the card under the pointer, and the others re-flow
+  only when it changes, not on every pointer move. The card moves after the target when dragged forward, before
+  it when dragged back. Near the top or bottom edge the page scrolls by itself.
+- A bar replaces the header and sticks to the top: **Done** (saves, if anything changed), **Cancel** (discards)
+  and **Reset to default** (an empty layout, saved on Done). A failed save keeps the draft and says why.
+- In code: the draft in `layout/layoutEditor.svelte.ts`, dragging in `layout/dragCard.ts`, the bar in
+  `ui/EditBar.svelte`, the card overlay in `screens/RoomSection.svelte`.

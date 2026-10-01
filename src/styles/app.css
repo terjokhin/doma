@@ -271,6 +271,14 @@ button {
   background: var(--surface-3);
 }
 
+.menu-item.plain {
+  color: var(--text);
+}
+
+.menu-item.plain + .menu-item {
+  margin-top: var(--space-2);
+}
+
 .status {
   position: fixed;
   left: 50%;
@@ -319,6 +327,7 @@ button {
  */
 .room-card {
   contain: content;
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -806,4 +815,115 @@ a.btn {
   .tile.climate {
     grid-column: auto;
   }
+}
+
+/* ---- Edit mode (LAYOUTS.md, "Edit mode") ---- */
+
+/* The edit bar starts at the very top, so no strip of background shows above it. */
+.screen.editing {
+  padding-top: 0;
+}
+
+/* Replaces the header, sticks to the top. Opaque, so nothing shows through while scrolling. */
+.edit-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: calc(var(--cell) + var(--gap));
+  margin: 0 calc(-1 * var(--pad)) var(--gap);
+  padding: var(--space-3) var(--pad);
+  background: var(--bg);
+  box-shadow: 0 1px 0 var(--line-strong);
+}
+
+/* On a phone the text takes its own row and the buttons wrap under it. */
+.edit-bar-text {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.edit-bar h1 {
+  margin: 0;
+  font-size: var(--text-l);
+  font-weight: 500;
+}
+
+.edit-bar p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-dim);
+  font-size: var(--text-s);
+}
+
+.edit-bar p.error {
+  color: var(--alert);
+}
+
+.chip.primary {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.chip:disabled {
+  opacity: 0.5;
+}
+
+/* Over a card being edited: its controls dimmed, an outline, the size chip and the drag handle. */
+.card-edit {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(14 16 19 / 0.55);
+  box-shadow: inset 0 0 0 2px var(--cool);
+  cursor: grab;
+}
+
+.size-chip {
+  position: absolute;
+  top: calc(var(--cell) / 2);
+  right: var(--space-3);
+  min-width: var(--touch);
+  justify-content: center;
+  transform: translateY(-50%);
+  background: var(--surface-3);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.size-chip:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+/* In the middle of the controls area. Touch drags only here, so the rest of the card scrolls the page. */
+.drag-handle {
+  position: absolute;
+  top: calc(50% + var(--cell) / 2);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface-3);
+  color: var(--text);
+  touch-action: none;
+}
+
+.drag-handle:active {
+  transform: translate(-50%, -50%) scale(0.92);
+}
+
+/* The card being dragged: above the others, on its own layer, ignored by hit-testing (see dragCard). */
+.grid-item.dragging {
+  position: relative;
+  z-index: 10;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.grid-item.dragging .room-card {
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 12px 32px rgb(0 0 0 / 0.5);
+}
+
+.grid-item.dragging .card-edit {
+  cursor: grabbing;
 }

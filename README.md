@@ -90,8 +90,9 @@ the screen and reflows on rotation; the rules are in [LAYOUTS.md](LAYOUTS.md).
 The layout is generated from your HA floors and areas, and a **home layout** adjusts it: the order of the room
 cards and their sizes. It only stores those changes, so new rooms still appear by themselves. Each HA user has
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `ha-ui.layout`): any user can save
-theirs, no admin login needed, and every screen logged in as that user picks up a change at once. Editing it on
-screen is next on the [roadmap](ROADMAP.md); the format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
+theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
+choose **Edit layout** in the settings menu: drag a card by its handle to move it within its floor, tap its size
+to cycle S → M → L → Wide, then **Done**. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
 
 ## Architecture
 

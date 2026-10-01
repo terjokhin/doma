@@ -1,10 +1,12 @@
-import { DEFAULT_CARD_SIZE, type HomeLayout } from "../layout/homeLayout";
+import { sizeOf, type CardSize, type HomeLayout } from "../layout/homeLayout";
 import type { Size } from "../layout/pack";
 import type { FloorGroup, Room } from "./home";
 import { CARD_CELLS, fitCard, roomCardItems, type CardItem } from "./roomCard";
 
 export interface RoomCardView {
   room: Room;
+  /** The card's size as the layout names it. */
+  sizeName: CardSize;
   /** The card's size in cells, fitted to the screen. */
   size: Size;
   items: CardItem[];
@@ -26,7 +28,6 @@ export interface FloorView {
 export function homeView(model: FloorGroup[], layout: HomeLayout, cols: number): FloorView[] {
   const rank = new Map((layout.order ?? []).map((id, i) => [id, i]));
   const position = (room: Room) => rank.get(room.area.area_id) ?? Infinity;
-  const sizeOf = (room: Room) => fitCard(CARD_CELLS[layout.sizes?.[room.area.area_id] ?? DEFAULT_CARD_SIZE], cols);
 
   return model
     .map((group) => ({
@@ -36,8 +37,9 @@ export function homeView(model: FloorGroup[], layout: HomeLayout, cols: number):
         .map((room, index) => ({ room, index }))
         .sort((a, b) => position(a.room) - position(b.room) || a.index - b.index)
         .map(({ room }) => {
-          const size = sizeOf(room);
-          return { room, size, items: roomCardItems(room, size) };
+          const sizeName = sizeOf(layout, room.area.area_id);
+          const size = fitCard(CARD_CELLS[sizeName], cols);
+          return { room, sizeName, size, items: roomCardItems(room, size) };
         }),
     }))
     .filter((floor) => floor.rooms.length > 0);

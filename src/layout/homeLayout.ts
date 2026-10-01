@@ -25,6 +25,9 @@ export interface HomeLayout {
 
 export const EMPTY_LAYOUT: HomeLayout = { version: 1 };
 
+/** A room card's size in this layout. */
+export const sizeOf = (layout: HomeLayout, areaId: string): CardSize => layout.sizes?.[areaId] ?? DEFAULT_CARD_SIZE;
+
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 

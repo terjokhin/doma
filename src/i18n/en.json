@@ -72,5 +72,22 @@
     "logout": "Log out",
     "title": "Settings",
     "exitDemo": "Exit demo"
+  },
+  "edit": {
+    "open": "Edit layout",
+    "title": "Arrange the home screen",
+    "hint": "Drag a card by its handle to move it; tap its size to change it.",
+    "done": "Done",
+    "cancel": "Cancel",
+    "reset": "Reset to default",
+    "move": "Move {{name}}",
+    "sizeOf": "{{name}}: size {{size}}",
+    "saveFailed": "Couldn't save: {{message}}",
+    "sizes": {
+      "s": "S",
+      "m": "M",
+      "l": "L",
+      "wide": "Wide"
+    }
   }
 }

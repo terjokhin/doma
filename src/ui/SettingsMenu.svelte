@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { mdiCog, mdiLogout } from "@mdi/js";
+  import { mdiCog, mdiLogout, mdiViewDashboardEditOutline } from "@mdi/js";
   import { logout } from "../ha/store.svelte";
   import { LANGUAGES, language, setLanguage, t, type Language } from "../i18n/index.svelte";
+  import { editor } from "../layout/layoutEditor.svelte";
+  import { navigate, route } from "../router.svelte";
   import Icon from "./Icon.svelte";
 
   /** Tucked behind a gear so nobody logs out the wall panel by brushing against it. */
@@ -10,6 +12,12 @@
   const languages = Object.keys(LANGUAGES) as Language[];
 
   let open = $state(false);
+
+  function editLayout() {
+    open = false;
+    if (route() !== "/") navigate("/");
+    editor.start();
+  }
   let root: HTMLDivElement;
 
   $effect(() => {
@@ -36,6 +44,10 @@
           </button>
         {/each}
       </div>
+      <button class="menu-item plain" role="menuitem" onclick={editLayout}>
+        <Icon path={mdiViewDashboardEditOutline} />
+        {t("edit.open")}
+      </button>
       <button class="menu-item" role="menuitem" onclick={() => void logout()}>
         <Icon path={mdiLogout} />
         {inDemo ? t("settings.exitDemo") : t("settings.logout")}

@@ -11,19 +11,18 @@ Where the app is going, in order, and how each step is checked. The README cover
 - **Phase 1, Svelte 5 port**: same screens, start-up JS 98 KB → 33 KB gzipped, build fails above 100 KB.
 - **Phase 2, data layer**: filtered subscriptions, `?debug` overlay, paint fixes. On the tablet, screen changes went
   from a ~300 ms frame to 45–70 ms.
-- **Phase 3, first three steps**:
-  - the cell grid ([LAYOUTS.md](LAYOUTS.md)), reflowing on rotation;
-  - room cards on the home screen: floors as headings, equal-height cards with light and climate controls,
-    at most 2 rows plus "+N";
-  - a first layout model, shared by the whole house in HA's system data. Nothing was ever saved to it; it is
-    being reworked (below).
+- **Phase 3, arrange the home screen** (built, not yet tried on the tablet):
+  - the cell grid ([LAYOUTS.md](LAYOUTS.md)), reflowing on rotation; one grid per floor on the home screen;
+  - room cards in four sizes (S, M, L, Wide) with light and climate controls, "+N" for the rest;
+  - a home layout per HA user (card order and sizes) in HA's per-user frontend data, no admin login;
+  - edit mode: "Edit layout" in the settings menu, drag cards by their handle, tap the size chip, Done / Cancel /
+    Reset. Tried in desktop Chrome with mouse and emulated touch, on the demo home.
 - Along the way: a power button on climate tiles (devices that were off couldn't be switched on).
 
-**Next: Phase 3 reworked: arrange the home screen** (steps 3–6 below). Phase 3 is only about the layout: move
-room cards and pick their size, saved per HA user, no admin login. Rooms, areas and floors stay as HA has
-them; choosing what a card shows, hiding rooms and pinning entities moved to [Later](#later). To do with it:
-- confirm before the first save to our real HA;
-- check that dragging and the size chips work by touch in Fully, without frames over 25 ms.
+**Next: finish Phase 3 on real devices.**
+- The first save to our real HA (ask first), then check that a second screen logged in as the same user follows.
+- On the Fire HD in Fully with `?debug`: dragging and the size chips by touch, no frames over 25 ms while
+  dragging, the layout survives a reload.
 
 **Waiting until later**
 - HVAC mode buttons for air conditioners (listed under [Later](#later)).
@@ -121,16 +120,16 @@ areas and floors stay as HA has them, and the cards' contents still come from th
    ([LAYOUTS.md](LAYOUTS.md)). Home and room screens use it; it reflows on rotation.
 2. ✅ **Room cards on the home screen**: floors as headings, each room a card with its lights (1 × 1) and
    climate (2 × 1) controls, at most 2 rows plus "+N".
-3. **One cell grid per floor**: the home screen drops the 4-wide section columns; each floor is one grid as
+3. ✅ **One cell grid per floor**: the home screen drops the 4-wide section columns; each floor is one grid as
    wide as the screen, and each card covers whole cells (default M, 4 × 3). Check: demo and local fixtures look
    as today at 4, 8, 12 and 16 columns; bundle under budget.
-4. **Card sizes**: S 2 × 2, M 4 × 3, L 4 × 4, Wide 8 × 3 ([LAYOUTS.md](LAYOUTS.md#room-cards-home-screen)).
+4. ✅ **Card sizes**: S 2 × 2, M 4 × 3, L 4 × 4, Wide 8 × 3 ([LAYOUTS.md](LAYOUTS.md#room-cards-home-screen)).
    A card shows as many controls as its size holds, "+N" for the rest.
-5. **Layout model, per HA user**: room order and card sizes only, stored in HA's per-user frontend data
+5. ✅ **Layout model, per HA user**: room order and card sizes only, stored in HA's per-user frontend data
    ([LAYOUTS.md](LAYOUTS.md#layout-model)). Any logged-in user can save, so the kiosk arranges its own screen;
    every screen logged in as the same user follows it live. Replaces the first, shared model (never used).
-6. **Edit mode**: "Edit layout" in the settings menu; drag a card to move it within its floor, tap its size chip
-   to cycle S → M → L → Wide; Done saves, Cancel discards, "Reset to default" clears it. Controls don't react
+6. **Edit mode** (built; the tablet check is open): "Edit layout" in the settings menu; drag a card by its handle
+   to move it within its floor, tap its size chip to cycle S → M → L → Wide; Done saves, Cancel discards, "Reset to default" clears it. Controls don't react
    while editing. Pointer events, no drag library; while dragging only the dragged card moves (`transform`),
    the others reflow when the drop target changes. Check on the Fire HD with `?debug`: no frames over 25 ms
    while dragging, the layout survives a reload, a second screen follows live.
