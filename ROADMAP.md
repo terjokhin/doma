@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-01.*
+*Updated 2026-10-02.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -24,18 +24,16 @@ Where the app is going, in order, and how each step is checked. The README cover
     menu, Done / Cancel / Reset.
 - Along the way: a power button on climate tiles (devices that were off couldn't be switched on).
 
-**Next: finish Phase 3 on the Fire HD.** In Fully with `?debug`: dragging and the size menu by touch, no frames
-over 25 ms while dragging, the layout survives a reload.
+**Now: Phase 4, views and lenses** (design in [Views and navigation](#views-and-navigation), decided
+2026-10-02). Built and checked on a laptop against the demo and a snapshot of our home, at 4, 8 and 12 columns:
+the Lights, Climate, Security and Devices lenses; tabs under the header (a bar at the bottom on a phone), picked
+and ordered in edit mode and saved as `tabs`; status chips; back from a room to where you came from. Start-up JS
+went from 40.7 to 45.9 KB gzipped. **Next:** the Fire HD check (step 6), then Phase 5.
 
-**Open ideas, not decided**
-- Name things after what they are: a floor on the home screen is a *section* (a heading over its own grid), a
-  room is a *card* (`RoomSection` → `RoomCard`), the buttons and tiles in it are *controls*. A rename only, no
-  change in behaviour or format.
-- Sections that aren't floors (e.g. "Favourites" or "Whole house" with scenes, weather, solar), placed like
-  floors: where cards that aren't rooms would live.
+**Still open from Phase 3: the Fire HD check.** In Fully with `?debug`: dragging and the size menu by touch, no
+frames over 25 ms while dragging, the layout survives a reload.
 
 **Waiting until later**
-- HVAC mode buttons for air conditioners (listed under [Later](#later)).
 - Scrolling performance on the slowest tablet hasn't been measured on its own; the fade-in on screen changes is
   the next suspect if they need to get faster.
 - Fitting a wall panel's home screen without scrolling (cells would shrink to fit) is an option, not a rule.
@@ -50,6 +48,86 @@ over 25 ms while dragging, the layout survives a reload.
    rearrange it from there, on the screen itself, without an admin login.
 4. **Zero maintenance.** No dependency on Home Assistant's frontend internals, so HA updates can't break it.
 
+## Views and navigation
+
+Decided 2026-10-02. The plan for every screen the app will have and how you get between them.
+
+### One model, many generators
+
+Every screen is a **view**. A view holds **sections** (a titled group on its own grid), a section holds **cards**,
+and a card holds **controls** (the buttons and tiles you tap). Home, room and custom screens aren't separate
+systems: they differ only in where their sections come from.
+
+| View | Its sections come from | You can change |
+|---|---|---|
+| **Home** | floors, each with a card per room | card sizes and positions; later hidden rooms and extra sections |
+| **Room** (one per area) | a room template: Lights, Climate, Media, Scenes, Air and safety, Tech | the template for every room at once, plus pins and hides per room |
+| **Lens** (across rooms) | one function across the house: Lights, Climate, Security, Devices; later Energy | which lenses are tabs, and their order |
+| **Custom** | you | anything; per HA user |
+
+A generated view stays generated: your edits are kept as changes on top of it (like the home layout), so new
+devices and rooms keep showing up. Home Assistant makes you "take control" of a generated dashboard before you can
+edit it, and from then on nothing new appears by itself; here it does.
+
+### Navigation
+
+- **At most two levels**: a view, then a room. Details of one device (brightness, colour, HVAC modes, history)
+  open as a sheet over the screen, never as a page of their own.
+- **Tabs**: Home first, then the views you pick, in the order you pick them (in edit mode). A lens that isn't a
+  tab is still reached from its status chip. On a tablet the tabs sit in a band under the header, not in a side
+  rail: a rail one cell wide would cost a 1280 px screen four of its 12 columns. On a phone (4 columns) they
+  move to a bar at the bottom.
+- **Status chips** next to the tabs say what's going on, and only when there's something to say: "3 lights on",
+  "2 heating", "Door open · Hallway", "2 offline". Each opens its lens, so the band doubles as the alerts row.
+- **Back** from a room goes to the screen you came from (Home or a lens).
+- Later, for wall panels: swipe between rooms, a start view per screen and a return to it after a few idle
+  minutes, and links such as `#/lens/lights` to pin a tablet to one view.
+
+### Lenses
+
+A lens takes one function across the whole house and groups it the way Home does: floor headings, then a section
+per room, packed into columns like a room screen. Tapping a room's name opens the room.
+
+| Lens | Each room's section shows | Chip |
+|---|---|---|
+| Lights | its lights, with all on / all off | lights on |
+| Climate | climate devices, heating switches, temperature, humidity, CO₂ | climate devices heating, cooling or on |
+| Security | doors, windows, leak, smoke and gas sensors, locks | something detected (alert), or doors and windows open |
+| Devices | devices that are offline, and battery levels, lowest first | devices offline, batteries at 20 % or below |
+
+Later: Energy (solar, grid, from HA's energy settings); TRV details in Climate (valve position, open window); link
+quality and last seen in Devices where those entities are enabled.
+
+### Building blocks for custom views
+
+Kept small on purpose. **Sections**: a floor, a room, or a free section. **Cards**: a room card; tiles (one or
+more controls); a summary ("3 of 7 lights on", "average 21.6°"); the header (clock, weather); a graph; a camera; a
+link to a view or room. A card's contents come from a pinned entity or from a **selector**, such as
+`{area: living_room, domain: light}` or `{floor: first_floor, role: heating_valve}`, resolved against HA's
+registries when the screen opens. A view built from selectors survives renames, fills itself as devices are
+added, and can be shared with another home.
+
+A new view never starts blank unless you ask: Blank, Copy of Home, One floor, One room (a child's tablet), or a
+lens. The **+ Add** picker suggests what's in the room first ("3 lights, 1 air conditioner, a leak sensor"), and
+the full entity list second.
+
+### Where it's stored
+
+Everything stays per HA user, in the same `ha-ui.layout` entry: the home layout today, plus `tabs` (Phase 4),
+the room template (Phase 5) and custom views (Phase 6). A sketch of where it's heading:
+
+```json
+{ "version": 1,
+  "tabs": ["lights", "climate", "v:evening"],
+  "sizes": {}, "grids": {},
+  "room": { "template": ["lights", "climate", "media", "scenes", "safety"],
+            "rooms": { "kitchen": { "pin": [], "hide": [] } } },
+  "views": { "v:evening": { "title": "Evening", "icon": "sofa", "sections": [
+      { "title": "Living room", "cards": [
+        { "card": "room", "area": "living_room", "size": "wide" },
+        { "card": "tiles", "select": { "area": "living_room", "domain": "light" } },
+        { "card": "tile", "entity": "scene.movie" } ] } ] } } }
+```
 ## Target devices and budgets
 
 The slowest device we support sets the bar: a **2017 Fire HD 10** (Fire OS 5 / Android 5.1) running Fully Kiosk
@@ -122,7 +200,7 @@ Only receive and process what is on screen, and measure it on the slowest device
 
 Done when the Fire HD stays under the budgets above against a real home, and the demo fixture behaves the same.
 
-### 3. Arrange the home screen ← in progress
+### 3. Arrange the home screen ✅ (the tablet check is open)
 Move room cards and pick their size, on the screen, without an admin login. Only the layout changes: rooms,
 areas and floors stay as HA has them, and the cards' contents still come from the room model.
 
@@ -150,26 +228,44 @@ Positions are kept per column count (phone, portrait and landscape tablet, large
 arranged follows the reading order of the nearest one. (We started with an order-only model; it couldn't put
 a small card under another while the row still had room.)
 
-### 4. Showcase screens
-- **Heating**: current vs target temperature per room for any `climate` entity, heating switches and valves by role;
-  TRV details (valve position, open window) when such entities exist.
-- **Zigbee health**: batteries, unavailable devices, link quality and last seen where those entities are enabled.
+### 4. Views and lenses ← in progress
+The first views beyond Home and the rooms, and the navigation between them
+([Views and navigation](#views-and-navigation)).
 
-### 5. Organiser
+1. ✅ **Names**: a room on the home screen is a *card* (`RoomSection` → `RoomCard`); floors and the groups on room
+   and lens screens are *sections*; what's in them are *controls*.
+2. ✅ **Routes**: `#/` Home, `#/lens/<id>`, `#/room/<area>`. A room's back button returns to where you came from.
+3. ✅ **Tabs**: Home, then the lenses, in a band under the header (a bar at the bottom on a phone). In edit mode
+   you pick which lenses are tabs and their order; stored as `tabs` in the home layout.
+4. ✅ **Status chips** in the same band, only when there's something to say; each opens its lens.
+5. ✅ **Lenses**: Lights, Climate, Security, Devices: floor headings, a section per room, packed like a room screen
+   ([LAYOUTS.md](LAYOUTS.md#lens-screens)).
+6. **Check on the Fire HD**: the chips make the home screen subscribe to more entities (all lights, climate,
+   safety sensors, and one entity per device). Opening Home and a lens stays under 100 ms, updates under budget.
+
+### 5. Room screens
+- A **room template**: reorder a room's sections, for every room or only this one; pin and hide entities; hide
+  rooms from Home.
+- Swipe between rooms, with a strip of room names at the top.
+- **Device sheets**: brightness and colour for lights, HVAC modes for air conditioners (heat / cool / dry / fan;
+  today a tile only switches on and off, into the last mode), a short history.
+
+### 6. Custom views
+Per HA user. Start from a template (Blank, Copy of Home, One floor, One room, a lens); add sections and cards
+with **+ Add**; cards bound to selectors or pinned entities. Extra sections on Home that aren't floors
+("Whole house": scenes, weather, solar). Custom views can be tabs like lenses.
+
+### 7. Organiser
 Suggests and bulk-applies names, areas and labels from Zigbee2MQTT friendly names (configurable pattern, default
 `<area>/<what>`). Shows a dry-run diff and applies only after confirmation; needs an admin login.
 
-### 6. History and packaging
+### 8. History and packaging
 Version history with undo for layouts. A static build in a small container image (nginx), plus a Home Assistant
 add-on for HA OS users.
 
 ### Later
-- HVAC mode buttons on climate tiles (heat / cool / dry / fan for air conditioners; today a tile only switches
-  on and off, into the last mode).
-- What a card shows: kinds of controls per card (lights, climate, switches, sensors), pinned and hidden
-  entities, hidden rooms.
-- Layouts bound to meaning beyond rooms: sections that select entities by area, domain, device class, label or
-  role, resolved against the registries at runtime.
+- Wall panels: a start view per screen, back to it after a few idle minutes.
 - A layout shared by the whole house (HA's system data, saving needs an admin), with per-user layouts on top.
-- Free card sizes (drag a corner) instead of fixed ones; arranging room screens, not only the home screen.
+- The Energy lens.
+- Free card sizes (drag a corner) instead of fixed ones.
 - Importers from Lovelace and ha-fusion, e-ink output.
