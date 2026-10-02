@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-02, after Phase 4.*
+*Updated 2026-10-02, during Phase 5.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -31,8 +31,11 @@ Where the app is going, in order, and how each step is checked. The README cover
     135 ms, rooms about 60 ms (budget 100). Live updates cost a little more for it (step 6);
   - start-up JS went from 40.7 to 45.5 KB gzipped.
 
-**Next: Phase 5, room screens**: a room template, swiping between rooms, device sheets (including the air
-conditioners' modes).
+**Now: Phase 5, room screens.**
+- ✅ (checked on a laptop, not yet on the Fire HD) The **room template**: a Scenes section; sections dragged by
+  their title into the column you want and hidden, for every room or only this one; tiles hidden on one room's
+  screen. Start-up JS 48.8 KB gzipped.
+- Next: hiding rooms from Home, device sheets (including the air conditioners' modes), swiping between rooms.
 
 **Waiting until later**
 - Scrolling performance on the slowest tablet hasn't been measured on its own.
@@ -63,7 +66,7 @@ systems: they differ only in where their sections come from.
 | View | Its sections come from | You can change |
 |---|---|---|
 | **Home** | floors, each with a card per room | card sizes and positions; later hidden rooms and extra sections |
-| **Room** (one per area) | a room template: Lights, Climate, Media, Scenes, Air and safety, Tech | the template for every room at once, plus pins and hides per room |
+| **Room** (one per area) | a room template: Scenes, Lights, Climate, Switches, Media, Sensors | the template for every room at once, or one room's own; hidden entities per room |
 | **Lens** (across rooms) | one function across the house: Lights, Climate, Security, Devices; later Energy | which lenses are tabs, and their order |
 | **Custom** | you | anything; per HA user |
 
@@ -116,14 +119,14 @@ the full entity list second.
 ### Where it's stored
 
 Everything stays per HA user, in the same `doma.layout` entry: the home layout today, plus `tabs` (Phase 4),
-the room template (Phase 5) and custom views (Phase 6). A sketch of where it's heading:
+the room template (`room`, Phase 5) and custom views (Phase 6). A sketch of where it's heading:
 
 ```json
 { "version": 1,
   "tabs": ["lights", "climate", "v:evening"],
   "sizes": {}, "grids": {},
-  "room": { "template": ["lights", "climate", "media", "scenes", "safety"],
-            "rooms": { "kitchen": { "pin": [], "hide": [] } } },
+  "room": { "columns": { "3": [["scenes", "lights"], ["climate"], ["switches", "media", "sensors"]] }, "hidden": [],
+            "rooms": { "kitchen": { "own": { "columns": {}, "hidden": [] }, "hide": [] } } },
   "views": { "v:evening": { "title": "Evening", "icon": "sofa", "sections": [
       { "title": "Living room", "cards": [
         { "card": "room", "area": "living_room", "size": "wide" },
@@ -275,11 +278,21 @@ The first views beyond Home and the rooms, and the navigation between them
      screen changes felt fast on the tablet.
 
 ### 5. Room screens
-- A **room template**: reorder a room's sections, for every room or only this one; pin and hide entities; hide
-  rooms from Home.
-- Swipe between rooms, with a strip of room names at the top.
-- **Device sheets**: brightness and colour for lights, HVAC modes for air conditioners (heat / cool / dry / fan;
-  today a tile only switches on and off, into the last mode), a short history.
+1. ✅ **Room template** ([LAYOUTS.md](LAYOUTS.md#room-screens)), decided 2026-10-02: sections Scenes, Lights,
+   Climate, Switches, Media, Sensors (sensors stay one section for now; splitting them into Air and Safety, and
+   a Tech section of batteries and offline devices, was proposed and put off). In the room's edit mode, a section is
+   dragged by its title into any column, where it stays (stored per width, like cards on Home), and an eye hides
+   it, for **all rooms** (the template) or **only this room** (its
+   own copy). Tapping a tile hides it on that room's screen only; lenses and the room card still show it. Pins
+   (adding entities the room screen leaves out) are left to Phase 6's **+ Add**. Arrows in the titles came first
+   and were replaced by dragging the same day: moving a section across the room took many taps. Dragging first
+   changed only the sections' order, packed into the shortest columns like lenses; sections then landed where the
+   packer put them and the rest reshuffled (with the tallest section first, nothing could go under it), so they
+   got columns of their own.
+2. Hide rooms from Home.
+3. **Device sheets**: brightness and colour for lights, HVAC modes for air conditioners (heat / cool / dry / fan;
+   today a tile only switches on and off, into the last mode), a short history.
+4. Swipe between rooms, with a strip of room names at the top.
 
 ### 6. Custom views
 Per HA user. Start from a template (Blank, Copy of Home, One floor, One room, a lens); add sections and cards

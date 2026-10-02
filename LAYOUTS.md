@@ -80,6 +80,7 @@ Every element has a size in cells, `w × h`. Starting set:
 | Sensor tile | 2 × 1 |
 | Device tile (Devices lens) | 2 × 1 |
 | Media tile | 2 × 1 |
+| Scene tile | 2 × 1 |
 | Climate tile | 4 × 2 |
 | Light button (room card) | 1 × 1 |
 | Compact climate (room card) | 2 × 1 |
@@ -177,7 +178,8 @@ A card's size never depends on its contents.
 
 ## Packing sections
 
-Room and lens screens pack their sections into columns (the home screen uses floor grids instead, above).
+Lens screens pack their sections into columns, and so do room screens until you arrange them (see "Room
+screens"; the home screen uses floor grids instead, above).
 The page has `cols / 4` section columns: 1 on a phone, 2 in portrait, 3 in landscape. Sections are assigned to
 columns by a deterministic packer:
 
@@ -189,8 +191,10 @@ for section in sections (in layout order):
     heights[k] += section.height + 0.1   // 0.1 = the gap, in cells
 ```
 
-Each column is then a plain vertical stack (flex column), so the browser only stacks blocks. In code:
-`packColumns` in `layout/pack.ts`, rendered by `layout/SectionColumns.svelte`; a section is
+Each section is then placed at its column and top (`position: absolute` in one container, whose height is the
+tallest column), so the browser only positions blocks, and a section that moves to another column keeps its
+element: dragging one on a room screen relies on that. In code: `packSections` in `layout/pack.ts`, rendered by
+`layout/SectionColumns.svelte`; a section is
 `layout/Section.svelte`, and each element sits in a `layout/GridItem.svelte` that spans its cells. The packer runs at
 start, on rotation or resize (when `cols` changes) and when the layout changes, never on state updates.
 
@@ -200,6 +204,52 @@ Properties:
   shuffle rooms beyond moving them between columns.
 - **No measuring**: heights are known from the sizes, so there is no layout thrash and no flicker on load.
 - **Same result everywhere**: the same layout and width always give the same arrangement.
+
+## Room screens
+
+A room screen (`screens/RoomScreen.svelte`) starts with a 1-row header (back, the room's name, temperature and
+humidity, and the edit button), then the room's **sections** packed into columns: **Scenes** (tap to activate),
+**Lights** (with All on / All off for the lights shown), **Climate**, **Switches**, **Media** and **Sensors**.
+A section the room has nothing for is left out.
+
+Which sections show, and where, comes from the **room template** (`layout/roomTemplate.ts`), which every room
+follows unless it has **its own** arrangement: the hidden sections, and for each number of section columns (1 on
+a phone, 2 on a portrait tablet, 3 in landscape, 4 on a large screen) which sections go in which column, top to
+bottom. A section stays in the column you put it in; the sections in a column are stacked, with a gap between
+them. (Packing them by order alone, as lenses do, was tried first: a section could only go where the packer put
+it, and moving one reshuffled the rest. In a room whose first section was the tallest, nothing could ever go
+under it.)
+
+- A width that hasn't been arranged takes the **reading order** (by top, then left to right) of the nearest
+  width that has (the smaller on a tie), or the default order, and packs it into the shortest columns. So a
+  phone shows the sections in the order you read them on the tablet.
+- A room shows only the sections it has: its columns are shorter, and a column left empty closes up outside edit
+  mode (the columns after it move left).
+- A section that isn't in the stored columns (one a later version adds) goes after the section that precedes it
+  by default.
+
+Each room can also hide entities from its screen; they stay on the room's card on Home and in the lenses. A
+section whose entities are all hidden is left out too.
+
+**Edit mode** (the edit button in the room's header) works like Home's: a draft, saved on Done.
+
+- **Drag a section by its title band** (the title, then a drag handle; only the band has `touch-action: none`, so
+  swiping over the tiles still scrolls). Its column is the one nearest to where it is; its place in that column
+  is before the first section whose middle is below its top. The sections below it there move down as it passes,
+  nothing else moves, each step starting from where they were when the drag began, and a faint outline shows
+  where it will land. An empty column shows as an outline to drop into. The first change on a width stores the
+  arrangement of every section on that width, including the ones this room doesn't have (they keep their place
+  among the others), so every room following the template gets it. With a keyboard, the arrow keys on a focused
+  title move it up, down, or to the next column.
+- The **eye** at the end of the band hides or shows the section; a hidden section shows as its title alone,
+  struck through.
+- **Tapping a tile** hides it on this room's screen, or shows it again: hidden tiles stay in place, dimmed, with a
+  crossed-out eye.
+- The bar has **All rooms / Only this room**: whether this room follows the template (its changes then apply to
+  every room that does) or has its own sections. Switching to "Only this room" starts from a copy of the
+  template; switching back drops the room's own arrangement. **Reset to default** puts the sections being edited
+  back in the default order with nothing hidden, and shows the room's hidden tiles again.
+- Leaving the room while editing (the browser's back button) discards the draft, like Cancel.
 
 ## Lens screens
 
@@ -229,7 +279,8 @@ These rules target Chrome 108 (see the README):
 
 The layout stores **only the user's changes** on top of the layout generated from HA's floors and areas, never a
 full copy, so new rooms still appear by themselves. It holds **card sizes**, **card positions per column
-count** (in grid units, never pixels), and the **tabs**. Rooms, areas and floors themselves are HA's and aren't changed here.
+count** (in grid units, never pixels), the **tabs** and the **room template**. Rooms, areas and floors themselves are HA's and
+aren't changed here.
 (`layout/homeLayout.ts`)
 
 ```json
@@ -239,7 +290,17 @@ count** (in grid units, never pixels), and the **tabs**. Rooms, areas and floors
   "grids": {
     "12": { "garden": { "x": 0, "y": 0 }, "hallway": { "x": 0, "y": 3 }, "kitchen": { "x": 4, "y": 0 } }
   },
-  "tabs": ["lights", "devices", "climate"]
+  "tabs": ["lights", "devices", "climate"],
+  "room": {
+    "columns": {
+      "3": [["scenes", "switches", "sensors"], ["media", "lights", "climate"], []]
+    },
+    "hidden": ["sensors"],
+    "rooms": {
+      "kitchen": { "own": { "columns": { "2": [["lights"], ["scenes", "climate"]] }, "hidden": [] } },
+      "hallway": { "hide": ["sensor.hallway_illuminance"] }
+    }
+  }
 }
 ```
 
@@ -251,6 +312,12 @@ count** (in grid units, never pixels), and the **tabs**. Rooms, areas and floors
 - **`tabs`**: the tabs after Home, in order: `lights`, `climate`, `security`, `devices`. Unset means all four in
   that order; `[]` means Home alone. Home is always the first tab. A lens that isn't a tab is still reached from
   its status chip.
+- **`room`**: the room template (see "Room screens"). `columns` and `hidden` are the template's sections (unset:
+  the default order packed, nothing hidden): `columns.<n>` is the section IDs (`scenes`, `lights`, `climate`,
+  `switches`, `media`, `sensors`) in each of `n` section columns, top to bottom. Under `rooms`, by area ID:
+  `own`, a room's own sections in the same shape, and `hide`, the entities hidden from its screen. `hide` is
+  the one place a layout names entity IDs, since it's about one particular device; a renamed entity simply shows
+  again.
 
 Rooms are referenced by area ID, which stays the same when a room is renamed; a stale one is simply ignored. The
 stored value is read defensively: unknown fields and sizes are dropped, and a version this app doesn't know gives
@@ -284,7 +351,10 @@ The **edit button** next to the settings gear turns the home screen into an edit
 - A new size keeps the card where it is (moved left if it no longer fits); the cards around it make room.
 - A bar replaces the header and sticks to the top: **Tabs** (a menu: tick the lenses to show as tabs, order them
   with arrows; the navigation band shows the draft), **Done** (saves, if anything changed), **Cancel** (discards)
-  and **Reset to default** (an empty layout, saved on Done). A failed save keeps the draft and says why.
-- In code: the draft in `layout/layoutEditor.svelte.ts`, dragging in `layout/dragCard.ts`, the bar in
+  and **Reset to default** (the generated home screen with every lens as a tab, saved on Done; the room template
+  stays). A failed save keeps the draft and says why.
+- One screen is edited at a time: the draft is shown only by that screen, so Home, kept built behind a room
+  that's being edited, keeps showing the stored layout.
+- In code: the draft in `layout/layoutEditor.svelte.ts`, dragging in `layout/drag.ts` (shared with room sections), the bar in
   `ui/EditBar.svelte` with `ui/TabsMenu.svelte`, the overlay over each card in `ui/CardEditor.svelte`. The overlay sits in the card's grid
   cell rather than inside the card, so the size menu isn't clipped by the card's `contain`.

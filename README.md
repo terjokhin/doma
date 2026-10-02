@@ -85,7 +85,8 @@ over Wi-Fi (no USB needed). If it can't connect, check your computer's firewall.
 ## Screens and navigation
 
 - **Home**: floors and their rooms, one card per room.
-- **Room** (`#/room/<area>`): everything in one room, grouped into Lights, Climate, Switches, Media, Sensors.
+- **Room** (`#/room/<area>`): everything in one room, grouped into Scenes, Lights, Climate, Switches, Media,
+  Sensors, in the order the room template says.
 - **Lenses** (`#/lens/lights`, `climate`, `security`, `devices`): one function across the house, a section per
   room under floor headings. Lights: every light, with all on / off per room and for the house. Climate: air
   conditioners, heaters and thermostats, heating switches, each room's temperature, humidity and CO₂. Security:
@@ -110,7 +111,11 @@ and its size. It only stores those changes, so new rooms still appear by themsel
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `doma.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
 tap the **edit button** next to the settings gear: drag a card by its handle to any spot on its floor, pick its
-size (XS, S, M, L or Wide) from the chip on the card, pick and order the tabs under **Tabs**, then **Done**. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
+size (XS, S, M, L or Wide) from the chip on the card, pick and order the tabs under **Tabs**, then **Done**.
+
+Room screens follow a **room template**, stored in the same layout. A room's edit button (in its header) lets you
+drag its sections by their titles and hide them, either for every room or for this room only, and
+hide single tiles on this room's screen by tapping them. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
 
 ## Architecture
 
