@@ -58,7 +58,12 @@ class Home {
 
   apply({ changed, removed }: EntityChanges) {
     for (const id in changed) {
-      if (this.#plain.get(id) === changed[id]) continue;
+      const known = this.#plain.get(id);
+      const next = changed[id];
+      if (known === next) continue;
+      // A new subscription (every screen change) sends each state in full again. A state we already have keeps its
+      // object, so nothing on screen re-renders for it: any change, attributes included, moves last_updated.
+      if (known && known.state === next.state && sameTime(known.last_updated, next.last_updated)) continue;
       this.#plain.set(id, changed[id]);
       this.#states.set(id, changed[id]);
     }
@@ -68,6 +73,9 @@ class Home {
     }
   }
 }
+
+/** Two timestamps from HA, as `get_states` ("…00.123456+00:00") or as decoded from an event ("…00.123Z"). */
+const sameTime = (a: string, b: string) => a === b || Date.parse(a) === Date.parse(b);
 
 export const home = new Home();
 

@@ -70,9 +70,10 @@ button {
   }
 }
 
+/* No fade-in on screen changes: on the Fire HD it didn't make them faster or slower, and a kiosk feels quicker
+   without it. */
 .screen {
   padding: max(var(--pad), env(safe-area-inset-top)) var(--pad) calc(2 * var(--pad));
-  animation: enter var(--slow) var(--ease);
 }
 
 /* ---- Grid (LAYOUTS.md) ---- */
@@ -327,6 +328,12 @@ button {
 
 .status-chip {
   color: var(--text);
+}
+
+/* Without chips (and on a phone, where the tabs are in the dock), the band and its row take no space. */
+.status-chips:not(:has(.status-chip)),
+.nav-band:not(:has(.tab, .status-chip)) {
+  display: none;
 }
 
 .status-chip.warn {

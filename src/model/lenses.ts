@@ -189,15 +189,6 @@ export function lensView(model: FloorGroup[], lens: LensId): LensFloor[] {
 /** Every room in the model, in floor order. */
 export const allRooms = (model: FloorGroup[]) => model.flatMap((g) => g.rooms);
 
-/** The chips worth showing now, in lens order. Reads live states: call it where they're subscribed. */
-export function chips(model: FloorGroup[]): Chip[] {
-  const rooms = allRooms(model);
-  return LENS_IDS.flatMap((lens) => {
-    const chip = LENSES[lens].chip(rooms);
-    return chip ? [{ lens, ...chip }] : [];
-  });
-}
-
 /** The entities the chips read. */
 export const chipEntities = (model: FloorGroup[]) =>
   allRooms(model).flatMap((room) => LENS_IDS.flatMap((lens) => LENSES[lens].watched(room)));

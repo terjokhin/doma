@@ -97,7 +97,9 @@ function simulate(states: Record<string, HassEntity>, domain: string, service: s
     } else if (domain === "climate" && service === "set_hvac_mode") {
       next = { ...e, state: String(data.hvac_mode) };
     }
-    changed[id] = { ...next, last_changed: new Date().toISOString() };
+    // Like HA: last_updated moves on every change, last_changed only when the state does.
+    const now = new Date().toISOString();
+    changed[id] = { ...next, last_updated: now, last_changed: next.state === e.state ? e.last_changed : now };
   }
   return changed;
 }

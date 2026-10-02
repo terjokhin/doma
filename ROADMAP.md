@@ -28,7 +28,9 @@ Where the app is going, in order, and how each step is checked. The README cover
 2026-10-02). Built and checked on a laptop against the demo and a snapshot of our home, at 4, 8 and 12 columns:
 the Lights, Climate, Security and Devices lenses; tabs under the header (a bar at the bottom on a phone), picked
 and ordered in edit mode and saved as `tabs`; status chips; back from a room to where you came from. Start-up JS
-went from 40.7 to 45.9 KB gzipped. **Next:** the Fire HD check (step 6), then Phase 5.
+went from 40.7 to 45.9 KB gzipped. On the Fire HD, live updates are within budget; screen changes to Home and
+the lenses are still over it (step 6). **Next:** `content-visibility` for screen changes, the Phase 3 drag check
+on the tablet, then Phase 5.
 
 **Still open from Phase 3: the Fire HD check.** In Fully with `?debug`: dragging and the size menu by touch, no
 frames over 25 ms while dragging, the layout survives a reload.
@@ -240,8 +242,16 @@ The first views beyond Home and the rooms, and the navigation between them
 4. ✅ **Status chips** in the same band, only when there's something to say; each opens its lens.
 5. ✅ **Lenses**: Lights, Climate, Security, Devices: floor headings, a section per room, packed like a room screen
    ([LAYOUTS.md](LAYOUTS.md#lens-screens)).
-6. **Check on the Fire HD**: the chips make the home screen subscribe to more entities (all lights, climate,
-   safety sensors, and one entity per device). Opening Home and a lens stays under 100 ms, updates under budget.
+6. **Check on the Fire HD** (partly done 2026-10-02): the chips make the home screen subscribe to more entities
+   (65 on our home: all lights, climate, safety sensors, and one entity per device).
+   - ✅ Live updates: 38 of 106 were over 16 ms (worst 51 ms), because a new subscription re-sends every state
+     and the store treated each as new, and any change recomputed every chip. The store now keeps a state it
+     already has, and each chip is its own component: 0 of 118 over 16 ms, typically 2.5 ms.
+   - Screen changes: still over budget. Home went from about 170 ms to about 130 ms, lenses 120–160 ms, rooms
+     15–170 ms (the same screen varies a lot). Building the screen takes about 10 ms; the rest is the tablet
+     laying out and painting it. Removing the fade-in made no measurable difference (it stays removed). Next
+     to try: `content-visibility: auto` on floors and sections below the screen, so only what's visible is
+     drawn.
 
 ### 5. Room screens
 - A **room template**: reorder a room's sections, for every room or only this one; pin and hide entities; hide
