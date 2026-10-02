@@ -11,7 +11,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 - **Phase 1, Svelte 5 port**: same screens, start-up JS 98 KB → 33 KB gzipped, build fails above 100 KB.
 - **Phase 2, data layer**: filtered subscriptions, `?debug` overlay, paint fixes. On the tablet, screen changes went
   from a ~300 ms frame to 45–70 ms.
-- **Phase 3, arrange the home screen** (built and tried on a laptop against our HA; the tablet check is open):
+- **Phase 3, arrange the home screen** (checked on the Fire HD 2026-10-02):
   - the cell grid ([LAYOUTS.md](LAYOUTS.md)), reflowing on rotation; one grid per floor on the home screen, with
     rows of half a cell;
   - room cards in five sizes: XS 2 × 1.5, S 4 × 1.5 (half an M), M 4 × 3, L 4 × 4, Wide 8 × 3, with light and
@@ -29,12 +29,8 @@ Where the app is going, in order, and how each step is checked. The README cover
 the Lights, Climate, Security and Devices lenses; tabs under the header (a bar at the bottom on a phone), picked
 and ordered in edit mode and saved as `tabs`; status chips; back from a room to where you came from. Start-up JS
 went from 40.7 to 45.9 KB gzipped. On the Fire HD, live updates are within budget; screen changes to Home and
-the lenses are still over it (step 6; `content-visibility` was tried and made things worse). **Next:** the
-Phase 3 drag check on the tablet, then Phase 5; screen changes need a different idea (fewer or simpler elements
-to draw).
-
-**Still open from Phase 3: the Fire HD check.** In Fully with `?debug`: dragging and the size menu by touch, no
-frames over 25 ms while dragging, the layout survives a reload.
+the lenses are still over it (step 6; `content-visibility` was tried and made things worse). **Next:** Phase 5;
+screen changes need a different idea (fewer or simpler elements to draw).
 
 **Waiting until later**
 - Scrolling performance on the slowest tablet hasn't been measured on its own; the fade-in on screen changes is
@@ -203,7 +199,7 @@ Only receive and process what is on screen, and measure it on the slowest device
 
 Done when the Fire HD stays under the budgets above against a real home, and the demo fixture behaves the same.
 
-### 3. Arrange the home screen ✅ (the tablet check is open)
+### 3. Arrange the home screen ✅
 Move room cards and pick their size, on the screen, without an admin login. Only the layout changes: rooms,
 areas and floors stay as HA has them, and the cards' contents still come from the room model.
 
@@ -219,12 +215,15 @@ areas and floors stay as HA has them, and the cards' contents still come from th
 5. ✅ **Layout model, per HA user**: card sizes and positions per column count, stored in HA's per-user frontend data
    ([LAYOUTS.md](LAYOUTS.md#layout-model)). Any logged-in user can save, so the kiosk arranges its own screen;
    every screen logged in as the same user follows it live. Replaces the first, shared model (never used).
-6. **Edit mode** (built; the tablet check is open): the edit button next to the settings gear; drag a card by its
+6. ✅ **Edit mode**: the edit button next to the settings gear; drag a card by its
    handle to any spot on its floor, pick its size from the chip's menu (XS, S, M, L, Wide); Done saves, Cancel discards,
    "Reset to default" clears it. Controls don't react while editing. Pointer events, no drag library; while
-   dragging only the dragged card moves (`transform`), the others move when its target cell changes. Check on
-   the Fire HD with `?debug`: no frames over 25 ms while dragging, the layout survives a reload, a second screen
-   follows live.
+   dragging only the dragged card moves (`transform`), the others move when its target cell changes.
+   Checked on the Fire HD (2026-10-02): dragging and the size menu by touch work and feel smooth, the layout
+   survives a reload. While dragging, 4% of frames take over 25 ms (worst 116 ms), against a target of none; not
+   noticeable in use. Each step of a drag re-places every card; cards now keep their size and controls objects
+   across a move, so none of them re-renders (script time over a drag down about a quarter on a laptop with 6×
+   CPU throttling).
 
 Cards are **placed freely** on each floor's grid, and every card floats up so there are no gaps above it.
 Positions are kept per column count (phone, portrait and landscape tablet, large screen); a width you haven't
