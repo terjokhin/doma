@@ -141,7 +141,7 @@ src/
   snapshot (loaded at start and after registry changes), not from live updates. An entity's
   area is its own, or else its device's. Hidden and config/diagnostic entities are left out.
   `switch` entities whose ID names a light (`…_light`, `…_lamp`, `…_sconce`) count as lights, and those that
-  name a heater (`…_heating`, `…_heater`, `…_radiator`, `…_boiler`) go to the Climate lens. For the Devices
+  name a heater (`…_heating`, `…_heater`, `…_radiator`, `…_boiler`) show on room cards and in the Climate lens. For the Devices
   lens, each device in a room is checked through one of its entities (all of them go unavailable when it's
   offline) and its battery, which is usually a diagnostic entity the room screen leaves out.
 - **i18n**: a tiny `t()` over the JSON files, with i18next-style `{{name}}` and plural keys

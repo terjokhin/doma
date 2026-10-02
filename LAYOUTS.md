@@ -146,10 +146,11 @@ The title band shows the room's name, temperature and humidity (on an XS card, w
 name and temperature), and an arrow; tapping it opens the room. Below the band, the room's controls:
 
 - lights as 1 × 1 buttons (tap to toggle), then climate devices as compact 2 × 1 controls (power, and the target
-  temperature while on);
+  temperature while on), then heating switches (underfloor heating, a radiator: a switch whose ID says so) as
+  1 × 1 buttons;
 - **as many rows as the size has**. What doesn't fit is replaced by a 1 × 1 "+N" button that opens the room.
-  When something has to go, climate is kept before lights; the order on screen stays lights first.
-- A room without lights or climate keeps an empty card.
+  When something has to go, climate and heating are kept before lights; the order on screen stays lights first.
+- A room without lights, climate or heating keeps an empty card.
 
 In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) in `model/roomCard.ts`, rendered by
 `screens/RoomCard.svelte`.

@@ -33,22 +33,26 @@ export type CardItem =
 type Control = Exclude<CardItem, { kind: "more" }>;
 
 /**
- * The controls on a room's card of `size`: its lights, then its climate devices. What doesn't fit in the card's
- * rows is replaced by a "+N" button that opens the room; when something has to go, climate is kept before
- * lights. The order on screen stays lights first.
+ * The controls on a room's card of `size`: its lights, then its climate devices, then its heating switches
+ * (underfloor heating, a radiator). What doesn't fit in the card's rows is replaced by a "+N" button that opens
+ * the room; when something has to go, climate and heating are kept before lights. The order on screen stays
+ * lights first.
  */
 export function roomCardItems(room: Room, size: Size): CardItem[] {
   const all: Control[] = [
     ...room.lights.map((id): Control => ({ kind: "toggle", id, size: SIZES.toggleButton })),
     ...room.climate.map((id): Control => ({ kind: "climate", id, size: SIZES.climateCompact })),
+    ...room.heating.map((id): Control => ({ kind: "toggle", id, size: SIZES.toggleButton })),
   ];
+  const heating = new Set(room.heating);
+  const keepFirst = (i: Control) => i.kind === "climate" || heating.has(i.id);
 
   const fits = (items: { size: Size }[]) => denseRows(items.map((i) => i.size), size.w) <= cardRows(size);
   if (fits(all)) return all;
 
   const more = { size: SIZES.more };
   const kept = new Set<Control>();
-  const byPriority = [...all.filter((i) => i.kind === "climate"), ...all.filter((i) => i.kind !== "climate")];
+  const byPriority = [...all.filter(keepFirst), ...all.filter((i) => !keepFirst(i))];
   for (const item of byPriority) {
     const next = all.filter((i) => kept.has(i) || i === item); // in display order
     if (fits([...next, more])) kept.add(item);

@@ -8,6 +8,7 @@ import {
   mdiDoorOpen,
   mdiEyeOutline,
   mdiFan,
+  mdiHeatingCoil,
   mdiLightbulb,
   mdiLightbulbOutline,
   mdiMoleculeCo2,
@@ -23,7 +24,7 @@ import {
   mdiWater,
 } from "@mdi/js";
 import type { HassEntity } from "home-assistant-js-websocket";
-import { deviceClass, domainOf, isLight } from "../model/home";
+import { deviceClass, domainOf, isHeatingSwitch, isLight } from "../model/home";
 import type { LensId } from "../model/lenses";
 
 const BY_CLASS: Record<string, string> = {
@@ -56,6 +57,7 @@ const BY_DOMAIN: Record<string, string> = {
 /** Icons are bundled per use; HA's `mdi:` icon names would need the whole set (~3 MB). */
 export function entityIcon(s: HassEntity) {
   if (isLight(s.entity_id)) return s.state === "on" ? mdiLightbulb : mdiLightbulbOutline;
+  if (isHeatingSwitch(s.entity_id)) return mdiHeatingCoil;
   return BY_CLASS[deviceClass(s)] ?? BY_DOMAIN[domainOf(s.entity_id)] ?? mdiEyeOutline;
 }
 

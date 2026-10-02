@@ -42,6 +42,9 @@ const LIGHT_SWITCH = /(^|_)(lights?|lamp|sconce|chandelier)(_|$)/;
 /** Likewise, a switch that heats something. */
 const HEATING_SWITCH = /(^|_)(heating|heater|radiator|boiler)(_|$)/;
 
+export const isHeatingSwitch = (entityId: string) =>
+  SWITCH_DOMAINS.has(domainOf(entityId)) && HEATING_SWITCH.test(entityId.slice(entityId.indexOf(".") + 1));
+
 export const isLight = (entityId: string) =>
   entityId.startsWith("light.") || (entityId.startsWith("switch.") && LIGHT_SWITCH.test(entityId.slice(7)));
 const SENSOR_CLASSES = new Set([
@@ -97,7 +100,7 @@ export function buildHome(
     else if (domain === "media_player") room.media.push(e.ei);
     else if (SWITCH_DOMAINS.has(domain)) {
       room.switches.push(e.ei);
-      if (HEATING_SWITCH.test(e.ei.slice(domain.length + 1))) room.heating.push(e.ei);
+      if (isHeatingSwitch(e.ei)) room.heating.push(e.ei);
     } else if ((domain === "sensor" || domain === "binary_sensor") && SENSOR_CLASSES.has(cls)) {
       room.sensors.push(e.ei);
     }
