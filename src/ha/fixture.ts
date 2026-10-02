@@ -86,7 +86,9 @@ function simulate(states: Record<string, HassEntity>, domain: string, service: s
     const e = states[id];
     if (!e) continue;
     let next: HassEntity = e;
-    if (domain === "climate" && (service === "turn_on" || service === "turn_off")) {
+    if (domain === "scene" && service === "turn_on") {
+      next = { ...e, state: new Date().toISOString() }; // a scene's state is when it was last activated
+    } else if (domain === "climate" && (service === "turn_on" || service === "turn_off")) {
       const modes = (e.attributes.hvac_modes as string[] | undefined) ?? [];
       next = { ...e, state: service === "turn_off" ? "off" : (modes.find((m) => m !== "off") ?? "heat") };
     } else if (["turn_on", "turn_off", "toggle"].includes(service)) {

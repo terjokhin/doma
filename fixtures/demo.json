@@ -767,6 +767,62 @@
     "parent_id": null,
     "user_id": null
    }
+  },
+  {
+   "entity_id": "scene.living_room_movie_night",
+   "state": "2026-09-30T19:30:00.000Z",
+   "attributes": {
+    "friendly_name": "Movie night"
+   },
+   "last_changed": "2026-09-30T19:30:00.000Z",
+   "last_updated": "2026-09-30T19:30:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "scene.living_room_reading",
+   "state": "2026-09-30T19:30:00.000Z",
+   "attributes": {
+    "friendly_name": "Reading"
+   },
+   "last_changed": "2026-09-30T19:30:00.000Z",
+   "last_updated": "2026-09-30T19:30:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "scene.kitchen_cooking",
+   "state": "2026-09-30T19:30:00.000Z",
+   "attributes": {
+    "friendly_name": "Cooking"
+   },
+   "last_changed": "2026-09-30T19:30:00.000Z",
+   "last_updated": "2026-09-30T19:30:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "scene.bedroom_good_night",
+   "state": "2026-09-30T19:30:00.000Z",
+   "attributes": {
+    "friendly_name": "Good night"
+   },
+   "last_changed": "2026-09-30T19:30:00.000Z",
+   "last_updated": "2026-09-30T19:30:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
   }
  ],
  "floors": [
@@ -1462,6 +1518,30 @@
    "pl": "demo",
    "lb": [],
    "hn": false
+  },
+  {
+   "ei": "scene.living_room_movie_night",
+   "pl": "homeassistant",
+   "ai": "living_room",
+   "lb": []
+  },
+  {
+   "ei": "scene.living_room_reading",
+   "pl": "homeassistant",
+   "ai": "living_room",
+   "lb": []
+  },
+  {
+   "ei": "scene.kitchen_cooking",
+   "pl": "homeassistant",
+   "ai": "kitchen",
+   "lb": []
+  },
+  {
+   "ei": "scene.bedroom_good_night",
+   "pl": "homeassistant",
+   "ai": "bedroom",
+   "lb": []
   }
  ]
 }

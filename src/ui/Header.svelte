@@ -47,7 +47,7 @@
         <strong>{formatNumber(weather.attributes.temperature)}°</strong>
       </div>
     {/if}
-    <button class="round-btn" aria-label={t("edit.open")} onclick={() => editor.start()}>
+    <button class="round-btn" aria-label={t("edit.open")} onclick={() => editor.start("/")}>
       <Icon path={mdiViewDashboardEditOutline} />
     </button>
     <SettingsMenu />

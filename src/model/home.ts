@@ -12,6 +12,7 @@ export interface Room {
   switches: string[];
   media: string[];
   sensors: string[];
+  scenes: string[];
   /** Doors, windows, leak / smoke / gas sensors and locks (LAYOUTS.md, "Lens screens"). */
   safety: string[];
   /** Switches that heat something (underfloor heating, a radiator): `switches` whose ID says so. */
@@ -75,7 +76,7 @@ export function buildHome(
   const rooms = new Map<string, Room>(
     areas.map((area) => [
       area.area_id,
-      { area, lights: [], climate: [], switches: [], media: [], sensors: [], safety: [], heating: [], devices: [] },
+      { area, lights: [], climate: [], switches: [], media: [], sensors: [], scenes: [], safety: [], heating: [], devices: [] },
     ]),
   );
   const roomDevices = new Map<string, RoomDevice & { room: Room }>();
@@ -98,6 +99,7 @@ export function buildHome(
     if (isLight(e.ei)) room.lights.push(e.ei);
     else if (domain === "climate") room.climate.push(e.ei);
     else if (domain === "media_player") room.media.push(e.ei);
+    else if (domain === "scene") room.scenes.push(e.ei);
     else if (SWITCH_DOMAINS.has(domain)) {
       room.switches.push(e.ei);
       if (isHeatingSwitch(e.ei)) room.heating.push(e.ei);
@@ -112,7 +114,7 @@ export function buildHome(
 
   for (const room of rooms.values()) {
     room.devices.sort((a, b) => a.name.localeCompare(b.name));
-    for (const list of [room.lights, room.climate, room.switches, room.media, room.sensors, room.safety, room.heating]) {
+    for (const list of [room.lights, room.climate, room.switches, room.media, room.sensors, room.scenes, room.safety, room.heating]) {
       list.sort((a, b) =>
         entityName(states[a], registry[a], room.area).localeCompare(entityName(states[b], registry[b], room.area)),
       );

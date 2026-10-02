@@ -1,10 +1,11 @@
 <script lang="ts">
   import { t } from "../i18n/index.svelte";
   import type { CardSize, Position } from "../layout/homeLayout";
-  import { dragCard } from "../layout/dragCard";
-  import { grid } from "../layout/grid.svelte";
+  import { dragItem } from "../layout/drag";
+  import { GAP, grid } from "../layout/grid.svelte";
   import { tabsOf } from "../layout/homeLayout";
   import { editor } from "../layout/layoutEditor.svelte";
+  import { homeLayout } from "../layout/layoutStore.svelte";
   import { compact, moveBox, resizeBox, type Box } from "../layout/place";
   import { gridRows, homeView, type FloorView, type RoomCardView } from "../model/homeView";
   import { homeModel } from "../model/model.svelte";
@@ -13,11 +14,14 @@
   import EditBar from "../ui/EditBar.svelte";
   import Header from "../ui/Header.svelte";
   import NavBand, { docked } from "../ui/NavBand.svelte";
+  import TabsMenu from "../ui/TabsMenu.svelte";
   import RoomCard from "./RoomCard.svelte";
 
   // Each floor is a full-width heading; its room cards sit on one grid under it, where and at the sizes the home
   // layout says (LAYOUTS.md, "The floor grid"). In edit mode it shows the editor's draft.
-  const floors = $derived(homeView(homeModel(), editor.layout, grid.cols));
+  const editing = $derived(editor.target === "/");
+  const layout = $derived(editing ? editor.layout : homeLayout());
+  const floors = $derived(homeView(homeModel(), layout, grid.cols));
 
   /** The card being dragged, to show where it will land. */
   let dragging = $state<{ floor: string; id: string } | null>(null);
@@ -51,13 +55,23 @@
     // Every step starts from where the cards were when the drag began: a card the dragged one passes over makes
     // room, then goes back to its place once it has passed.
     const start = boxesOf(floorOf(floorKey));
+    // The dragged card's target is the grid cell nearest to where it is.
+    const pitchX = grid.cell * (1 + GAP); // a column and a gap
+    const pitchY = pitchX / 2; // a row of half a cell and a gap
+    let cell = { x: card.x, y: card.y };
     dragging = { floor: floorKey, id };
-    dragCard(
+    dragItem(
       e,
       el,
       floorEl,
-      { cols: grid.cols, cell: grid.cell, w: card.size.w },
-      (x, y) => place(floorKey, moveBox(start, id, x, y, grid.cols)),
+      (left, top) => {
+        const x = Math.max(0, Math.min(Math.round(left / pitchX), grid.cols - card.size.w));
+        const y = Math.max(0, Math.round(top / pitchY));
+        if (x === cell.x && y === cell.y) return false;
+        cell = { x, y };
+        place(floorKey, moveBox(start, id, x, y, grid.cols));
+        return true;
+      },
       () => {
         dragging = null;
         place(floorKey, compact(boxesOf(floorOf(floorKey))));
@@ -66,13 +80,15 @@
   }
 </script>
 
-<main class="screen" class:editing={editor.active} class:docked={docked()}>
-  {#if editor.active}
-    <EditBar />
+<main class="screen" class:editing class:docked={docked()}>
+  {#if editing}
+    <EditBar title={t("edit.title")} hint={t("edit.hint")} onReset={editor.reset}>
+      <TabsMenu />
+    </EditBar>
   {:else}
     <Header />
   {/if}
-  <NavBand current="home" tabs={tabsOf(editor.layout)} editing={editor.active} />
+  <NavBand current="home" tabs={tabsOf(layout)} {editing} />
   {#each floors as floor (floor.key)}
     <h2 class="floor-band">{floor.name ?? t("app.otherFloor")}</h2>
     <div class="floor-grid">
@@ -90,8 +106,8 @@
           style:grid-column="{card.x + 1} / span {card.size.w}"
           style:grid-row="{card.y + 1} / span {gridRows(card.size)}"
         >
-          <RoomCard room={card.room} size={card.size} items={card.items} editing={editor.active} />
-          {#if editor.active}
+          <RoomCard room={card.room} size={card.size} items={card.items} {editing} />
+          {#if editing}
             <CardEditor
               size={card.size}
               sizeName={card.sizeName}

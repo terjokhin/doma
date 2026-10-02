@@ -44,17 +44,41 @@ export function sectionHeight(sizes: Size[]): number {
   return TITLE + rows + Math.max(0, rows - 1) * GAP;
 }
 
+/** Where a packed section sits: its column, and its top in cells from the top of the columns. */
+export interface Slot {
+  column: number;
+  top: number;
+}
+
 /**
  * Masonry packing: put each section, in order, into the currently shortest column (the leftmost on a tie).
- * Returns the section indexes for each column. Pure arithmetic: nothing is measured.
+ * Returns each section's slot and the height of the tallest column, in cells. Pure arithmetic: nothing is measured.
  */
-export function packColumns(heights: number[], columns: number): number[][] {
-  const result: number[][] = Array.from({ length: columns }, () => []);
+export function packSections(heights: number[], columns: number): { slots: Slot[]; height: number } {
   const filled = new Array<number>(columns).fill(0);
-  heights.forEach((height, index) => {
-    const k = filled.indexOf(Math.min(...filled));
-    result[k].push(index);
-    filled[k] += height + GAP;
+  const slots = heights.map((height) => {
+    const column = filled.indexOf(Math.min(...filled));
+    const slot = { column, top: filled[column] };
+    filled[column] += height + GAP;
+    return slot;
   });
-  return result;
+  return { slots, height: Math.max(0, Math.max(...filled) - GAP) };
+}
+
+/**
+ * Sections in the columns they were given (`columns` holds section indexes, top to bottom), stacked with a gap between
+ * them. Returns each section's slot and the height of the tallest column, in cells, like `packSections`.
+ */
+export function stackSections(heights: number[], columns: number[][]): { slots: Slot[]; height: number } {
+  const slots: Slot[] = [];
+  let height = 0;
+  columns.forEach((column, k) => {
+    let top = 0;
+    for (const index of column) {
+      slots[index] = { column: k, top };
+      top += heights[index] + GAP;
+    }
+    height = Math.max(height, top - GAP);
+  });
+  return { slots, height: Math.max(0, height) };
 }

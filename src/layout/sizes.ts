@@ -6,6 +6,7 @@ export const SIZES = {
   toggle: { w: 2, h: 1 },
   sensor: { w: 2, h: 1 },
   media: { w: 2, h: 1 },
+  scene: { w: 2, h: 1 },
   climate: { w: 4, h: 2 },
   // Room cards on the home screen
   toggleButton: { w: 1, h: 1 },

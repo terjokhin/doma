@@ -1,10 +1,12 @@
 import { isLensId, LENS_IDS, type LensId } from "../model/lenses";
+import { parseRoomLayout, type RoomLayout } from "./roomTemplate";
 
 /**
- * The home layout: the user's changes to the home screen generated from HA's floors and areas (LAYOUTS.md,
- * "Layout model"): room card sizes, where each card sits for each column count, and which tabs follow Home. It only stores differences,
- * never a full copy, so new rooms still appear by themselves. Rooms are referenced by area ID, which doesn't change when a room is
- * renamed. Each HA user has their own, in HA's per-user frontend storage under LAYOUT_KEY.
+ * The home layout: the user's changes to the screens generated from HA's floors and areas (LAYOUTS.md, "Layout
+ * model"): room card sizes, where each card sits for each column count, which tabs follow Home, and the room template
+ * (`roomTemplate.ts`). It only stores differences, never a full copy, so new rooms still appear by themselves. Rooms
+ * are referenced by area ID, which doesn't change when a room is renamed. Each HA user has their own, in HA's per-user
+ * frontend storage under LAYOUT_KEY.
  */
 
 /** Key in HA's per-user frontend data (`frontend/subscribe_user_data` / `set_user_data`). */
@@ -33,6 +35,8 @@ export interface HomeLayout {
   grids?: Record<string, Record<string, Position>>;
   /** The tabs after Home, in order. Unset: every lens, in LENS_IDS order. */
   tabs?: LensId[];
+  /** The room template, and what each room changes on top of it. */
+  room?: RoomLayout;
 }
 
 export const EMPTY_LAYOUT: HomeLayout = { version: 1 };
@@ -90,5 +94,7 @@ export function parseLayout(value: unknown): HomeLayout {
   if (Array.isArray(value.tabs)) {
     layout.tabs = [...new Set(value.tabs.filter((id): id is LensId => typeof id === "string" && isLensId(id)))];
   }
+  const room = parseRoomLayout(value.room);
+  if (room) layout.room = room;
   return layout;
 }

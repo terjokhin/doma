@@ -22,6 +22,7 @@ import {
   mdiWeatherPartlyCloudy,
   mdiBlur,
   mdiWater,
+  mdiPalette,
 } from "@mdi/js";
 import type { HassEntity } from "home-assistant-js-websocket";
 import { deviceClass, domainOf, isHeatingSwitch, isLight } from "../model/home";
@@ -51,6 +52,7 @@ const BY_DOMAIN: Record<string, string> = {
   fan: mdiFan,
   climate: mdiThermostat,
   media_player: mdiSpeaker,
+  scene: mdiPalette,
   weather: mdiWeatherPartlyCloudy,
 };
 
