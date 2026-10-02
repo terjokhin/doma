@@ -89,20 +89,22 @@ Every element has a size in cells, `w × h`. Starting set:
 | Header (clock, date, weather) | full width × 2 |
 | Navigation band (tabs, status chips) | full width, one or two rows of chips |
 
-An element is never wider than its section (4 cells), or than its card's width on the home screen.
+An element is never wider than its section (4 cells, or more on a room screen), or than its card's width on the
+home screen.
 
 ## Sections
 
 A **section** is a titled group: "Lights" / "Climate" / … on a room screen. Room cards on the home screen are
 packed the same way, but have a fixed size (see "Room cards").
 
-- A section is **4 cells wide**.
+- A section is **4 cells wide**; on a room screen it can be 2 or more section columns wide (8, 12, … cells), and
+  its grid is as wide.
 - Its title band is **0.5 cell** tall.
-- Its content is a 4-column CSS grid with rows of `--cell`, gap `--gap` and `grid-auto-flow: row dense`, so the
+- Its content is a CSS grid as many columns wide with rows of `--cell`, gap `--gap` and `grid-auto-flow: row dense`, so the
   browser packs tiles without holes.
 - **A section's height is known before rendering**: `0.5 + rows + (rows − 1) × 0.1` cells (title band, rows,
-  gaps between rows), where `rows` comes from simulating the same dense packing of the element sizes on
-  4 columns (`denseRows` in `layout/pack.ts`).
+  gaps between rows), where `rows` comes from simulating the same dense packing of the element sizes on as many
+  columns (`denseRows` in `layout/pack.ts`).
 
 **Full-width bands** sit above the sections and span all columns: the home header (clock, date, weather) is
 2 rows; the navigation band under it (see "Navigation band") is as tall as a chip, or two chips when tabs and
@@ -212,21 +214,29 @@ humidity, and the edit button), then the room's **sections** packed into columns
 **Lights** (with All on / All off for the lights shown), **Climate**, **Switches**, **Media** and **Sensors**.
 A section the room has nothing for is left out.
 
-Which sections show, and where, comes from the **room template** (`layout/roomTemplate.ts`), which every room
-follows unless it has **its own** arrangement: the hidden sections, and for each number of section columns (1 on
-a phone, 2 on a portrait tablet, 3 in landscape, 4 on a large screen) which sections go in which column, top to
-bottom. A section stays in the column you put it in; the sections in a column are stacked, with a gap between
-them. (Packing them by order alone, as lenses do, was tried first: a section could only go where the packer put
-it, and moving one reshuffled the rest. In a room whose first section was the tallest, nothing could ever go
-under it.)
+Which sections show, where, how wide and under what name comes from the **room template**
+(`layout/roomTemplate.ts`), which every room follows unless it has **its own** arrangement:
 
-- A width that hasn't been arranged takes the **reading order** (by top, then left to right) of the nearest
-  width that has (the smaller on a tie), or the default order, and packs it into the shortest columns. So a
-  phone shows the sections in the order you read them on the tablet.
-- A room shows only the sections it has: its columns are shorter, and a column left empty closes up outside edit
-  mode (the columns after it move left).
-- A section that isn't in the stored columns (one a later version adds) goes after the section that precedes it
-  by default.
+- **Places**, for each number of section columns (1 on a phone, 2 on a portrait tablet, 3 in landscape, 4 on a
+  large screen): the sections in order, each with its column. They're placed in that order, each right below
+  the lowest section placed before it in any of the columns it spans (`placeSections` in `layout/pack.ts`), so a
+  section stays in the column you put it in, and a wide one under columns of different heights leaves a gap under
+  the shorter one. (Packing them by order alone, as lenses do, was tried first: a section could only go where the
+  packer put it, and moving one reshuffled the rest. In a room whose first section was the tallest, nothing could
+  ever go under it.)
+- **Widths**, in section columns: 1 by default, the same on every screen width, shrunk to fit a narrower screen.
+  "Full" spans the whole screen at any width. A wider section lays its tiles out in a wider grid, so a full-width
+  Lights section shows its lights in one long row.
+- **Names**: a section can be renamed; the name isn't translated. Unnamed sections use the default name in the
+  screen's language.
+- **Hidden** sections.
+
+A width that hasn't been arranged takes the **reading order** (by top, then left to right) of the nearest width
+that has (the smaller on a tie), or the default order, and packs it where each section goes highest
+(`packSections`). So a phone shows the sections in the order you read them on the tablet. A room shows only the
+sections it has: its columns are shorter, and a column left empty closes up outside edit mode (the columns after
+it move left). A section that isn't stored (one a later version adds) goes after the section that precedes it by
+default.
 
 Each room can also hide entities from its screen; they stay on the room's card on Home and in the lenses. A
 section whose entities are all hidden is left out too.
@@ -234,13 +244,19 @@ section whose entities are all hidden is left out too.
 **Edit mode** (the edit button in the room's header) works like Home's: a draft, saved on Done.
 
 - **Drag a section by its title band** (the title, then a drag handle; only the band has `touch-action: none`, so
-  swiping over the tiles still scrolls). Its column is the one nearest to where it is; its place in that column
-  is before the first section whose middle is below its top. The sections below it there move down as it passes,
-  nothing else moves, each step starting from where they were when the drag began, and a faint outline shows
-  where it will land. An empty column shows as an outline to drop into. The first change on a width stores the
-  arrangement of every section on that width, including the ones this room doesn't have (they keep their place
-  among the others), so every room following the template gets it. With a keyboard, the arrow keys on a focused
-  title move it up, down, or to the next column.
+  swiping over the tiles still scrolls). A drag starts once the finger has moved 8 px; a tap renames instead. Its
+  column is the one nearest to where it is; its place in the order is the one that puts its top nearest to
+  where it is. Only the sections in the columns it spans move, each step starting from where they were when the
+  drag began, and a faint outline shows where it will land. An empty column shows as an outline to drop into.
+  The first change on a width stores the places of every section on that width, including the ones this room
+  doesn't have (they keep their spots among the others), so every room following the template gets it. With a
+  keyboard, the arrow keys on a focused title move it up, down, or to the next column.
+- **Tap a title to rename** its section (or press Enter on it): a field takes its place; Enter or leaving it
+  saves, Escape cancels, and an empty name brings back the default.
+- **Drag the grip** low on a section's right side to widen or narrow it: the width snaps to whole section
+  columns, up to the screen's right edge (to make a section in the last column wider, move it left first).
+  Reaching the screen's width stores "full". Shift with the left or right arrow does the same from a keyboard.
+  There's no grip on a phone, where every section is the full width anyway.
 - The **eye** at the end of the band hides or shows the section; a hidden section shows as its title alone,
   struck through.
 - **Tapping a tile** hides it on this room's screen, or shows it again: hidden tiles stay in place, dimmed, with a
@@ -248,7 +264,8 @@ section whose entities are all hidden is left out too.
 - The bar has **All rooms / Only this room**: whether this room follows the template (its changes then apply to
   every room that does) or has its own sections. Switching to "Only this room" starts from a copy of the
   template; switching back drops the room's own arrangement. **Reset to default** puts the sections being edited
-  back in the default order with nothing hidden, and shows the room's hidden tiles again.
+  back in the default order, one column wide, with their default names and nothing hidden, and shows the room's
+  hidden tiles again.
 - Leaving the room while editing (the browser's back button) discards the draft, like Cancel.
 
 ## Lens screens
@@ -292,12 +309,15 @@ aren't changed here.
   },
   "tabs": ["lights", "devices", "climate"],
   "room": {
-    "columns": {
-      "3": [["scenes", "switches", "sensors"], ["media", "lights", "climate"], []]
+    "places": {
+      "3": [{ "id": "lights", "x": 0 }, { "id": "scenes", "x": 0 }, { "id": "climate", "x": 1 },
+            { "id": "switches", "x": 2 }, { "id": "media", "x": 2 }, { "id": "sensors", "x": 1 }]
     },
+    "widths": { "lights": "full", "climate": 2 },
+    "names": { "scenes": "Moods" },
     "hidden": ["sensors"],
     "rooms": {
-      "kitchen": { "own": { "columns": { "2": [["lights"], ["scenes", "climate"]] }, "hidden": [] } },
+      "kitchen": { "own": { "places": { "2": [{ "id": "lights", "x": 0 }, { "id": "scenes", "x": 1 }] } } },
       "hallway": { "hide": ["sensor.hallway_illuminance"] }
     }
   }
@@ -312,10 +332,13 @@ aren't changed here.
 - **`tabs`**: the tabs after Home, in order: `lights`, `climate`, `security`, `devices`. Unset means all four in
   that order; `[]` means Home alone. Home is always the first tab. A lens that isn't a tab is still reached from
   its status chip.
-- **`room`**: the room template (see "Room screens"). `columns` and `hidden` are the template's sections (unset:
-  the default order packed, nothing hidden): `columns.<n>` is the section IDs (`scenes`, `lights`, `climate`,
-  `switches`, `media`, `sensors`) in each of `n` section columns, top to bottom. Under `rooms`, by area ID:
-  `own`, a room's own sections in the same shape, and `hide`, the entities hidden from its screen. `hide` is
+- **`room`**: the room template (see "Room screens"); each field is left out while it's the default.
+  `places.<n>` is the sections in order on a screen `n` section columns wide, each with its column `x` (from 0,
+  the left one if it's wider); `widths` are in section columns, or `"full"`; `names` are the names given to
+  sections; `hidden` the hidden sections. Section IDs are `scenes`, `lights`, `climate`, `switches`, `media` and
+  `sensors`. Under `rooms`, by area ID: `own`, a room's own sections in the same shape, and `hide`, the entities
+  hidden from its screen. (The first arrangements were stored as `columns.<n>`, the section IDs in each column;
+  they're read as places.) `hide` is
   the one place a layout names entity IDs, since it's about one particular device; a renamed entity simply shows
   again.
 

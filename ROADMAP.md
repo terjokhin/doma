@@ -33,9 +33,12 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 **Now: Phase 5, room screens.**
 - ✅ (checked on a laptop, not yet on the Fire HD) The **room template**: a Scenes section; sections dragged by
-  their title into the column you want and hidden, for every room or only this one; tiles hidden on one room's
-  screen. Start-up JS 48.8 KB gzipped.
-- Next: hiding rooms from Home, device sheets (including the air conditioners' modes), swiping between rooms.
+  their title into the column you want, renamed, widened and hidden, for every room or only this one; tiles
+  hidden on one room's screen. Start-up JS 50.7 KB gzipped.
+- Next: on Home, hiding and merging rooms and picking each card's quick controls; device sheets (including the
+  air conditioners' modes); swiping between rooms.
+- Then Phase 6: **custom views** of free sections, any devices in any section, each with its own name, size and
+  place. Home and the room screens stay the generated starting point.
 
 **Waiting until later**
 - Scrolling performance on the slowest tablet hasn't been measured on its own.
@@ -65,14 +68,33 @@ systems: they differ only in where their sections come from.
 
 | View | Its sections come from | You can change |
 |---|---|---|
-| **Home** | floors, each with a card per room | card sizes and positions; later hidden rooms and extra sections |
+| **Home** | floors, each with a card per room | card sizes and positions; later hidden and merged rooms, the quick controls on each card, extra sections |
 | **Room** (one per area) | a room template: Scenes, Lights, Climate, Switches, Media, Sensors | the template for every room at once, or one room's own; hidden entities per room |
 | **Lens** (across rooms) | one function across the house: Lights, Climate, Security, Devices; later Energy | which lenses are tabs, and their order |
-| **Custom** | you | anything; per HA user |
+| **Custom** | you: [free sections](#free-sections) | anything: sections holding any devices, each named, sized and placed on its own; per HA user |
 
 A generated view stays generated: your edits are kept as changes on top of it (like the home layout), so new
 devices and rooms keep showing up. Home Assistant makes you "take control" of a generated dashboard before you can
 edit it, and from then on nothing new appears by itself; here it does.
+
+### Home: the starting point
+
+Decided 2026-10-02. What's generated stays the way in: Home, grouped by floors with a card per room (from HA's
+floors and areas), and a room screen per room. On Home you adjust it, without building anything:
+
+- **hide** a room;
+- **merge** rooms: two or more HA areas shown as one room, with one card and one room screen (an open-plan
+  kitchen and dining room), without changing HA's areas;
+- **reorder** rooms: drag their cards (done in Phase 3);
+- **quick controls**: pick which controls a room's card shows, and in what order, instead of lights first and
+  then climate.
+
+### Free sections
+
+Decided 2026-10-02, for **custom views** (Phase 6). A custom view is made of sections that aren't tied to a room or
+a kind of device: **any section can hold any devices**, from any room, and **each section has its own name, width
+and place**, independently of the others. Room screens stay generated from the room template; custom views are
+where you build something of your own.
 
 ### Navigation
 
@@ -125,8 +147,11 @@ the room template (`room`, Phase 5) and custom views (Phase 6). A sketch of wher
 { "version": 1,
   "tabs": ["lights", "climate", "v:evening"],
   "sizes": {}, "grids": {},
-  "room": { "columns": { "3": [["scenes", "lights"], ["climate"], ["switches", "media", "sensors"]] }, "hidden": [],
-            "rooms": { "kitchen": { "own": { "columns": {}, "hidden": [] }, "hide": [] } } },
+  "room": { "places": { "3": [{ "id": "lights", "x": 0 }, { "id": "climate", "x": 1 }] },
+            "widths": { "lights": 2 }, "names": { "scenes": "Moods" }, "hidden": [],
+            "rooms": { "kitchen": { "own": { "places": {} }, "hide": [] } } },
+  "hiddenRooms": ["garage"], "merged": [["kitchen", "dining_room"]],
+  "cards": { "kitchen": { "controls": ["light.kitchen_ceiling", "climate.kitchen"] } },
   "views": { "v:evening": { "title": "Evening", "icon": "sofa", "sections": [
       { "title": "Living room", "cards": [
         { "card": "room", "area": "living_room", "size": "wide" },
@@ -280,24 +305,28 @@ The first views beyond Home and the rooms, and the navigation between them
 ### 5. Room screens
 1. ✅ **Room template** ([LAYOUTS.md](LAYOUTS.md#room-screens)), decided 2026-10-02: sections Scenes, Lights,
    Climate, Switches, Media, Sensors (sensors stay one section for now; splitting them into Air and Safety, and
-   a Tech section of batteries and offline devices, was proposed and put off). In the room's edit mode, a section is
-   dragged by its title into any column, where it stays (stored per width, like cards on Home), and an eye hides
-   it, for **all rooms** (the template) or **only this room** (its
-   own copy). Tapping a tile hides it on that room's screen only; lenses and the room card still show it. Pins
-   (adding entities the room screen leaves out) are left to Phase 6's **+ Add**. Arrows in the titles came first
-   and were replaced by dragging the same day: moving a section across the room took many taps. Dragging first
-   changed only the sections' order, packed into the shortest columns like lenses; sections then landed where the
-   packer put them and the rest reshuffled (with the tallest section first, nothing could go under it), so they
-   got columns of their own.
-2. Hide rooms from Home.
+   a Tech section of batteries and offline devices, was proposed and put off). In the room's edit mode, a
+   section is dragged by its title into any column, where it stays (stored per width, like cards on Home),
+   renamed by tapping its title, widened to 2 or more columns or the full width by a grip on its right side, and
+   hidden with an eye, for **all rooms** (the template) or **only this room** (its own copy). Tapping a tile
+   hides it on that room's screen only; lenses and the room card still show it. Pins (adding entities the room
+   screen leaves out) are left to Phase 6. Arrows in the titles came first and were replaced by dragging the
+   same day: moving a section across the room took many taps. Dragging first changed only the sections' order,
+   packed into the shortest columns like lenses; sections then landed where the packer put them and the rest
+   reshuffled (with the tallest section first, nothing could go under it), so they got places of their own:
+   placed in order, each below what's above it in the columns it spans.
+2. **Home view** ([Home: the starting point](#home-the-starting-point)): hide rooms, merge rooms into one, and pick
+   the quick controls on each room card.
 3. **Device sheets**: brightness and colour for lights, HVAC modes for air conditioners (heat / cool / dry / fan;
    today a tile only switches on and off, into the last mode), a short history.
 4. Swipe between rooms, with a strip of room names at the top.
 
 ### 6. Custom views
-Per HA user. Start from a template (Blank, Copy of Home, One floor, One room, a lens); add sections and cards
-with **+ Add**; cards bound to selectors or pinned entities. Extra sections on Home that aren't floors
-("Whole house": scenes, weather, solar). Custom views can be tabs like lenses.
+Per HA user, built from [free sections](#free-sections): any devices in any section, from any room, each section
+named, sized and placed on its own, sections added and removed. Start from a template (Blank, Copy of Home, One
+floor, One room, a lens); add sections and cards with **+ Add**, which suggests what's in a room first, then any
+entity; cards bound to selectors or pinned entities. Extra sections on Home that aren't floors ("Whole house":
+scenes, weather, solar). Custom views can be tabs like lenses.
 
 ### 7. Organiser
 Suggests and bulk-applies names, areas and labels from Zigbee2MQTT friendly names (configurable pattern, default

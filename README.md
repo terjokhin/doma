@@ -114,7 +114,8 @@ tap the **edit button** next to the settings gear: drag a card by its handle to 
 size (XS, S, M, L or Wide) from the chip on the card, pick and order the tabs under **Tabs**, then **Done**.
 
 Room screens follow a **room template**, stored in the same layout. A room's edit button (in its header) lets you
-drag its sections by their titles and hide them, either for every room or for this room only, and
+drag its sections by their titles into any column, rename them (tap the title), make them wider (the grip on
+their right side) and hide them, either for every room or for this room only, and
 hide single tiles on this room's screen by tapping them. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
 
 ## Architecture
