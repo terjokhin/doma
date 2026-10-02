@@ -97,7 +97,7 @@
   },
   {
    "entity_id": "sensor.living_room_air_sensor_battery",
-   "state": "87",
+   "state": "92",
    "attributes": {
     "friendly_name": "Air sensor Battery",
     "device_class": "battery",
@@ -182,7 +182,7 @@
   },
   {
    "entity_id": "sensor.kitchen_air_sensor_battery",
-   "state": "87",
+   "state": "14",
    "attributes": {
     "friendly_name": "Air sensor Battery",
     "device_class": "battery",
@@ -249,7 +249,7 @@
   },
   {
    "entity_id": "sensor.hallway_air_sensor_battery",
-   "state": "87",
+   "state": "63",
    "attributes": {
     "friendly_name": "Air sensor Battery",
     "device_class": "battery",
@@ -316,7 +316,7 @@
   },
   {
    "entity_id": "sensor.garden_air_sensor_battery",
-   "state": "87",
+   "state": "100",
    "attributes": {
     "friendly_name": "Air sensor Battery",
     "device_class": "battery",
@@ -401,7 +401,7 @@
   },
   {
    "entity_id": "sensor.bedroom_air_sensor_battery",
-   "state": "87",
+   "state": "78",
    "attributes": {
     "friendly_name": "Air sensor Battery",
     "device_class": "battery",
@@ -485,7 +485,7 @@
   },
   {
    "entity_id": "sensor.kids_room_air_sensor_battery",
-   "state": "87",
+   "state": "41",
    "attributes": {
     "friendly_name": "Air sensor Battery",
     "device_class": "battery",
@@ -553,7 +553,7 @@
   },
   {
    "entity_id": "sensor.office_air_sensor_battery",
-   "state": "87",
+   "state": "55",
    "attributes": {
     "friendly_name": "Air sensor Battery",
     "device_class": "battery",

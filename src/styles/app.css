@@ -285,6 +285,203 @@ button {
   box-shadow: 0 10px 40px rgb(0 0 0 / 0.4);
 }
 
+/* ---- Navigation (ROADMAP.md, "Navigation") ---- */
+
+/* Under the header: tabs on the left, status chips on the right; they wrap onto two rows when narrow. */
+.nav-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--gap);
+  margin-bottom: calc(0.25 * var(--cell));
+}
+
+.tabs,
+.status-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: var(--text-m);
+  transition: background var(--fast) var(--ease), transform var(--fast) var(--ease);
+}
+
+.tab:active {
+  transform: scale(0.96);
+}
+
+.tab[aria-current="page"] {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.status-chip {
+  color: var(--text);
+}
+
+.status-chip.warn {
+  background: var(--warm-soft);
+  color: var(--warm);
+}
+
+.status-chip.alert {
+  background: var(--alert-soft);
+  color: var(--alert);
+  font-weight: 600;
+}
+
+/* On a phone the tabs are a bar at the bottom, on their own layer so scrolling doesn't repaint it. */
+.dock {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 15;
+  display: flex;
+  justify-content: space-around;
+  padding: var(--space-1) var(--pad) max(var(--space-1), env(safe-area-inset-bottom));
+  background: var(--bg);
+  box-shadow: 0 -1px 0 var(--line-strong);
+  will-change: transform;
+}
+
+.dock .tab {
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  min-width: 0;
+  padding: var(--space-1);
+  border-radius: var(--radius-s);
+  font-size: var(--text-xs);
+}
+
+.dock .tab span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Leave room for the dock. */
+.screen.docked {
+  padding-bottom: calc(var(--touch) + 2 * var(--space-1) + 2 * var(--pad));
+}
+
+/* The tabs menu in the edit bar. */
+.tabs-menu {
+  min-width: 19rem;
+}
+
+.tab-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+}
+
+.tab-row.fixed {
+  padding: 0 var(--space-2);
+  gap: var(--space-3);
+  color: var(--text-dim);
+}
+
+.tab-check {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 2.75rem;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-s);
+  text-align: left;
+}
+
+.tab-row.fixed .tab-check {
+  flex: none;
+  min-height: 0;
+  padding: 0;
+}
+
+.tab-check:active {
+  background: var(--surface-3);
+}
+
+.tab-check[aria-checked="false"] {
+  color: var(--text-dim);
+}
+
+.round-btn:disabled {
+  opacity: 0.35;
+}
+
+/* ---- Lens ---- */
+
+/* A full-width band, 1 row tall: the lens's name, what's going on, and an action. */
+.lens-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+  min-height: var(--cell);
+  margin-bottom: var(--gap);
+}
+
+.lens-header h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.lens-summary {
+  color: var(--text-dim);
+  font-size: var(--text-m);
+}
+
+.lens-summary.warn {
+  color: var(--warm);
+}
+
+.lens-summary.alert {
+  color: var(--alert);
+}
+
+.lens-header .spacer {
+  flex: 1;
+}
+
+/* A section's title that opens its room. */
+.section-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 100%;
+  min-width: 0;
+  color: var(--text-dim);
+}
+
+.section-link h2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tile.device.warn .tile-icon {
+  background: var(--warm-soft);
+  color: var(--warm);
+}
+
 /* ---- Home ---- */
 
 /* A floor: a full-width heading above its rooms. */
@@ -819,11 +1016,12 @@ a.btn {
   padding-top: 0;
 }
 
-/* Replaces the header, sticks to the top. Opaque, so nothing shows through while scrolling. */
+/* Replaces the header, sticks to the top. Opaque, so nothing shows through while scrolling. Above the cards' size
+   chips, so its tabs menu is too. */
 .edit-bar {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 50;
   display: flex;
   flex-wrap: wrap;
   align-items: center;

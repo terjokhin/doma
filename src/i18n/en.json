@@ -29,7 +29,7 @@
     "more": "{{count}} more"
   },
   "room": {
-    "back": "Home",
+    "back": "Back",
     "lights": "Lights",
     "climate": "Climate",
     "switches": "Switches",
@@ -89,6 +89,65 @@
       "m": "M",
       "l": "L",
       "wide": "Wide"
+    },
+    "tabs": "Tabs",
+    "tabsHint": "Which tabs to show, in order",
+    "moveUp": "Move {{name}} up",
+    "moveDown": "Move {{name}} down"
+  },
+  "views": {
+    "home": "Home"
+  },
+  "lens": {
+    "names": {
+      "lights": "Lights",
+      "climate": "Climate",
+      "security": "Security",
+      "devices": "Devices"
+    },
+    "calm": {
+      "lights": "All lights are off",
+      "climate": "Nothing is heating or cooling",
+      "security": "All closed, nothing detected",
+      "devices": "All devices online, batteries fine"
+    },
+    "empty": {
+      "lights": "No room has lights yet.",
+      "climate": "No room has climate devices or temperature sensors yet.",
+      "security": "No room has door, window, leak or smoke sensors yet.",
+      "devices": "No devices in any room yet."
+    },
+    "allLightsOff": "All lights off",
+    "chips": {
+      "lightsOn_one": "{{count}} light on",
+      "lightsOn_other": "{{count}} lights on",
+      "heating": "{{count}} heating",
+      "cooling": "{{count}} cooling",
+      "climateOn": "{{count}} on",
+      "alarm": {
+        "moisture": "Leak · {{room}}",
+        "smoke": "Smoke · {{room}}",
+        "gas": "Gas · {{room}}",
+        "carbon_monoxide": "CO · {{room}}",
+        "safety": "Alarm · {{room}}"
+      },
+      "alarms": "{{count}} alarms",
+      "open": {
+        "door": "Door open · {{room}}",
+        "window": "Window open · {{room}}",
+        "other": "Open · {{room}}"
+      },
+      "openCount": "{{count}} open",
+      "unlocked_one": "Unlocked",
+      "unlocked_other": "{{count}} unlocked",
+      "offline": "{{count}} offline",
+      "lowBattery_one": "{{count}} low battery",
+      "lowBattery_other": "{{count}} low batteries"
     }
+  },
+  "devices": {
+    "offline": "Offline",
+    "batteryLow": "Battery low",
+    "batteryOk": "Battery OK"
   }
 }

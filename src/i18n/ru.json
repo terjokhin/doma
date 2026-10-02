@@ -29,7 +29,7 @@
     "more": "Ещё {{count}}"
   },
   "room": {
-    "back": "Дом",
+    "back": "Назад",
     "lights": "Свет",
     "climate": "Климат",
     "switches": "Выключатели",
@@ -89,6 +89,65 @@
       "m": "M",
       "l": "L",
       "wide": "Широкая"
+    },
+    "tabs": "Вкладки",
+    "tabsHint": "Какие вкладки показывать и в каком порядке",
+    "moveUp": "Поднять «{{name}}»",
+    "moveDown": "Опустить «{{name}}»"
+  },
+  "views": {
+    "home": "Дом"
+  },
+  "lens": {
+    "names": {
+      "lights": "Свет",
+      "climate": "Климат",
+      "security": "Безопасность",
+      "devices": "Устройства"
+    },
+    "calm": {
+      "lights": "Весь свет выключен",
+      "climate": "Ничего не греет и не охлаждает",
+      "security": "Всё закрыто, тревог нет",
+      "devices": "Все устройства в сети, батареи в порядке"
+    },
+    "empty": {
+      "lights": "Ни в одной комнате пока нет света.",
+      "climate": "Ни в одной комнате пока нет климатических устройств или датчиков температуры.",
+      "security": "Ни в одной комнате пока нет датчиков дверей, окон, протечки или дыма.",
+      "devices": "Ни в одной комнате пока нет устройств."
+    },
+    "allLightsOff": "Выключить весь свет",
+    "chips": {
+      "lightsOn_one": "Горит {{count}} лампа",
+      "lightsOn_few": "Горят {{count}} лампы",
+      "lightsOn_many": "Горят {{count}} ламп",
+      "lightsOn_other": "Горят {{count}} лампы",
+      "heating": "Обогрев: {{count}}",
+      "cooling": "Охлаждение: {{count}}",
+      "climateOn": "Включено: {{count}}",
+      "alarm": {
+        "moisture": "Протечка · {{room}}",
+        "smoke": "Дым · {{room}}",
+        "gas": "Газ · {{room}}",
+        "carbon_monoxide": "CO · {{room}}",
+        "safety": "Тревога · {{room}}"
+      },
+      "alarms": "Тревог: {{count}}",
+      "open": {
+        "door": "Дверь открыта · {{room}}",
+        "window": "Окно открыто · {{room}}",
+        "other": "Открыто · {{room}}"
+      },
+      "openCount": "Открыто: {{count}}",
+      "offline": "Не в сети: {{count}}",
+      "lowBattery": "Батарея садится: {{count}}",
+      "unlocked": "Не заперто: {{count}}"
     }
+  },
+  "devices": {
+    "offline": "Не в сети",
+    "batteryLow": "Батарея садится",
+    "batteryOk": "Батарея в порядке"
   }
 }

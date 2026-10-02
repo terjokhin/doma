@@ -5,7 +5,9 @@ a laptop browser, a wall-mounted tablet, a kiosk display. It's a static web app 
 to Home Assistant directly over its WebSocket API. There's no server of its own.
 
 - Builds itself from your HA **floors, areas and devices**: no dashboard YAML to maintain.
-- **Fast on old tablets**: about 33 KB of gzipped JavaScript, and it only subscribes to the
+- **Lenses** show one thing across the whole house (lights, climate, security, devices), and
+  **status chips** say when something needs a look: "3 lights on", "Door open · Hallway", "2 offline".
+- **Fast on old tablets**: about 45 KB of gzipped JavaScript, and it only subscribes to the
   entities on screen. Each tile re-renders only when its own entity changes.
 - Touch-first: large tap targets, no hover-only controls.
 - English UI, with Russian included; translations live in `src/i18n/*.json`.
@@ -80,6 +82,21 @@ over Wi-Fi (no USB needed). If it can't connect, check your computer's firewall.
 4. Old Android devices (5.x) don't trust current Let's Encrypt certificates. On a home network,
    plain `http://` to Home Assistant avoids that.
 
+## Screens and navigation
+
+- **Home**: floors and their rooms, one card per room.
+- **Room** (`#/room/<area>`): everything in one room, grouped into Lights, Climate, Switches, Media, Sensors.
+- **Lenses** (`#/lens/lights`, `climate`, `security`, `devices`): one function across the house, a section per
+  room under floor headings. Lights: every light, with all on / off per room and for the house. Climate: air
+  conditioners, heaters and thermostats, heating switches, each room's temperature, humidity and CO₂. Security:
+  doors, windows, leak, smoke and gas sensors, locks. Devices: devices that are offline, and battery levels,
+  lowest first.
+
+Under the home header, a band holds the **tabs** (Home, then the lenses you chose, in your order) and the
+**status chips**, which appear only when there's something to say; each opens its lens. On a phone the tabs
+move to a bar at the bottom. A room's back button returns to where you came from. Where this is heading (room
+templates, custom views): [ROADMAP.md](ROADMAP.md#views-and-navigation).
+
 ## Layouts
 
 The home screen shows each floor as a heading and each room as a card: its name, temperature and humidity, and
@@ -92,7 +109,7 @@ and its size. It only stores those changes, so new rooms still appear by themsel
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `ha-ui.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
 tap the **edit button** next to the settings gear: drag a card by its handle to any spot on its floor, pick its
-size (XS, S, M, L or Wide) from the chip on the card, then **Done**. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
+size (XS, S, M, L or Wide) from the chip on the card, pick and order the tabs under **Tabs**, then **Done**. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
 
 ## Architecture
 
@@ -101,9 +118,9 @@ How the screen is divided into cells and sections, and how elements are sized: [
 ```
 src/
   ha/         connection (OAuth + WebSocket, or a fixture), subscriptions and the store
-  model/      HA registries → floors → rooms → lights / climate / sensors …
-  ui/         tiles, header, icons, formatting
-  screens/    Home, Room, Setup
+  model/      HA registries → floors → rooms → lights / climate / sensors …; lenses
+  ui/         tiles, header, navigation band, icons, formatting
+  screens/    Home, Room, Lens, Setup
   i18n/       en.json is the source; other languages translate it
   debug/      performance counters and the ?debug overlay
   styles/     design tokens + styles (dark first, no heavy blur effects)
@@ -123,10 +140,13 @@ src/
 - **Model**: rooms come from HA areas and floors, built from the registries and one `get_states`
   snapshot (loaded at start and after registry changes), not from live updates. An entity's
   area is its own, or else its device's. Hidden and config/diagnostic entities are left out.
-  `switch` entities whose ID names a light (`…_light`, `…_lamp`, `…_sconce`) count as lights.
+  `switch` entities whose ID names a light (`…_light`, `…_lamp`, `…_sconce`) count as lights, and those that
+  name a heater (`…_heating`, `…_heater`, `…_radiator`, `…_boiler`) go to the Climate lens. For the Devices
+  lens, each device in a room is checked through one of its entities (all of them go unavailable when it's
+  offline) and its battery, which is usually a diagnostic entity the room screen leaves out.
 - **i18n**: a tiny `t()` over the JSON files, with i18next-style `{{name}}` and plural keys
   (`_zero`, `_one`, `_few`, `_many`, `_other`).
-- **Routing**: hash-based (`#/room/kitchen`), so the build can be served from any path.
+- **Routing**: hash-based (`#/`, `#/lens/lights`, `#/room/kitchen`), so the build can be served from any path.
 - **Rendering on weak hardware**: no backdrop blur or large shadows; tiles and cards use CSS
   `contain`; full-screen effects sit on their own fixed layer, so scrolling and screen changes
   don't repaint them.

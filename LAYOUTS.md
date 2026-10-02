@@ -3,7 +3,8 @@
 How ha-ui divides the screen and sizes everything on it. The short version: **one square cell is the unit for
 everything**, elements are sized in whole cells, sections are 4 cells wide, and a small packer arranges sections
 in columns like a masonry layout. On the home screen, room cards come in a few fixed sizes and sit on one cell
-grid per floor, where you place them. Nothing is sized in pixels except a few readability minimums.
+grid per floor, where you place them. Lens screens pack sections like room screens, and Home and the lenses share a
+navigation band. Nothing is sized in pixels except a few readability minimums.
 
 ## Goals
 
@@ -77,6 +78,7 @@ Every element has a size in cells, `w × h`. Starting set:
 |---|---|
 | Toggle tile (light, switch, fan) | 2 × 1 |
 | Sensor tile | 2 × 1 |
+| Device tile (Devices lens) | 2 × 1 |
 | Media tile | 2 × 1 |
 | Climate tile | 4 × 2 |
 | Light button (room card) | 1 × 1 |
@@ -84,6 +86,7 @@ Every element has a size in cells, `w × h`. Starting set:
 | "+N" button (room card) | 1 × 1 |
 | Room card | XS 2 × 1.5, S 4 × 1.5, M 4 × 3, L 4 × 4, Wide 8 × 3 (see "Room cards") |
 | Header (clock, date, weather) | full width × 2 |
+| Navigation band (tabs, status chips) | full width, one or two rows of chips |
 
 An element is never wider than its section (4 cells), or than its card's width on the home screen.
 
@@ -101,8 +104,21 @@ packed the same way, but have a fixed size (see "Room cards").
   4 columns (`denseRows` in `layout/pack.ts`).
 
 **Full-width bands** sit above the sections and span all columns: the home header (clock, date, weather) is
-2 rows, the room header (back, name, climate) 1 row, and each floor heading on the home screen half a cell. Each
-floor's room cards fill their own grid under its heading (see "Room cards").
+2 rows; the navigation band under it (see "Navigation band") is as tall as a chip, or two chips when tabs and
+status chips don't fit side by side; the room and lens headers are 1 row; and each floor heading half a cell.
+Each floor's room cards fill their own grid under its heading (see "Room cards").
+
+## Navigation band
+
+Home and the lens screens start with the same band (`ui/NavBand.svelte`): the **tabs** on the left (Home, then
+the user's lenses, in their order) and the **status chips** on the right, which only appear when they have
+something to say. Both are rows of chips the size of the smallest tap target, and wrap onto a second row when
+they don't fit side by side (a portrait tablet). Not a side rail: a rail one cell wide would take a 1280 px
+screen from 12 columns to 8.
+
+On a phone (4 columns) the tabs leave the band for a **dock**, a bar fixed to the bottom of the screen with an
+icon over each name, on its own layer so scrolling doesn't repaint it; the screen gets bottom padding to match.
+Room screens have no tabs: they're one level down, with a back button.
 
 ## Room cards (home screen)
 
@@ -136,7 +152,7 @@ name and temperature), and an arrow; tapping it opens the room. Below the band, 
 - A room without lights or climate keeps an empty card.
 
 In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) in `model/roomCard.ts`, rendered by
-`screens/RoomSection.svelte`.
+`screens/RoomCard.svelte`.
 
 ### The floor grid
 
@@ -160,7 +176,7 @@ A card's size never depends on its contents.
 
 ## Packing sections
 
-Room screens pack their sections into columns (the home screen uses floor grids instead, above).
+Room and lens screens pack their sections into columns (the home screen uses floor grids instead, above).
 The page has `cols / 4` section columns: 1 on a phone, 2 in portrait, 3 in landscape. Sections are assigned to
 columns by a deterministic packer:
 
@@ -184,6 +200,14 @@ Properties:
 - **No measuring**: heights are known from the sizes, so there is no layout thrash and no flicker on load.
 - **Same result everywhere**: the same layout and width always give the same arrangement.
 
+## Lens screens
+
+A lens shows one function across the house (`screens/LensScreen.svelte`, `model/lenses.ts`): the navigation
+band, a 1-row header (the lens's name, what's going on, and an action such as "All lights off"), then each floor
+as a heading over its rooms' **sections**, packed into columns like a room screen. A section's title is the
+room's name and opens the room; rooms with nothing for the lens are left out. Tiles keep their room-screen sizes
+(toggle and sensor 2 × 1, climate 4 × 2, device 2 × 1).
+
 ## Rotation and resizing
 
 When `cols` changes, the packer runs again and the sections move to their new columns, and each floor grid
@@ -203,8 +227,8 @@ These rules target Chrome 108 (see the README):
 ## Layout model
 
 The layout stores **only the user's changes** on top of the layout generated from HA's floors and areas, never a
-full copy, so new rooms still appear by themselves. It holds two things: **card sizes**, and **card positions per
-column count**, in grid units, never pixels. Rooms, areas and floors themselves are HA's and aren't changed here.
+full copy, so new rooms still appear by themselves. It holds **card sizes**, **card positions per column
+count** (in grid units, never pixels), and the **tabs**. Rooms, areas and floors themselves are HA's and aren't changed here.
 (`layout/homeLayout.ts`)
 
 ```json
@@ -213,7 +237,8 @@ column count**, in grid units, never pixels. Rooms, areas and floors themselves 
   "sizes": { "kitchen": "wide", "hallway": "xs" },
   "grids": {
     "12": { "garden": { "x": 0, "y": 0 }, "hallway": { "x": 0, "y": 3 }, "kitchen": { "x": 4, "y": 0 } }
-  }
+  },
+  "tabs": ["lights", "devices", "climate"]
 }
 ```
 
@@ -222,6 +247,9 @@ column count**, in grid units, never pixels. Rooms, areas and floors themselves 
   tablet, 12 on a landscape tablet or laptop, 16 on a large screen), by area ID: `x` in columns, `y` in rows of
   half a cell, from the top left of the card's floor grid. A card stays on its floor (the area's floor in HA).
   The editor stores every card of a column count once you change anything there.
+- **`tabs`**: the tabs after Home, in order: `lights`, `climate`, `security`, `devices`. Unset means all four in
+  that order; `[]` means Home alone. Home is always the first tab. A lens that isn't a tab is still reached from
+  its status chip.
 
 Rooms are referenced by area ID, which stays the same when a room is renamed; a stale one is simply ignored. The
 stored value is read defensively: unknown fields and sizes are dropped, and a version this app doesn't know gives
@@ -252,8 +280,9 @@ The **edit button** next to the settings gear turns the home screen into an edit
   where the card will land; when it's let go, every card floats up, this one too. Near the top or bottom edge the
   page scrolls by itself.
 - A new size keeps the card where it is (moved left if it no longer fits); the cards around it make room.
-- A bar replaces the header and sticks to the top: **Done** (saves, if anything changed), **Cancel** (discards)
+- A bar replaces the header and sticks to the top: **Tabs** (a menu: tick the lenses to show as tabs, order them
+  with arrows; the navigation band shows the draft), **Done** (saves, if anything changed), **Cancel** (discards)
   and **Reset to default** (an empty layout, saved on Done). A failed save keeps the draft and says why.
 - In code: the draft in `layout/layoutEditor.svelte.ts`, dragging in `layout/dragCard.ts`, the bar in
-  `ui/EditBar.svelte`, the overlay over each card in `ui/CardEditor.svelte`. The overlay sits in the card's grid
+  `ui/EditBar.svelte` with `ui/TabsMenu.svelte`, the overlay over each card in `ui/CardEditor.svelte`. The overlay sits in the card's grid
   cell rather than inside the card, so the size menu isn't clipped by the card's `contain`.

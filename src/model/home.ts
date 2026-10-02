@@ -12,8 +12,23 @@ export interface Room {
   switches: string[];
   media: string[];
   sensors: string[];
+  /** Doors, windows, leak / smoke / gas sensors and locks (LAYOUTS.md, "Lens screens"). */
+  safety: string[];
+  /** Switches that heat something (underfloor heating, a radiator): `switches` whose ID says so. */
+  heating: string[];
+  /** Devices in the room, for the Devices lens: whether each is online, and its battery. */
+  devices: RoomDevice[];
   temperature?: string;
   humidity?: string;
+}
+
+export interface RoomDevice {
+  id: string;
+  name: string;
+  /** The device's battery level (`sensor`, %) or low-battery flag (`binary_sensor`), if it reports one. */
+  battery?: string;
+  /** One of its entities, to tell whether the device is online: when it's offline, all of them are unavailable. */
+  probe: string;
 }
 
 export interface FloorGroup {
@@ -24,6 +39,8 @@ export interface FloorGroup {
 const SWITCH_DOMAINS = new Set(["switch", "fan", "input_boolean"]);
 /** Relays wired to a lamp are `switch` entities; count them as lights when their ID says so. */
 const LIGHT_SWITCH = /(^|_)(lights?|lamp|sconce|chandelier)(_|$)/;
+/** Likewise, a switch that heats something. */
+const HEATING_SWITCH = /(^|_)(heating|heater|radiator|boiler)(_|$)/;
 
 export const isLight = (entityId: string) =>
   entityId.startsWith("light.") || (entityId.startsWith("switch.") && LIGHT_SWITCH.test(entityId.slice(7)));
@@ -31,6 +48,10 @@ const SENSOR_CLASSES = new Set([
   "temperature", "humidity", "carbon_dioxide", "pm25", "pm10", "volatile_organic_compounds", "illuminance",
   "moisture", "smoke", "door", "window", "opening", "motion", "occupancy", "battery",
 ]);
+/** Binary sensors that report something open: worth a look, not an alarm. */
+export const OPEN_CLASSES = new Set(["door", "window", "opening", "garage_door"]);
+/** Binary sensors that report a hazard: an alarm. */
+export const ALARM_CLASSES = new Set(["moisture", "smoke", "gas", "carbon_monoxide", "safety"]);
 
 export const domainOf = (entityId: string) => entityId.slice(0, entityId.indexOf("."));
 
@@ -49,25 +70,46 @@ export function buildHome(
   states: HassEntities,
 ): FloorGroup[] {
   const rooms = new Map<string, Room>(
-    areas.map((area) => [area.area_id, { area, lights: [], climate: [], switches: [], media: [], sensors: [] }]),
+    areas.map((area) => [
+      area.area_id,
+      { area, lights: [], climate: [], switches: [], media: [], sensors: [], safety: [], heating: [], devices: [] },
+    ]),
   );
+  const roomDevices = new Map<string, RoomDevice & { room: Room }>();
 
   for (const e of Object.values(registry)) {
     const room = rooms.get(areaOf(e, devices) ?? "");
     const state = states[e.ei];
-    if (!room || !state || !isVisible(e)) continue;
+    if (!room || !state || e.hb) continue;
     const domain = domainOf(e.ei);
+    const cls = deviceClass(state);
+    // Batteries are usually diagnostic entities: not shown in the room, but they count for the Devices lens.
+    const battery = cls === "battery" && (domain === "sensor" || domain === "binary_sensor");
+    const device = e.di ? devices[e.di] : undefined;
+    if (device && (battery || isVisible(e))) {
+      let d = roomDevices.get(device.id);
+      if (!d) roomDevices.set(device.id, (d = { id: device.id, name: device.name_by_user ?? device.name ?? e.ei, probe: e.ei, room }));
+      if (battery && !d.battery) d.battery = d.probe = e.ei;
+    }
+    if (!isVisible(e)) continue;
     if (isLight(e.ei)) room.lights.push(e.ei);
     else if (domain === "climate") room.climate.push(e.ei);
     else if (domain === "media_player") room.media.push(e.ei);
-    else if (SWITCH_DOMAINS.has(domain)) room.switches.push(e.ei);
-    else if ((domain === "sensor" || domain === "binary_sensor") && SENSOR_CLASSES.has(deviceClass(state))) {
+    else if (SWITCH_DOMAINS.has(domain)) {
+      room.switches.push(e.ei);
+      if (HEATING_SWITCH.test(e.ei.slice(domain.length + 1))) room.heating.push(e.ei);
+    } else if ((domain === "sensor" || domain === "binary_sensor") && SENSOR_CLASSES.has(cls)) {
       room.sensors.push(e.ei);
     }
+    if (domain === "lock" || (domain === "binary_sensor" && (OPEN_CLASSES.has(cls) || ALARM_CLASSES.has(cls)))) {
+      room.safety.push(e.ei);
+    }
   }
+  for (const { room, ...device } of roomDevices.values()) room.devices.push(device);
 
   for (const room of rooms.values()) {
-    for (const list of [room.lights, room.climate, room.switches, room.media, room.sensors]) {
+    room.devices.sort((a, b) => a.name.localeCompare(b.name));
+    for (const list of [room.lights, room.climate, room.switches, room.media, room.sensors, room.safety, room.heating]) {
       list.sort((a, b) =>
         entityName(states[a], registry[a], room.area).localeCompare(entityName(states[b], registry[b], room.area)),
       );

@@ -14,7 +14,9 @@
   import { useLayoutBackend } from "./layout/layoutStore.svelte";
   import { t } from "./i18n/index.svelte";
   import { route } from "./router.svelte";
+  import { isLensId } from "./model/lenses";
   import HomeScreen from "./screens/HomeScreen.svelte";
+  import LensScreen from "./screens/LensScreen.svelte";
   import RoomScreen from "./screens/RoomScreen.svelte";
   import SetupScreen from "./screens/SetupScreen.svelte";
 
@@ -87,6 +89,7 @@
   onMount(() => start());
 
   const roomId = $derived(route().match(/^\/room\/([\w-]+)$/)?.[1]);
+  const lensId = $derived(route().match(/^\/lens\/(\w+)$/)?.[1]);
 </script>
 
 {#if boot.phase === "loading"}
@@ -97,6 +100,10 @@
   {#if roomId}
     {#key roomId}
       <RoomScreen areaId={roomId} />
+    {/key}
+  {:else if lensId && isLensId(lensId)}
+    {#key lensId}
+      <LensScreen lens={lensId} />
     {/key}
   {:else}
     <HomeScreen />

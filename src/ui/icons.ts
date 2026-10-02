@@ -1,5 +1,9 @@
 import {
+  mdiBatteryHeartVariant,
   mdiBatteryMedium,
+  mdiHomeOutline,
+  mdiLightbulbGroupOutline,
+  mdiShieldHomeOutline,
   mdiBrightness5,
   mdiDoorOpen,
   mdiEyeOutline,
@@ -20,6 +24,7 @@ import {
 } from "@mdi/js";
 import type { HassEntity } from "home-assistant-js-websocket";
 import { deviceClass, domainOf, isLight } from "../model/home";
+import type { LensId } from "../model/lenses";
 
 const BY_CLASS: Record<string, string> = {
   temperature: mdiThermometer,
@@ -53,3 +58,12 @@ export function entityIcon(s: HassEntity) {
   if (isLight(s.entity_id)) return s.state === "on" ? mdiLightbulb : mdiLightbulbOutline;
   return BY_CLASS[deviceClass(s)] ?? BY_DOMAIN[domainOf(s.entity_id)] ?? mdiEyeOutline;
 }
+
+/** Icons of the views the tabs lead to. */
+export const VIEW_ICONS: Record<"home" | LensId, string> = {
+  home: mdiHomeOutline,
+  lights: mdiLightbulbGroupOutline,
+  climate: mdiThermostat,
+  security: mdiShieldHomeOutline,
+  devices: mdiBatteryHeartVariant,
+};

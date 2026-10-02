@@ -29,6 +29,7 @@
   --heat: #ff8a5c;
   --good: #6fdc9b;
   --alert: #ff6b6b;
+  --alert-soft: rgb(255 107 107 / 0.16);
 
   /* Sizes are in rem, and 1rem is tied to the grid cell (see app.css), so everything scales with the cell. */
   --radius-s: 0.9rem;

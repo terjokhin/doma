@@ -9,7 +9,7 @@
   import SectionColumns from "../layout/SectionColumns.svelte";
   import { SIZES } from "../layout/sizes";
   import { findRoom } from "../model/model.svelte";
-  import { navigate } from "../router.svelte";
+  import { back } from "../router.svelte";
   import ClimateTile from "../ui/ClimateTile.svelte";
   import { formatHumidity, formatTemperature } from "../ui/format";
   import Icon from "../ui/Icon.svelte";
@@ -79,7 +79,7 @@
 
   <main class="screen">
     <header class="room-header">
-      <button class="round-btn" aria-label={t("room.back")} onclick={() => navigate("/")}>
+      <button class="round-btn" aria-label={t("room.back")} onclick={back}>
         <Icon path={mdiChevronLeft} size={28} />
       </button>
       <h1>{area.name}</h1>

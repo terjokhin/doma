@@ -1,3 +1,4 @@
+import type { LensId } from "../model/lenses";
 import { DEFAULT_CARD_SIZE, EMPTY_LAYOUT, type CardSize, type HomeLayout, type Position } from "./homeLayout";
 import { homeLayout, saveLayout } from "./layoutStore.svelte";
 
@@ -48,6 +49,10 @@ export const editor = {
     const { [areaId]: _, ...sizes } = draft.sizes ?? {};
     if (size !== DEFAULT_CARD_SIZE) sizes[areaId] = size;
     draft = { ...draft, sizes };
+  },
+  /** The tabs after Home, in order. */
+  setTabs(tabs: LensId[]) {
+    if (draft) draft = { ...draft, tabs };
   },
   /** Save the draft (if anything changed) and leave edit mode; on failure, stay and keep the draft. */
   async done() {

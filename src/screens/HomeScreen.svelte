@@ -3,6 +3,7 @@
   import type { CardSize, Position } from "../layout/homeLayout";
   import { dragCard } from "../layout/dragCard";
   import { grid } from "../layout/grid.svelte";
+  import { tabsOf } from "../layout/homeLayout";
   import { editor } from "../layout/layoutEditor.svelte";
   import { compact, moveBox, resizeBox, type Box } from "../layout/place";
   import { gridRows, homeView, type FloorView, type RoomCardView } from "../model/homeView";
@@ -11,7 +12,8 @@
   import CardEditor from "../ui/CardEditor.svelte";
   import EditBar from "../ui/EditBar.svelte";
   import Header from "../ui/Header.svelte";
-  import RoomSection from "./RoomSection.svelte";
+  import NavBand, { docked } from "../ui/NavBand.svelte";
+  import RoomCard from "./RoomCard.svelte";
 
   // Each floor is a full-width heading; its room cards sit on one grid under it, where and at the sizes the home
   // layout says (LAYOUTS.md, "The floor grid"). In edit mode it shows the editor's draft.
@@ -64,12 +66,13 @@
   }
 </script>
 
-<main class="screen" class:editing={editor.active}>
+<main class="screen" class:editing={editor.active} class:docked={docked()}>
   {#if editor.active}
     <EditBar />
   {:else}
     <Header />
   {/if}
+  <NavBand current="home" tabs={tabsOf(editor.layout)} editing={editor.active} />
   {#each floors as floor (floor.key)}
     <h2 class="floor-band">{floor.name ?? t("app.otherFloor")}</h2>
     <div class="floor-grid">
@@ -87,7 +90,7 @@
           style:grid-column="{card.x + 1} / span {card.size.w}"
           style:grid-row="{card.y + 1} / span {gridRows(card.size)}"
         >
-          <RoomSection room={card.room} size={card.size} items={card.items} editing={editor.active} />
+          <RoomCard room={card.room} size={card.size} items={card.items} editing={editor.active} />
           {#if editor.active}
             <CardEditor
               size={card.size}

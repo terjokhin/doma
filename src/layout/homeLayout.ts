@@ -1,6 +1,8 @@
+import { isLensId, LENS_IDS, type LensId } from "../model/lenses";
+
 /**
  * The home layout: the user's changes to the home screen generated from HA's floors and areas (LAYOUTS.md,
- * "Layout model"): room card sizes, and where each card sits for each column count. It only stores differences,
+ * "Layout model"): room card sizes, where each card sits for each column count, and which tabs follow Home. It only stores differences,
  * never a full copy, so new rooms still appear by themselves. Rooms are referenced by area ID, which doesn't change when a room is
  * renamed. Each HA user has their own, in HA's per-user frontend storage under LAYOUT_KEY.
  */
@@ -27,9 +29,14 @@ export interface HomeLayout {
   sizes?: Record<string, CardSize>;
   /** Card positions by column count ("12", "4", …), then by area ID. */
   grids?: Record<string, Record<string, Position>>;
+  /** The tabs after Home, in order. Unset: every lens, in LENS_IDS order. */
+  tabs?: LensId[];
 }
 
 export const EMPTY_LAYOUT: HomeLayout = { version: 1 };
+
+/** The tabs after Home in this layout. */
+export const tabsOf = (layout: HomeLayout): readonly LensId[] => layout.tabs ?? LENS_IDS;
 
 /** A room card's size in this layout. */
 export const sizeOf = (layout: HomeLayout, areaId: string): CardSize => layout.sizes?.[areaId] ?? DEFAULT_CARD_SIZE;
@@ -77,6 +84,9 @@ export function parseLayout(value: unknown): HomeLayout {
       }
       layout.grids[cols] = grid;
     }
+  }
+  if (Array.isArray(value.tabs)) {
+    layout.tabs = [...new Set(value.tabs.filter((id): id is LensId => typeof id === "string" && isLensId(id)))];
   }
   return layout;
 }
