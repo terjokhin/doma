@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-02.*
+*Updated 2026-10-02, after Phase 4.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -23,23 +23,26 @@ Where the app is going, in order, and how each step is checked. The README cover
   - edit mode: the edit button next to the settings gear, drag cards by their handle, pick a size from the chip's
     menu, Done / Cancel / Reset.
 - Along the way: a power button on climate tiles (devices that were off couldn't be switched on).
+- **Phase 4, views and lenses** (design in [Views and navigation](#views-and-navigation); checked on the Fire HD
+  2026-10-02):
+  - the Lights, Climate, Security and Devices lenses; tabs under the header (a bar at the bottom on a phone),
+    picked and ordered in edit mode and saved as `tabs`; status chips; back from a room to where you came from;
+  - Home and the tab lenses stay built once visited: going back to one takes about 50 ms instead of about
+    135 ms, rooms about 60 ms (budget 100). Live updates cost a little more for it (step 6);
+  - start-up JS went from 40.7 to 45.5 KB gzipped.
 
-**Now: Phase 4, views and lenses** (design in [Views and navigation](#views-and-navigation), decided
-2026-10-02). Built and checked on a laptop against the demo and a snapshot of our home, at 4, 8 and 12 columns:
-the Lights, Climate, Security and Devices lenses; tabs under the header (a bar at the bottom on a phone), picked
-and ordered in edit mode and saved as `tabs`; status chips; back from a room to where you came from. Start-up JS
-went from 40.7 to 45.9 KB gzipped. On the Fire HD, live updates are within budget; screen changes to Home and
-the lenses are still over it (step 6; `content-visibility` was tried and made things worse). **Next:** Phase 5;
-screen changes need a different idea (fewer or simpler elements to draw).
+**Next: Phase 5, room screens**: a room template, swiping between rooms, device sheets (including the air
+conditioners' modes).
 
 **Waiting until later**
-- Scrolling performance on the slowest tablet hasn't been measured on its own; the fade-in on screen changes is
-  the next suspect if they need to get faster.
+- Scrolling performance on the slowest tablet hasn't been measured on its own.
+- The first visit to a tab still builds it (up to about 200 ms on the Fire HD). Building the tabs in the background
+  after start-up would make that fast too, at the cost of a busier start.
 - Fitting a wall panel's home screen without scrolling (cells would shrink to fit) is an option, not a rule.
 
 ## What sets it apart
 
-1. **Fast on weak hardware.** Only the entities on screen are subscribed to, and one entity update re-renders one tile.
+1. **Fast on weak hardware.** Only the entities on screen (and on the screens kept built) are subscribed to, and one entity update re-renders one tile.
 2. **Layouts bound to meaning, not entity IDs.** A layout says "the lights in this room" or "the thermostat in this room"
    (areas, floors, labels, domains, device classes), so new devices show up in the right place and renames never
    break it.
@@ -230,7 +233,7 @@ Positions are kept per column count (phone, portrait and landscape tablet, large
 arranged follows the reading order of the nearest one. (We started with an order-only model; it couldn't put
 a small card under another while the row still had room.)
 
-### 4. Views and lenses ← in progress
+### 4. Views and lenses ✅
 The first views beyond Home and the rooms, and the navigation between them
 ([Views and navigation](#views-and-navigation)).
 
@@ -242,18 +245,34 @@ The first views beyond Home and the rooms, and the navigation between them
 4. ✅ **Status chips** in the same band, only when there's something to say; each opens its lens.
 5. ✅ **Lenses**: Lights, Climate, Security, Devices: floor headings, a section per room, packed like a room screen
    ([LAYOUTS.md](LAYOUTS.md#lens-screens)).
-6. **Check on the Fire HD** (partly done 2026-10-02): the chips make the home screen subscribe to more entities
+6. ✅ **Check on the Fire HD** (2026-10-02): the chips make the home screen subscribe to more entities
    (65 on our home: all lights, climate, safety sensors, and one entity per device).
-   - ✅ Live updates: 38 of 106 were over 16 ms (worst 51 ms), because a new subscription re-sends every state
+   - Live updates: 38 of 106 were over 16 ms (worst 51 ms), because a new subscription re-sends every state
      and the store treated each as new, and any change recomputed every chip. The store now keeps a state it
-     already has, and each chip is its own component: 0 of 118 over 16 ms, typically 2.5 ms.
-   - Screen changes: still over budget. Home went from about 170 ms to about 130 ms, lenses 120–160 ms, rooms
-     15–170 ms (the same screen varies a lot). Building the screen takes about 10 ms; the rest is the tablet
-     laying out and painting it. Removing the fade-in made no measurable difference (it stays removed).
+     already has, and each chip is its own component. Afterwards, over two hours idle on Home, 6% of the
+     five-second reports had an update over 16 ms, typically 2.5 ms per update (the first short check had
+     shown 0 of 118).
+   - Screen changes: building a screen takes about 10 ms of script; the rest is the tablet laying out and
+     painting it. Home took about 135 ms, lenses 120–160 ms. Removing the fade-in made no measurable difference
+     (it stays removed).
    - ✗ Tried and reverted: `content-visibility: auto` on floors and sections below the screen. On the Fire HD
      (Chrome 108) idle Home went from 0.3 to 3.3 slow frames per 5 s, and 7 of 71 updates went over 16 ms (0
      of 302 without it). Chrome also draws everything within about 1.5 screens anyway, so on a landscape
      tablet it would skip little.
+   - ✅ **Screens kept built**: Home and the lenses that are tabs stay built once visited, stacked in one grid
+     cell, each on its own layer (`will-change: opacity`); a hidden one is transparent and has no height, so
+     showing it changes only opacity and the tablet shows what it already painted. Rooms, and lenses that
+     aren't tabs, are built on every visit. On the Fire HD, going back to a kept screen took about 50 ms
+     (24 changes, worst 83 ms); rooms and first visits about 60 ms (14 changes, worst 213 ms, a first visit).
+     The page still scrolls as before, so dragging and the sticky edit bar are unchanged; memory stayed at
+     22–25 MB.
+   - The cost: hidden screens stay up to date, so an update does more. With every tab kept, half the
+     five-second reports first had an update over 16 ms, typically 10 ms. Two causes, found on a laptop with
+     a snapshot of our home: the Devices lens rebuilt its whole view on every battery or availability update
+     (it orders by them), and every kept screen's band recomputed every chip. A lens now keeps its view while
+     the rooms and items are the same, and each chip is computed once for all bands. After that, 14% of the
+     reports idle on Home had an update over 16 ms (mostly 18–24 ms), typically 4.6 ms per update. Accepted:
+     screen changes felt fast on the tablet.
 
 ### 5. Room screens
 - A **room template**: reorder a room's sections, for every room or only this one; pin and hide entities; hide

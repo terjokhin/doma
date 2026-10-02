@@ -50,5 +50,8 @@ layout in HA's per-user data from `ha-ui.layout` to `doma.layout`). Keep both un
   and `last_updated`, compared as times), so screen changes don't re-render everything.
 - Derived values that read many entities (status chips) are one component each, so a change recomputes only what
   reads it.
+- Home and the tab lenses stay built once visited (hidden by opacity on their own layer): going back takes about
+  50 ms on the Fire HD instead of about 135 ms. Hidden screens still update, so a view derived from many live
+  states (the Devices lens, the chips) must not re-render when what it shows hasn't changed.
 - `content-visibility: auto` made Chrome 108 slower (more slow frames, updates over budget); the screen fade-in
   made no difference either way. Both are recorded in the roadmap.

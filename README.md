@@ -94,7 +94,8 @@ over Wi-Fi (no USB needed). If it can't connect, check your computer's firewall.
 
 Under the home header, a band holds the **tabs** (Home, then the lenses you chose, in your order) and the
 **status chips**, which appear only when there's something to say; each opens its lens. On a phone the tabs
-move to a bar at the bottom. A room's back button returns to where you came from. Where this is heading (room
+move to a bar at the bottom. A room's back button returns to where you came from. Home and the lenses that are tabs
+stay built once visited, so going back to one is quick even on a slow tablet. Where this is heading (room
 templates, custom views): [ROADMAP.md](ROADMAP.md#views-and-navigation).
 
 ## Layouts
@@ -133,8 +134,8 @@ src/
 - **Subscriptions**: each component declares the entities it shows (`watchEntities`), and the
   app subscribes to exactly that set with `subscribe_entities` and an `entity_ids` filter. The
   library's own `subscribeEntities()` can't filter, so the app sends the message itself and
-  decodes HA's compressed updates (`ha/entities.ts`). On navigation, the new subscription starts
-  before the old one stops. An empty list is never sent: HA reads it as "everything".
+  decodes HA's compressed updates (`ha/entities.ts`). Screens kept built (below) keep their entities. On
+  navigation, the new subscription starts before the old one stops. An empty list is never sent: HA reads it as "everything".
 - **Store**: registries, plus a reactive state per entity (`home.entity(id)`), so a sensor
   update re-renders one tile, not the screen.
 - **Model**: rooms come from HA areas and floors, built from the registries and one `get_states`
@@ -147,6 +148,11 @@ src/
 - **i18n**: a tiny `t()` over the JSON files, with i18next-style `{{name}}` and plural keys
   (`_zero`, `_one`, `_few`, `_many`, `_other`).
 - **Routing**: hash-based (`#/`, `#/lens/lights`, `#/room/kitchen`), so the build can be served from any path.
+- **Screens kept built** (`App.svelte`): Home and the tab lenses stay mounted once visited, stacked in one grid
+  cell, each on its own layer. A hidden one is transparent and has no height, so showing it again changes only
+  opacity: no new layout or paint. They stay up to date while hidden, so anything they derive from live states
+  should change only when what they show changes (a lens keeps its view while it's the same; chips are computed
+  once for every screen).
 - **Rendering on weak hardware**: no backdrop blur or large shadows; tiles and cards use CSS
   `contain`; full-screen effects sit on their own fixed layer, so scrolling and screen changes
   don't repaint them.
