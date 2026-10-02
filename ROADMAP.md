@@ -29,8 +29,9 @@ Where the app is going, in order, and how each step is checked. The README cover
 the Lights, Climate, Security and Devices lenses; tabs under the header (a bar at the bottom on a phone), picked
 and ordered in edit mode and saved as `tabs`; status chips; back from a room to where you came from. Start-up JS
 went from 40.7 to 45.9 KB gzipped. On the Fire HD, live updates are within budget; screen changes to Home and
-the lenses are still over it (step 6). **Next:** `content-visibility` for screen changes, the Phase 3 drag check
-on the tablet, then Phase 5.
+the lenses are still over it (step 6; `content-visibility` was tried and made things worse). **Next:** the
+Phase 3 drag check on the tablet, then Phase 5; screen changes need a different idea (fewer or simpler elements
+to draw).
 
 **Still open from Phase 3: the Fire HD check.** In Fully with `?debug`: dragging and the size menu by touch, no
 frames over 25 ms while dragging, the layout survives a reload.
@@ -249,9 +250,11 @@ The first views beyond Home and the rooms, and the navigation between them
      already has, and each chip is its own component: 0 of 118 over 16 ms, typically 2.5 ms.
    - Screen changes: still over budget. Home went from about 170 ms to about 130 ms, lenses 120–160 ms, rooms
      15–170 ms (the same screen varies a lot). Building the screen takes about 10 ms; the rest is the tablet
-     laying out and painting it. Removing the fade-in made no measurable difference (it stays removed). Next
-     to try: `content-visibility: auto` on floors and sections below the screen, so only what's visible is
-     drawn.
+     laying out and painting it. Removing the fade-in made no measurable difference (it stays removed).
+   - ✗ Tried and reverted: `content-visibility: auto` on floors and sections below the screen. On the Fire HD
+     (Chrome 108) idle Home went from 0.3 to 3.3 slow frames per 5 s, and 7 of 71 updates went over 16 ms (0
+     of 302 without it). Chrome also draws everything within about 1.5 screens anyway, so on a landscape
+     tablet it would skip little.
 
 ### 5. Room screens
 - A **room template**: reorder a room's sections, for every room or only this one; pin and hide entities; hide
