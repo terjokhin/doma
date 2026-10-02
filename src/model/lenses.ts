@@ -186,6 +186,33 @@ export function lensView(model: FloorGroup[], lens: LensId): LensFloor[] {
     .filter((f) => f.sections.length > 0);
 }
 
+/**
+ * Whether two views of a lens show the same rooms and items in the same order. The Devices lens orders by live
+ * states, so its view is rebuilt on every battery or availability update while it rarely changes; a screen keeps
+ * the view it has when it's the same, and nothing on it re-renders.
+ */
+export function sameLensView(a: LensFloor[], b: LensFloor[]) {
+  return (
+    a.length === b.length &&
+    a.every((floor, i) => {
+      const other = b[i];
+      return (
+        floor.key === other.key &&
+        floor.name === other.name &&
+        floor.sections.length === other.sections.length &&
+        floor.sections.every((section, j) => {
+          const o = other.sections[j];
+          return (
+            section.room === o.room &&
+            section.items.length === o.items.length &&
+            section.items.every((item, k) => item.id === o.items[k].id && item.kind === o.items[k].kind)
+          );
+        })
+      );
+    })
+  );
+}
+
 /** Every room in the model, in floor order. */
 export const allRooms = (model: FloorGroup[]) => model.flatMap((g) => g.rooms);
 

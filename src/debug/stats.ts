@@ -23,6 +23,8 @@ export interface NavigationTiming {
   frame: number;
   /** From the route change until that frame was done: roughly how long the tap took to show. */
   total: number;
+  /** The screen was already built (Home or a tab lens visited before), so it only had to be shown. */
+  kept: boolean;
 }
 
 export const stats = {
@@ -47,14 +49,21 @@ export function recordUpdate(receivedAt: number, changes: number) {
   });
 }
 
+/** Whether the screen being shown was already built; set by the app while it renders the route change. */
+let shownKept = false;
+export function noteScreenKept(kept: boolean) {
+  shownKept = kept;
+}
+
 /** Called by the router when the route changes. */
 export function recordNavigation(startedAt: number) {
   if (!debugEnabled) return;
   void tick().then(() => {
     const script = performance.now() - startedAt;
+    const kept = shownKept;
     requestAnimationFrame((first) =>
       requestAnimationFrame((second) =>
-        stats.navigations.push({ script, frame: second - first, total: second - startedAt }),
+        stats.navigations.push({ script, frame: second - first, total: second - startedAt, kept }),
       ),
     );
   });

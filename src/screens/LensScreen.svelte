@@ -9,7 +9,16 @@
   import { sectionHeight } from "../layout/pack";
   import Section from "../layout/Section.svelte";
   import SectionColumns from "../layout/SectionColumns.svelte";
-  import { allRooms, LENSES, lensView, type LensId, type LensSection } from "../model/lenses";
+  import {
+    allRooms,
+    LENSES,
+    lensView,
+    sameLensView,
+    type LensFloor,
+    type LensId,
+    type LensSection,
+  } from "../model/lenses";
+  import { lensChip } from "../model/chips.svelte";
   import { homeModel } from "../model/model.svelte";
   import { navigate } from "../router.svelte";
   import ClimateTile from "../ui/ClimateTile.svelte";
@@ -27,8 +36,13 @@
 
   // What decides which rooms and devices show (e.g. which devices are offline) has to be live.
   watchEntities(() => allRooms(homeModel()).flatMap((room) => LENSES[lens].watched(room)));
-  const floors = $derived(lensView(homeModel(), lens));
-  const summary = $derived(LENSES[lens].chip(allRooms(homeModel())));
+  let shown: LensFloor[] = []; // not reactive: the last view, kept while it's the same
+  const floors = $derived.by(() => {
+    const next = lensView(homeModel(), lens);
+    if (!sameLensView(shown, next)) shown = next;
+    return shown;
+  });
+  const summary = $derived(lensChip(lens));
 
   const isOn = (id: string) => home.entity(id)?.state === "on";
   const lightsOn = (ids: string[]) => ids.filter(isOn);

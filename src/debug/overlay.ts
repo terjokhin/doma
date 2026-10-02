@@ -29,7 +29,7 @@ export function startOverlay() {
   el.style.cssText =
     "position:fixed;right:8px;bottom:8px;z-index:9999;padding:6px 8px;border-radius:8px;" +
     "background:rgb(0 0 0 / 0.75);color:#9f9;font:11px/1.35 ui-monospace,monospace;white-space:pre;" +
-    "pointer-events:none;contain:strict;width:24em;height:8.4em;will-change:transform";
+    "pointer-events:none;contain:strict;width:26em;height:8.4em;will-change:transform";
   document.body.appendChild(el);
 
   const errors: string[] = [];
@@ -72,7 +72,7 @@ export function startOverlay() {
       `subscribed ${stats.subscribed}  msg/s ${((stats.messages - shownMessages) / secs).toFixed(1)}\n` +
       `update script p95 ${recent?.p95 ?? "–"} ms\n` +
       `update frame p95 ${recentFrame?.p95 ?? "–"} ms\n` +
-      `last screen change ${lastNav ? `${Math.round(lastNav.total)} ms (frame ${Math.round(lastNav.frame)})` : "–"}\n` +
+      `last screen change ${lastNav ? `${Math.round(lastNav.total)} ms (frame ${Math.round(lastNav.frame)})${lastNav.kept ? " kept" : ""}` : "–"}\n` +
       `route ${location.hash || "#/"}  errors ${errors.length}`;
     frames = [];
     shownAt = now;
@@ -98,6 +98,9 @@ export function startOverlay() {
           updateFrameMs: summarize(updates.map((u) => u.frame)),
           navigationMs: summarize(navigations.map((n) => n.total)),
           navigationFrameMs: summarize(navigations.map((n) => n.frame)),
+          // The same, split by whether the screen was kept built or built anew.
+          navigationKeptMs: summarize(navigations.filter((n) => n.kept).map((n) => n.total)),
+          navigationBuiltMs: summarize(navigations.filter((n) => !n.kept).map((n) => n.total)),
           frameMs: summarize(reportFrames),
           slowFrames: reportFrames.filter((f) => f > SLOW_FRAME_MS).length,
           heapMB: memory ? Math.round(memory.usedJSHeapSize / 1048576) : null,

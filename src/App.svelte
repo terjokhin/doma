@@ -11,10 +11,12 @@
   import { connectLive, forgetLogin } from "./ha/live";
   import { home, justLoggedOut, setBackend } from "./ha/store.svelte";
   import { useBackend } from "./ha/subscriptions.svelte";
-  import { useLayoutBackend } from "./layout/layoutStore.svelte";
+  import { noteScreenKept } from "./debug/stats";
+  import { tabsOf } from "./layout/homeLayout";
+  import { homeLayout, useLayoutBackend } from "./layout/layoutStore.svelte";
   import { t } from "./i18n/index.svelte";
   import { route } from "./router.svelte";
-  import { isLensId } from "./model/lenses";
+  import { isLensId, type LensId } from "./model/lenses";
   import HomeScreen from "./screens/HomeScreen.svelte";
   import LensScreen from "./screens/LensScreen.svelte";
   import RoomScreen from "./screens/RoomScreen.svelte";
@@ -90,6 +92,21 @@
 
   const roomId = $derived(route().match(/^\/room\/([\w-]+)$/)?.[1]);
   const lensId = $derived(route().match(/^\/lens\/(\w+)$/)?.[1]);
+  /** The screen to show, as a route; anything unknown is Home. */
+  const screen = $derived(roomId ? `/room/${roomId}` : lensId && isLensId(lensId) ? `/lens/${lensId}` : "/");
+
+  // Home and the lenses that are tabs stay built once visited, so going back to one only has to show it again: on
+  // the slowest tablet, laying out and painting a screen anew takes longer than the budget for a screen change.
+  // Rooms, and lenses opened from a chip that aren't tabs, are built on every visit.
+  const tabs = $derived(tabsOf(homeLayout()));
+  const keepable = (s: string) => s === "/" || tabs.some((lens) => s === `/lens/${lens}`);
+  const visited = new Set<string>(); // not reactive: only read and written below
+  const kept = $derived.by(() => {
+    noteScreenKept(visited.has(screen));
+    if (keepable(screen)) visited.add(screen);
+    return [...visited].filter(keepable);
+  });
+  const lensOf = (s: string) => s.slice("/lens/".length) as LensId;
 </script>
 
 {#if boot.phase === "loading"}
@@ -97,17 +114,28 @@
 {:else if boot.phase === "setup"}
   <SetupScreen defaultUrl={import.meta.env.VITE_HA_URL ?? lastUrl()} error={boot.error} onConnect={start} />
 {:else}
-  {#if roomId}
-    {#key roomId}
-      <RoomScreen areaId={roomId} />
-    {/key}
-  {:else if lensId && isLensId(lensId)}
-    {#key lensId}
-      <LensScreen lens={lensId} />
-    {/key}
-  {:else}
-    <HomeScreen />
-  {/if}
+  <div class="screens">
+    {#each kept as s (s)}
+      <div class="screen-layer" class:hidden={s !== screen} inert={s !== screen}>
+        {#if s === "/"}
+          <HomeScreen />
+        {:else}
+          <LensScreen lens={lensOf(s)} />
+        {/if}
+      </div>
+    {/each}
+    {#if !kept.includes(screen)}
+      <div class="screen-layer">
+        {#key screen}
+          {#if roomId}
+            <RoomScreen areaId={roomId} />
+          {:else}
+            <LensScreen lens={lensOf(screen)} />
+          {/if}
+        {/key}
+      </div>
+    {/if}
+  </div>
   {#if home.status === "disconnected"}
     <div class="status">{t("app.offline")}</div>
   {/if}

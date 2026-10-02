@@ -70,6 +70,31 @@ button {
   }
 }
 
+/*
+ * Screens kept built (Home and the tab lenses, App.svelte) are stacked in one grid cell, each on its own layer.
+ * A hidden one has no height and is fully transparent: the page is as tall as the shown screen, and showing another
+ * changes only opacity, so the tablet can show what it already painted instead of laying out and painting anew.
+ * `will-change` asks Chrome to keep a transparent layer painted, ready to show. The clip keeps a
+ * taller hidden screen from making the page scroll further.
+ */
+.screens {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100dvh;
+  overflow: clip;
+}
+
+.screen-layer {
+  grid-area: 1 / 1;
+  will-change: opacity;
+}
+
+.screen-layer.hidden {
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* No fade-in on screen changes: on the Fire HD it didn't make them faster or slower, and a kiosk feels quicker
    without it. */
 .screen {

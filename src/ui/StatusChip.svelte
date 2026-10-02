@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { allRooms, LENSES, type LensId } from "../model/lenses";
-  import { homeModel } from "../model/model.svelte";
+  import { lensChip } from "../model/chips.svelte";
+  import type { LensId } from "../model/lenses";
   import { navigate } from "../router.svelte";
   import Icon from "./Icon.svelte";
   import { VIEW_ICONS } from "./icons";
@@ -11,7 +11,7 @@
    */
   let { lens }: { lens: LensId } = $props();
 
-  const chip = $derived(LENSES[lens].chip(allRooms(homeModel())));
+  const chip = $derived(lensChip(lens));
 </script>
 
 {#if chip}
