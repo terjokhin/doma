@@ -1,6 +1,14 @@
 node_modules/
 dist/
-.env.local
+# Local settings and secrets; .env.example documents them
+.env
+.env.*
+!.env.example
+# Editors and OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
 # Snapshots of a real home: private, never commit
 fixtures/local*.json
 # Device probe results (probe.html)
