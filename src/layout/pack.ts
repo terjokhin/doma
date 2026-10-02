@@ -38,47 +38,69 @@ export function denseRows(sizes: Size[], columns = SECTION_WIDTH): number {
   return rows;
 }
 
-/** A section's height in cells: its title band plus its rows and the gaps between them. */
-export function sectionHeight(sizes: Size[]): number {
-  const rows = denseRows(sizes);
+/** A section's height in cells: its title band plus its rows and the gaps between them. `columns`: its width in cells. */
+export function sectionHeight(sizes: Size[], columns = SECTION_WIDTH): number {
+  const rows = denseRows(sizes, columns);
   return TITLE + rows + Math.max(0, rows - 1) * GAP;
 }
 
-/** Where a packed section sits: its column, and its top in cells from the top of the columns. */
+/**
+ * Where a placed section sits: its column (the left one, when it spans several), its top in cells from the top of
+ * the columns, and how many section columns wide it is.
+ */
 export interface Slot {
   column: number;
   top: number;
+  width: number;
 }
 
+export interface Packed {
+  slots: Slot[];
+  /** The height of the tallest column, in cells. */
+  height: number;
+}
+
+/** A section to place: its column (`x`), width (`w`) in section columns, and height (`h`) in cells. */
+export interface Box {
+  x: number;
+  w: number;
+  h: number;
+}
+
+const result = (slots: Slot[], filled: number[]): Packed => ({ slots, height: Math.max(0, Math.max(...filled) - GAP) });
+
 /**
- * Masonry packing: put each section, in order, into the currently shortest column (the leftmost on a tie).
- * Returns each section's slot and the height of the tallest column, in cells. Pure arithmetic: nothing is measured.
+ * Sections in their columns, in this order: each goes right below the lowest section placed before it in any of the
+ * columns it spans (so a wide one may leave a gap under a shorter column). Pure arithmetic: nothing is measured.
  */
-export function packSections(heights: number[], columns: number): { slots: Slot[]; height: number } {
+export function placeSections(boxes: Box[], columns: number): Packed {
   const filled = new Array<number>(columns).fill(0);
-  const slots = heights.map((height) => {
-    const column = filled.indexOf(Math.min(...filled));
-    const slot = { column, top: filled[column] };
-    filled[column] += height + GAP;
-    return slot;
+  const slots = boxes.map(({ x, w, h }) => {
+    const width = Math.min(w, columns);
+    const column = Math.min(x, columns - width);
+    const top = Math.max(...filled.slice(column, column + width));
+    filled.fill(top + h + GAP, column, column + width);
+    return { column, top, width };
   });
-  return { slots, height: Math.max(0, Math.max(...filled) - GAP) };
+  return result(slots, filled);
 }
 
 /**
- * Sections in the columns they were given (`columns` holds section indexes, top to bottom), stacked with a gap between
- * them. Returns each section's slot and the height of the tallest column, in cells, like `packSections`.
+ * Masonry packing: put each section, in order, where it goes highest (the leftmost spot on a tie): for sections one
+ * column wide, the shortest column.
  */
-export function stackSections(heights: number[], columns: number[][]): { slots: Slot[]; height: number } {
-  const slots: Slot[] = [];
-  let height = 0;
-  columns.forEach((column, k) => {
-    let top = 0;
-    for (const index of column) {
-      slots[index] = { column: k, top };
-      top += heights[index] + GAP;
+export function packSections(boxes: Omit<Box, "x">[], columns: number): Packed {
+  const filled = new Array<number>(columns).fill(0);
+  const slots = boxes.map(({ w, h }) => {
+    const width = Math.min(w, columns);
+    let column = 0;
+    let top = Infinity;
+    for (let x = 0; x + width <= columns; x++) {
+      const t = Math.max(...filled.slice(x, x + width));
+      if (t < top) [column, top] = [x, t];
     }
-    height = Math.max(height, top - GAP);
+    filled.fill(top + h + GAP, column, column + width);
+    return { column, top, width };
   });
-  return { slots, height: Math.max(0, height) };
+  return result(slots, filled);
 }

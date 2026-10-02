@@ -155,12 +155,14 @@
   "roomEdit": {
     "open": "Edit room",
     "title": "Arrange {{room}}",
-    "hint": "Drag a section by its title; the eye hides it. Tap a tile to hide it in this room.",
+    "hint": "Drag a title to move its section, tap it to rename. Drag the grip on the right to widen. Tap a tile to hide it here.",
     "scope": "Sections apply to",
     "allRooms": "All rooms",
     "thisRoom": "Only this room",
     "hide": "Hide {{name}}",
     "show": "Show {{name}}",
-    "move": "Move {{name}}: drag, or use the arrow keys"
+    "move": "{{name}}: tap to rename, drag or use the arrow keys to move",
+    "rename": "Name of {{name}}",
+    "resize": "Width of {{name}}: drag, or Shift and the left or right arrow"
   }
 }

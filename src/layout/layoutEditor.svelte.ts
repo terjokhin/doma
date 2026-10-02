@@ -65,8 +65,8 @@ export const editor = {
   /** Give a room its own sections (a copy of the template's), or make it follow the template again. */
   setOwnSections(areaId: string, own: boolean) {
     if (!draft) return;
-    const { columns, hidden } = roomSections(draft, areaId);
-    setRoom(withRoom(draft.room, areaId, (r) => ({ ...r, own: own ? { columns, hidden } : undefined })));
+    const { own: _, ...sections } = roomSections(draft, areaId);
+    setRoom(withRoom(draft.room, areaId, (r) => ({ ...r, own: own ? sections : undefined })));
   },
   /** A room's sections: its own if it has them, else the template that every such room follows. */
   setSections(areaId: string, sections: SectionTemplate) {

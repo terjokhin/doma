@@ -2,6 +2,7 @@
   import {
     mdiChevronLeft,
     mdiDrag,
+    mdiDragVertical,
     mdiEyeOffOutline,
     mdiEyeOutline,
     mdiViewDashboardEditOutline,
@@ -18,13 +19,18 @@
   import { sectionHeight, type Size } from "../layout/pack";
   import {
     arrangeSections,
-    completeColumns,
+    closeUp,
+    completePlaces,
     hiddenEntities,
-    moveSection,
+    mergeShown,
+    NAME_LENGTH,
+    placeAll,
     roomSections,
     ROOM_SECTIONS,
-    type Columns,
+    widthOf,
+    type Place,
     type RoomSectionId,
+    type SectionTemplate,
   } from "../layout/roomTemplate";
   import Section from "../layout/Section.svelte";
   import SectionColumns from "../layout/SectionColumns.svelte";
@@ -48,6 +54,7 @@
   const layout = $derived(editing ? editor.layout : homeLayout());
   const sections = $derived(roomSections(layout, areaId));
   const hide = $derived(new Set(hiddenEntities(layout, areaId)));
+  const count = $derived(grid.sectionColumns);
 
   const room = $derived(findRoom(areaId));
 
@@ -66,6 +73,8 @@
     title: string;
     ids: string[];
     size: Size;
+    /** In section columns. */
+    width: number;
     /** Hidden by the template; in edit mode it shows as its title alone. */
     hidden: boolean;
   }
@@ -80,20 +89,26 @@
       const hidden = sections.hidden.includes(kind);
       const ids = hidden ? [] : editing ? all : all.filter((id) => !hide.has(id));
       if (editing ? all.length > 0 : ids.length > 0) {
-        out.push({ kind, title: t(`room.${kind}`), ids, size: KINDS[kind].size, hidden });
+        const title = sections.names[kind] ?? t(`room.${kind}`);
+        out.push({ kind, title, ids, size: KINDS[kind].size, width: widthOf(sections, kind, count), hidden });
       }
     }
     return out;
   });
   const hasAnything = $derived(!!room && ROOM_SECTIONS.some((kind) => KINDS[kind].ids(room).length > 0));
 
-  const groupHeight = (g: Group) => sectionHeight(g.ids.map(() => g.size));
+  const groupHeight = (g: Group) => sectionHeight(g.ids.map(() => g.size), 4 * g.width);
   const heights = $derived(new Map(groups.map((g) => [g.kind, groupHeight(g)])));
 
-  // Which column each section goes in on this screen width. Outside edit mode a column the room has nothing in
-  // closes up; in edit mode it stays, to drop a section into.
-  const arranged = $derived(arrangeSections(sections, grid.sectionColumns, heights));
-  const columns = $derived(editing ? arranged : arranged.filter((c) => c.length > 0));
+  // Where the sections go on this screen width, in order. Outside edit mode a column the room has nothing in closes
+  // up; in edit mode it stays, to drop a section into.
+  const arranged = $derived(arrangeSections(sections, count, heights));
+  const places = $derived(editing ? arranged : closeUp(sections, arranged, count));
+  const placed = $derived.by(() => {
+    const packed = placeAll(sections, places, count, heights);
+    // SectionColumns takes the slots in the order of `groups`.
+    return { ...packed, slots: groups.map((g) => packed.slots[places.findIndex((p) => p.id === g.kind)]) };
+  });
 
   // "All on / off" acts on the lights the screen shows.
   const lights = $derived(groups.find((g) => g.kind === "lights")?.ids ?? []);
@@ -106,84 +121,196 @@
     void callService("homeassistant", lightsOn ? "turn_off" : "turn_on", {}, { entity_id: lights });
   }
 
-  // Edit mode: a section is dragged by its title band into any column, at any place in it; the sections below it
-  // there move down, nothing else moves. Each step starts from where the sections were when the drag began, like
-  // cards on Home.
-  let dragging = $state<RoomSectionId | undefined>();
+  // ---- Edit mode ----
 
-  /**
-   * Store where the sections go on this screen width. Every section is stored, the ones this room doesn't have
-   * too, so other rooms following the same template get the arrangement as well.
-   */
-  function setColumns(next: Columns) {
-    editor.setSections(areaId, { columns: { ...sections.columns, [grid.sectionColumns]: next }, hidden: sections.hidden });
+  /** The room's sections without whether they're its own: what the editor stores. */
+  function template(change: Partial<SectionTemplate>): SectionTemplate {
+    const { own: _, ...t } = sections;
+    return { ...t, ...change };
   }
 
-  /** Every section's column on this width: as stored, or as shown when it hasn't been arranged yet. */
-  const allColumns = () => completeColumns(sections.columns[grid.sectionColumns] ?? arranged, grid.sectionColumns);
+  /** Every section's place on this width: as stored, or as shown when it hasn't been arranged yet. */
+  const allPlaces = () => completePlaces(sections.places[count] ?? arranged);
 
-  function startDrag(e: PointerEvent, kind: RoomSectionId) {
+  /**
+   * Store where the room's sections go on this width. Every section is stored, the ones this room doesn't have too,
+   * so other rooms following the same template get the arrangement as well.
+   */
+  function setPlaces(shown: Place[], change: Partial<SectionTemplate> = {}) {
+    editor.setSections(areaId, template({ ...change, places: { ...sections.places, [count]: mergeShown(allPlaces(), shown) } }));
+  }
+
+  /** A section's width; reaching the screen's width stores "full", so it stays full on a larger screen. */
+  function setWidth(kind: RoomSectionId, w: number) {
+    const widths: SectionTemplate["widths"] = { ...sections.widths };
+    delete widths[kind];
+    if (w > 1) widths[kind] = w >= count ? "full" : w;
+    // The places are stored too, so that nothing else on this width moves when the packing would have changed.
+    setPlaces(arranged, { widths });
+  }
+
+  const pitch = () => grid.cell * (4 + 4 * GAP); // a section column and the gap after it
+
+  // Dragging a section by its title band: into any column, at any place in the order there. Each step starts from
+  // where the sections were when the drag began, like cards on Home. A tap (no movement) renames it instead.
+  let dragging = $state<RoomSectionId | undefined>();
+  let dragged = false;
+
+  function pressTitle(e: PointerEvent, kind: RoomSectionId) {
     if (e.pointerType === "mouse" && e.button !== 0) return;
-    const item = (e.currentTarget as HTMLElement).closest<HTMLElement>("[data-section]");
+    dragged = false;
+    const handle = e.currentTarget as HTMLElement;
+    const { pointerId, clientX, clientY } = e;
+    const move = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId || Math.hypot(ev.clientX - clientX, ev.clientY - clientY) < 8) return;
+      stop();
+      dragged = true;
+      startDrag(ev, handle, kind);
+    };
+    const stop = () => {
+      removeEventListener("pointermove", move);
+      removeEventListener("pointerup", stop);
+      removeEventListener("pointercancel", stop);
+    };
+    addEventListener("pointermove", move);
+    addEventListener("pointerup", stop);
+    addEventListener("pointercancel", stop);
+  }
+
+  function startDrag(e: PointerEvent, handle: HTMLElement, kind: RoomSectionId) {
+    const item = handle.closest<HTMLElement>("[data-section]");
     const container = item?.parentElement;
     if (!item || !container) return;
-    const all = allColumns();
-    const shown = arranged;
+    const start = arranged;
+    const others = start.filter((p) => p.id !== kind);
+    const t0 = template({});
     const sizes = heights;
-    const pitch = grid.cell * (4 + 4 * GAP); // a section and the gap after it
-    const from = shown.findIndex((c) => c.includes(kind));
-    let target = { column: from, index: shown[from].indexOf(kind) };
+    const w = widthOf(sections, kind, count);
+    const from = start.findIndex((p) => p.id === kind);
+    let target = { x: start[from].x, index: from };
     dragging = kind;
     dragItem(
       e,
       item,
       container,
       (left, top) => {
-        const column = Math.max(0, Math.min(Math.round(left / pitch), shown.length - 1));
-        // Before the first section of that column whose middle is below the dragged section's top.
-        const others = shown[column].filter((k) => k !== kind);
-        let index = others.length;
-        let y = 0;
-        for (let i = 0; i < others.length; i++) {
-          const height = sizes.get(others[i])!;
-          if ((y + height / 2) * grid.cell > top) {
-            index = i;
-            break;
-          }
-          y += height + GAP;
+        const x = Math.max(0, Math.min(Math.round(left / pitch()), count - w));
+        // The place in the order that puts the section's top nearest to where it is (the first, on a tie).
+        let index = 0;
+        let nearest = Infinity;
+        for (let i = 0; i <= others.length; i++) {
+          const order = [...others.slice(0, i), { id: kind, x }, ...others.slice(i)];
+          const slot = placeAll(t0, order, count, sizes).slots[i];
+          const distance = Math.abs(slot.top * grid.cell - top);
+          if (distance < nearest) [index, nearest] = [i, distance];
         }
-        if (column === target.column && index === target.index) return false;
-        target = { column, index };
-        setColumns(moveSection(all, shown, kind, column, index));
+        if (x === target.x && index === target.index) return false;
+        target = { x, index };
+        setPlaces([...others.slice(0, index), { id: kind, x }, ...others.slice(index)]);
         return true;
       },
-      () => (dragging = undefined),
+      () => {
+        dragging = undefined;
+        // A click may follow the release; it isn't a tap. Cleared after it, so the next one renames.
+        setTimeout(() => (dragged = false));
+      },
     );
   }
 
-  const STEPS: Record<string, [number, number]> = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
+  // Renaming: a tap on the title (or Enter) opens a field in its place; Enter or leaving it saves, Escape cancels.
+  let renaming = $state<RoomSectionId | undefined>();
 
-  /** For a keyboard: the arrow keys on a focused title move its section up, down, or to the next column. */
-  function keyMove(e: KeyboardEvent, kind: RoomSectionId) {
-    const step = STEPS[e.key];
-    if (!step) return;
+  function tapTitle(kind: RoomSectionId) {
+    if (dragged) dragged = false;
+    else renaming = kind;
+  }
+
+  function focusSelect(input: HTMLInputElement) {
+    input.focus();
+    input.select();
+  }
+
+  function commitName(kind: RoomSectionId, value: string) {
+    if (renaming !== kind) return;
+    renaming = undefined;
+    const name = value.trim().slice(0, NAME_LENGTH);
+    const names: SectionTemplate["names"] = { ...sections.names };
+    delete names[kind];
+    if (name && name !== t(`room.${kind}`)) names[kind] = name;
+    if (names[kind] !== sections.names[kind]) editor.setSections(areaId, template({ names }));
+  }
+
+  function nameKey(e: KeyboardEvent, kind: RoomSectionId) {
+    if (e.key === "Enter") commitName(kind, (e.currentTarget as HTMLInputElement).value);
+    if (e.key === "Escape") renaming = undefined;
+  }
+
+  // Widening: drag the grip on a section's right side. Its width snaps to whole section columns, up to the screen's
+  // right edge.
+  let resizing = $state<RoomSectionId | undefined>();
+
+  function startResize(e: PointerEvent, kind: RoomSectionId) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
     e.preventDefault();
-    const from = arranged.findIndex((c) => c.includes(kind));
-    const index = arranged[from].indexOf(kind);
-    const column = from + step[0];
-    if (column < 0 || column >= arranged.length) return;
-    const others = arranged[column].filter((k) => k !== kind);
-    const to = step[0] ? Math.min(index, others.length) : index + step[1];
-    if (to < 0 || to > others.length || (column === from && to === index)) return;
-    // Its element moves in the page, which drops the focus: give it back.
+    const item = (e.currentTarget as HTMLElement).closest<HTMLElement>("[data-section]");
+    if (!item) return;
+    const left = item.getBoundingClientRect().left;
+    const x = arranged.find((p) => p.id === kind)!.x;
+    const { pointerId } = e;
+    let w = widthOf(sections, kind, count);
+    resizing = kind;
+    const move = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      const next = Math.max(1, Math.min(Math.round((ev.clientX - left + grid.cell * GAP) / pitch()), count - x));
+      if (next === w) return;
+      w = next;
+      setWidth(kind, w);
+    };
+    const end = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      removeEventListener("pointermove", move);
+      removeEventListener("pointerup", end);
+      removeEventListener("pointercancel", end);
+      resizing = undefined;
+    };
+    addEventListener("pointermove", move);
+    addEventListener("pointerup", end);
+    addEventListener("pointercancel", end);
+  }
+
+  /** For a keyboard: arrows move a section up, down, or to the next column; Shift with left or right resizes it. */
+  function keyMove(e: KeyboardEvent, kind: RoomSectionId) {
+    if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
+    e.preventDefault();
+    const i = arranged.findIndex((p) => p.id === kind);
+    const me = arranged[i];
+    const w = widthOf(sections, kind, count);
+    const sideways = e.key === "ArrowLeft" || e.key === "ArrowRight";
+    const by = e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 1;
     const handle = e.currentTarget as HTMLElement;
-    setColumns(moveSection(allColumns(), arranged, kind, column, to));
+    if (sideways && e.shiftKey) {
+      if (w + by >= 1 && me.x + w + by <= count) setWidth(kind, w + by);
+    } else if (sideways) {
+      const x = me.x + by;
+      if (x < 0 || x + w > count) return;
+      setPlaces(arranged.map((p) => (p.id === kind ? { id: kind, x } : p)));
+    } else {
+      // Past the next section above or below that shares one of its columns.
+      const shares = (p: Place) => p.x < me.x + w && me.x < p.x + widthOf(sections, p.id, count);
+      let j = i + by;
+      while (j >= 0 && j < arranged.length && !shares(arranged[j])) j += by;
+      if (j < 0 || j >= arranged.length) return;
+      const others = arranged.filter((p) => p.id !== kind);
+      const at = others.indexOf(arranged[j]) + (by > 0 ? 1 : 0);
+      setPlaces([...others.slice(0, at), me, ...others.slice(at)]);
+    }
+    // Its element may move in the page, which drops the focus: give it back.
     void tick().then(() => handle.focus());
   }
 
   function toggleSection(kind: RoomSectionId) {
     const hidden = sections.hidden.includes(kind) ? sections.hidden.filter((k) => k !== kind) : [...sections.hidden, kind];
-    editor.setSections(areaId, { columns: sections.columns, hidden });
+    editor.setSections(areaId, template({ hidden }));
   }
 
   function setOwn(own: boolean) {
@@ -209,15 +336,28 @@
 
   {#snippet group(g: Group)}
     {#snippet tools()}
-      <button
-        class="section-drag"
-        aria-label={t("roomEdit.move", { name: g.title })}
-        onpointerdown={(e) => startDrag(e, g.kind)}
-        onkeydown={(e) => keyMove(e, g.kind)}
-      >
-        <h2 class:muted={g.hidden}>{g.title}</h2>
-        <Icon path={mdiDrag} size={18} />
-      </button>
+      {#if renaming === g.kind}
+        <input
+          class="section-rename"
+          value={g.title}
+          maxlength={NAME_LENGTH}
+          aria-label={t("roomEdit.rename", { name: g.title })}
+          use:focusSelect
+          onkeydown={(e) => nameKey(e, g.kind)}
+          onblur={(e) => commitName(g.kind, e.currentTarget.value)}
+        />
+      {:else}
+        <button
+          class="section-drag"
+          aria-label={t("roomEdit.move", { name: g.title })}
+          onpointerdown={(e) => pressTitle(e, g.kind)}
+          onclick={() => tapTitle(g.kind)}
+          onkeydown={(e) => keyMove(e, g.kind)}
+        >
+          <h2 class:muted={g.hidden}>{g.title}</h2>
+          <Icon path={mdiDrag} size={18} />
+        </button>
+      {/if}
       <button
         class="round-btn small"
         aria-pressed={!g.hidden}
@@ -229,6 +369,7 @@
     {/snippet}
     <Section
       title={g.title}
+      width={g.width}
       head={editing ? tools : undefined}
       action={g.kind === "lights" ? allLights : undefined}
     >
@@ -261,6 +402,17 @@
         </GridItem>
       {/each}
     </Section>
+    {#if editing && count > 1}
+      <button
+        class="section-resize"
+        class:active={resizing === g.kind}
+        aria-label={t("roomEdit.resize", { name: g.title })}
+        onpointerdown={(e) => startResize(e, g.kind)}
+        onkeydown={(e) => keyMove(e, g.kind)}
+      >
+        <Icon path={mdiDragVertical} size={18} />
+      </button>
+    {/if}
   {/snippet}
 
   <main class="screen" class:editing>
@@ -303,7 +455,7 @@
       key={(g) => g.kind}
       height={groupHeight}
       section={group}
-      {columns}
+      {placed}
       showEmpty={editing}
       {dragging}
     />
