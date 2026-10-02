@@ -1,4 +1,4 @@
-# ha-ui roadmap
+# Doma roadmap
 
 Where the app is going, in order, and how each step is checked. The README covers what exists today.
 
@@ -112,7 +112,7 @@ the full entity list second.
 
 ### Where it's stored
 
-Everything stays per HA user, in the same `ha-ui.layout` entry: the home layout today, plus `tabs` (Phase 4),
+Everything stays per HA user, in the same `doma.layout` entry: the home layout today, plus `tabs` (Phase 4),
 the room template (Phase 5) and custom views (Phase 6). A sketch of where it's heading:
 
 ```json

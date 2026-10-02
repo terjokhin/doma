@@ -1,6 +1,6 @@
 # Layout rules
 
-How ha-ui divides the screen and sizes everything on it. The short version: **one square cell is the unit for
+How Doma divides the screen and sizes everything on it. The short version: **one square cell is the unit for
 everything**, elements are sized in whole cells, sections are 4 cells wide, and a small packer arranges sections
 in columns like a masonry layout. On the home screen, room cards come in a few fixed sizes and sit on one cell
 grid per floor, where you place them. Lens screens pack sections like room screens, and Home and the lenses share a
@@ -259,7 +259,8 @@ the generated layout. (`homeView` in `model/homeView.ts` applies the layout to t
 ### Storage
 
 The layout belongs to the **HA user** the screen is logged in as, and lives in Home Assistant's per-user frontend
-storage under the key `ha-ui.layout` (`frontend/subscribe_user_data` / `set_user_data`). Any logged-in user can
+storage under the key `doma.layout` (`frontend/subscribe_user_data` / `set_user_data`; a layout saved under the
+old name `ha-ui.layout` is copied over once). Any logged-in user can
 save their own, so a non-admin kiosk account arranges its own screen; it survives a cleared browser, and every
 screen logged in as the same user follows a change at once. If two screens save at the same time, the last save
 wins. At start the app waits briefly (up to 2 s) for the layout, so the home screen doesn't rearrange itself

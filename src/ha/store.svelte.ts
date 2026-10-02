@@ -90,7 +90,7 @@ export function callService(domain: string, service: string, data?: object, targ
   return backend.callService(domain, service, data, target);
 }
 
-const LOGGED_OUT_KEY = "ha-ui.loggedOut";
+const LOGGED_OUT_KEY = "doma.loggedOut";
 
 /** Log out and go to the setup screen (not straight back to HA's login), dropping any ?fixture. */
 export async function logout() {

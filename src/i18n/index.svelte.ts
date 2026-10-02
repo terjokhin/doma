@@ -8,7 +8,7 @@ export type Language = keyof typeof LANGUAGES;
 type Messages = { [key: string]: string | Messages };
 const MESSAGES: Record<Language, Messages> = { en, ru };
 
-const LANG_KEY = "ha-ui.lang";
+const LANG_KEY = "doma.lang";
 
 function savedLanguage(): Language {
   try {

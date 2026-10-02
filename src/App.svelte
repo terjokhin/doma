@@ -37,7 +37,7 @@
     return err instanceof Error ? err.message : String(err);
   }
 
-  const LAST_URL_KEY = "ha-ui.url";
+  const LAST_URL_KEY = "doma.url";
   function lastUrl() {
     try {
       return localStorage.getItem(LAST_URL_KEY) ?? undefined;

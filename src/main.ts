@@ -1,3 +1,4 @@
+import "./migrate"; // first: moves storage from the old name before anything reads it
 import { mount } from "svelte";
 import "./styles/app.css";
 import "./layout/grid.svelte"; // sets the grid's CSS variables before the first render

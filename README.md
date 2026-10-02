@@ -1,6 +1,6 @@
-# ha-ui
+# Doma
 
-A modern, calm UI for [Home Assistant](https://www.home-assistant.io/), made for big screens:
+*Doma* is Russian for "at home". A modern, calm UI for [Home Assistant](https://www.home-assistant.io/), made for big screens:
 a laptop browser, a wall-mounted tablet, a kiosk display. It's a static web app that talks
 to Home Assistant directly over its WebSocket API. There's no server of its own.
 
@@ -106,7 +106,7 @@ the screen and reflows on rotation; the rules are in [LAYOUTS.md](LAYOUTS.md).
 
 The layout is generated from your HA floors and areas, and a **home layout** adjusts it: where each room card sits
 and its size. It only stores those changes, so new rooms still appear by themselves. Each HA user has
-their own, stored in Home Assistant itself (`frontend/set_user_data`, key `ha-ui.layout`): any user can save
+their own, stored in Home Assistant itself (`frontend/set_user_data`, key `doma.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
 tap the **edit button** next to the settings gear: drag a card by its handle to any spot on its floor, pick its
 size (XS, S, M, L or Wide) from the chip on the card, pick and order the tabs under **Tabs**, then **Done**. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).

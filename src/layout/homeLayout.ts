@@ -8,7 +8,9 @@ import { isLensId, LENS_IDS, type LensId } from "../model/lenses";
  */
 
 /** Key in HA's per-user frontend data (`frontend/subscribe_user_data` / `set_user_data`). */
-export const LAYOUT_KEY = "ha-ui.layout";
+export const LAYOUT_KEY = "doma.layout";
+/** Where layouts were stored while Doma was called ha-ui; copied to LAYOUT_KEY once (live.ts). */
+export const LEGACY_LAYOUT_KEY = "ha-ui.layout";
 
 /** A room card's size on the home screen (LAYOUTS.md, "Room cards"); the cells are in `CARD_CELLS`. */
 export const CARD_SIZES = ["xs", "s", "m", "l", "wide"] as const;

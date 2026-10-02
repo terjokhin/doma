@@ -7,12 +7,12 @@ import {
   type Connection,
   type HassEntity,
 } from "home-assistant-js-websocket";
-import { LAYOUT_KEY } from "../layout/homeLayout";
+import { LAYOUT_KEY, LEGACY_LAYOUT_KEY } from "../layout/homeLayout";
 import { decodeEntitiesEvent, type EntitiesEvent } from "./entities";
 import { home, type Backend } from "./store.svelte";
 import type { AreaEntry, DeviceEntry, EntityRegistryDisplay, FloorEntry } from "./types";
 
-const TOKENS_KEY = "ha-ui.tokens";
+const TOKENS_KEY = "doma.tokens";
 
 // Storage can be unavailable (private mode, kiosk browsers with storage off); then we just re-login.
 const loadTokens = async (): Promise<AuthData | null> => {
@@ -103,6 +103,7 @@ export async function connectLive(hassUrl?: string): Promise<Backend> {
       return () => void unsubscribe().catch(() => {}); // fails only when already disconnected
     },
     async subscribeLayout(onChange) {
+      await migrateLayout(conn);
       // The user's frontend storage: sends the current value at once, then every change from any of their screens.
       const unsubscribe = await conn.subscribeMessage<{ value: unknown }>((ev) => onChange(ev.value), {
         type: "frontend/subscribe_user_data",
@@ -123,4 +124,19 @@ export async function connectLive(hassUrl?: string): Promise<Backend> {
       forgetLogin();
     },
   };
+}
+
+/**
+ * A layout saved while Doma was called ha-ui is copied to the new key once, if the new one is still empty. The old
+ * entry stays in HA, untouched. Failing here only means the generated layout shows, as with no layout at all.
+ */
+async function migrateLayout(conn: Connection) {
+  try {
+    const get = (key: string) => conn.sendMessagePromise<{ value: unknown }>({ type: "frontend/get_user_data", key });
+    if ((await get(LAYOUT_KEY)).value != null) return;
+    const { value } = await get(LEGACY_LAYOUT_KEY);
+    if (value != null) await conn.sendMessagePromise({ type: "frontend/set_user_data", key: LAYOUT_KEY, value });
+  } catch (err) {
+    console.warn("Couldn't move the layout saved under the old name:", err);
+  }
 }

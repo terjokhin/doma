@@ -2,7 +2,6 @@
 // Snapshot a live Home Assistant into fixtures/<name>.json, to develop the UI without touching HA.
 //
 //   HA_URL=http://homeassistant.local:8123 HA_TOKEN=<long-lived token> npm run fixture:capture [-- name]
-//   node --env-file=../.env scripts/capture-fixture.mjs [name]
 //
 // The default name is "local", which is git-ignored: a snapshot of a real home is private.
 import { writeFileSync } from "node:fs";
