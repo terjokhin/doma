@@ -1,3 +1,5 @@
+<img src="images/doma.png" alt="Doma icon: a night window with a house and a moon" width="128" align="right" />
+
 # Doma
 
 *Doma* is Russian for "at home". A modern, calm UI for [Home Assistant](https://www.home-assistant.io/), made for big screens:
