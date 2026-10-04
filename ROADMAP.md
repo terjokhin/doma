@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-02, during Phase 5.*
+*Updated 2026-10-04: Phase 6, Home, is the priority now.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -31,14 +31,17 @@ Where the app is going, in order, and how each step is checked. The README cover
     135 ms, rooms about 60 ms (budget 100). Live updates cost a little more for it (step 6);
   - start-up JS went from 40.7 to 45.5 KB gzipped.
 
-**Now: Phase 5, room screens.**
-- ✅ (checked on a laptop, not yet on the Fire HD) The **room template**: a Scenes section; sections dragged by
-  their title into the column you want, renamed, widened and hidden, for every room or only this one; tiles
-  hidden on one room's screen. Start-up JS 50.7 KB gzipped.
-- Next: on Home, hiding and merging rooms and picking each card's quick controls; device sheets (including the
-  air conditioners' modes); swiping between rooms.
-- Then Phase 6: **custom views** of free sections, any devices in any section, each with its own name, size and
-  place. Home and the room screens stay the generated starting point.
+- **Phase 5, room screens**: the **room template** (checked on a laptop; the Fire HD check goes with Phase 6's):
+  a Scenes section; sections dragged by their title into the column you want, renamed, widened and hidden, for
+  every room or only this one; tiles hidden on one room's screen. Start-up JS 50.7 KB gzipped.
+
+**Now: Phase 6, Home: run the house from one screen.** The screen the app opens on should be enough for everyday
+use, so that opening a room is the exception. Next: hide and merge rooms; a card template with per-room
+overrides; the quick-controls editor; device sheets on a long press; more kinds of control on a card; what a
+card's title shows; a house-wide section ([Phase 6](#6-home-run-the-house-from-one-screen)).
+
+Then Phase 7: **custom views** of free sections, any devices in any section, each with its own name, size and
+place. Home and the room screens stay the generated starting point.
 
 **Waiting until later**
 - Scrolling performance on the slowest tablet hasn't been measured on its own.
@@ -68,7 +71,7 @@ systems: they differ only in where their sections come from.
 
 | View | Its sections come from | You can change |
 |---|---|---|
-| **Home** | floors, each with a card per room | card sizes and positions; later hidden and merged rooms, the quick controls on each card, extra sections |
+| **Home** | floors, each with a card per room | card sizes and positions; hidden and merged rooms, each card's quick controls and title (for every card or one), a house-wide section |
 | **Room** (one per area) | a room template: Scenes, Lights, Climate, Switches, Media, Sensors | the template for every room at once, or one room's own; hidden entities per room |
 | **Lens** (across rooms) | one function across the house: Lights, Climate, Security, Devices; later Energy | which lenses are tabs, and their order |
 | **Custom** | you: [free sections](#free-sections) | anything: sections holding any devices, each named, sized and placed on its own; per HA user |
@@ -79,19 +82,31 @@ edit it, and from then on nothing new appears by itself; here it does.
 
 ### Home: the starting point
 
-Decided 2026-10-02. What's generated stays the way in: Home, grouped by floors with a card per room (from HA's
-floors and areas), and a room screen per room. On Home you adjust it, without building anything:
+Decided 2026-10-02, widened 2026-10-04. What's generated stays the way in: Home, grouped by floors with a card per
+room (from HA's floors and areas), and a room screen per room. Home is where the house is run from: what you do
+every day should be on a card, and a room screen is for the rest. On Home you adjust it, without building
+anything:
 
 - **hide** a room;
 - **merge** rooms: two or more HA areas shown as one room, with one card and one room screen (an open-plan
   kitchen and dining room), without changing HA's areas;
 - **reorder** rooms: drag their cards (done in Phase 3);
-- **quick controls**: pick which controls a room's card shows, and in what order, instead of lights first and
-  then climate.
+- **quick controls**: which controls a card shows, in what order and in what form. A **card template** says it
+  for every card in *kinds* ("all lights", "climate", "lights", "scenes"), so new devices show up by themselves;
+  **this room only** gives one card its own list, where a single device can also be picked (stored by its entity
+  ID, like a tile hidden on a room screen);
+- **more kinds of control** on a card: the room's lights on/off, scenes, climate with − / + for the target
+  temperature, blinds, media, locks;
+- **the title**: which readings it shows (temperature, humidity, CO₂, and from which sensor) and which alerts
+  (window open, motion, leak);
+- **a long press** on any control opens its device sheet (brightness, colour, HVAC modes), so a card is enough
+  without opening the room;
+- **a house-wide section**: house scenes, all lights off, weather. A fixed, small version of
+  [free sections](#free-sections).
 
 ### Free sections
 
-Decided 2026-10-02, for **custom views** (Phase 6). A custom view is made of sections that aren't tied to a room or
+Decided 2026-10-02, for **custom views** (Phase 7). A custom view is made of sections that aren't tied to a room or
 a kind of device: **any section can hold any devices**, from any room, and **each section has its own name, width
 and place**, independently of the others. Room screens stay generated from the room template; custom views are
 where you build something of your own.
@@ -141,7 +156,7 @@ the full entity list second.
 ### Where it's stored
 
 Everything stays per HA user, in the same `doma.layout` entry: the home layout today, plus `tabs` (Phase 4),
-the room template (`room`, Phase 5) and custom views (Phase 6). A sketch of where it's heading:
+the room template (`room`, Phase 5), Home's rooms and cards (Phase 6) and custom views (Phase 7). A sketch of where it's heading:
 
 ```json
 { "version": 1,
@@ -151,7 +166,8 @@ the room template (`room`, Phase 5) and custom views (Phase 6). A sketch of wher
             "widths": { "lights": 2 }, "names": { "scenes": "Moods" }, "hidden": [],
             "rooms": { "kitchen": { "own": { "places": {} }, "hide": [] } } },
   "hiddenRooms": ["garage"], "merged": [["kitchen", "dining_room"]],
-  "cards": { "kitchen": { "controls": ["light.kitchen_ceiling", "climate.kitchen"] } },
+  "card": { "controls": ["all-lights", "climate", "lights"], "title": ["temperature", "humidity"] },
+  "cards": { "kitchen": { "controls": ["scenes", "light.kitchen_ceiling", "climate"] } },
   "views": { "v:evening": { "title": "Evening", "icon": "sofa", "sections": [
       { "title": "Living room", "cards": [
         { "card": "room", "area": "living_room", "size": "wide" },
@@ -302,7 +318,7 @@ The first views beyond Home and the rooms, and the navigation between them
      reports idle on Home had an update over 16 ms (mostly 18–24 ms), typically 4.6 ms per update. Accepted:
      screen changes felt fast on the tablet.
 
-### 5. Room screens
+### 5. Room screens ✅
 1. ✅ **Room template** ([LAYOUTS.md](LAYOUTS.md#room-screens)), decided 2026-10-02: sections Scenes, Lights,
    Climate, Switches, Media, Sensors (sensors stay one section for now; splitting them into Air and Safety, and
    a Tech section of batteries and offline devices, was proposed and put off). In the room's edit mode, a
@@ -310,34 +326,57 @@ The first views beyond Home and the rooms, and the navigation between them
    renamed by tapping its title, widened to 2 or more columns or the full width by a grip on its right side, and
    hidden with an eye, for **all rooms** (the template) or **only this room** (its own copy). Tapping a tile
    hides it on that room's screen only; lenses and the room card still show it. Pins (adding entities the room
-   screen leaves out) are left to Phase 6. Arrows in the titles came first and were replaced by dragging the
+   screen leaves out) are left to Phase 7. Arrows in the titles came first and were replaced by dragging the
    same day: moving a section across the room took many taps. Dragging first changed only the sections' order,
    packed into the shortest columns like lenses; sections then landed where the packer put them and the rest
    reshuffled (with the tallest section first, nothing could go under it), so they got places of their own:
    placed in order, each below what's above it in the columns it spans.
-2. **Home view** ([Home: the starting point](#home-the-starting-point)): hide rooms, merge rooms into one, and pick
-   the quick controls on each room card.
-3. **Device sheets**: brightness and colour for lights, HVAC modes for air conditioners (heat / cool / dry / fan;
-   today a tile only switches on and off, into the last mode), a short history.
-4. Swipe between rooms, with a strip of room names at the top.
 
-### 6. Custom views
+The phase was cut short on 2026-10-04 to put Home first: device sheets moved to Phase 6, swiping between rooms to
+[Later](#later).
+
+### 6. Home: run the house from one screen
+The screen the app opens on should be enough for everyday use; opening a room is the exception
+([Home: the starting point](#home-the-starting-point)). Customised the way the room template is: for every card,
+or for one room only.
+
+1. **Hide and merge rooms**: a hidden room has no card (its room screen stays reachable from lenses); merged
+   areas show as one card and one room screen, without changing HA's areas.
+2. **Card template and per-room cards**: what every card shows, as kinds of control in order (the default stays
+   lights, then climate, then heating), and a room's own list in its place.
+3. **Quick-controls editor**: in edit mode, tapping a card opens a sheet with the room's devices, suggested ones
+   first; switch each on or off for the card, drag them into order, pick a control's form where there is a choice
+   (a 1 × 1 button or a 2 × 1 control), for every card or this room only. "+N" stays for what doesn't fit.
+4. **Device sheets**, opened by a long press on any control (Home, rooms, lenses): brightness and colour for
+   lights, HVAC modes for air conditioners (heat / cool / dry / fan; today a tile only switches on and off, into
+   the last mode), a short history. A tap still toggles.
+5. **More kinds of control on a card**: the room's lights on/off, scenes, climate with − / + for the target
+   temperature, blinds (open / stop / close), media (play / pause), locks.
+6. **The card's title**: which readings it shows and from which sensor (temperature, humidity, CO₂), and alert
+   badges (window open, motion, leak); for every card or one.
+7. **A house-wide section on Home**: house scenes, all lights off, weather. Fixed contents for now; the full
+   builder is Phase 7.
+8. **Check on the Fire HD**, with the room template from Phase 5: richer cards subscribe Home, which stays built,
+   to more entities. Updates and screen changes against the budgets and against today's numbers.
+
+### 7. Custom views
 Per HA user, built from [free sections](#free-sections): any devices in any section, from any room, each section
 named, sized and placed on its own, sections added and removed. Start from a template (Blank, Copy of Home, One
 floor, One room, a lens); add sections and cards with **+ Add**, which suggests what's in a room first, then any
-entity; cards bound to selectors or pinned entities. Extra sections on Home that aren't floors ("Whole house":
-scenes, weather, solar). Custom views can be tabs like lenses.
+entity; cards bound to selectors or pinned entities. Extra sections on Home that aren't floors, built
+like any free section (Phase 6 brings one fixed house-wide section). Custom views can be tabs like lenses.
 
-### 7. Organiser
+### 8. Organiser
 Suggests and bulk-applies names, areas and labels from Zigbee2MQTT friendly names (configurable pattern, default
 `<area>/<what>`). Shows a dry-run diff and applies only after confirmation; needs an admin login.
 
-### 8. History and packaging
+### 9. History and packaging
 Version history with undo for layouts. A static build in a small container image (nginx), plus a Home Assistant
 add-on for HA OS users.
 
 ### Later
-- Wall panels: a start view per screen, back to it after a few idle minutes.
+- Wall panels: a start view per screen, back to it after a few idle minutes; swipe between rooms, with a strip
+  of room names at the top.
 - A layout shared by the whole house (HA's system data, saving needs an admin), with per-user layouts on top.
 - The Energy lens.
 - Free card sizes (drag a corner) instead of fixed ones.
