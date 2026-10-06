@@ -86,7 +86,7 @@ Every element has a size in cells, `w × h`. Starting set:
 | Compact climate (room card) | 2 × 1 |
 | "+N" button (room card) | 1 × 1 |
 | Room card | 2, 4 or 8 wide; half a cell of title plus its rows of tiles, at most 1–3 (see "Room cards") |
-| Header (clock, date, weather) | full width × 2 |
+| Header (clock, date, weather) | full width × 1.5 |
 | Navigation band (tabs, status chips) | full width, one or two rows of chips |
 
 An element is never wider than its section (4 cells, or more on a room screen), or than its card's width on the
@@ -107,7 +107,7 @@ packed the same way, but have a fixed size (see "Room cards").
   columns (`denseRows` in `layout/pack.ts`).
 
 **Full-width bands** sit above the sections and span all columns: the home header (clock, date, weather) is
-2 rows; the navigation band under it (see "Navigation band") is as tall as a chip, or two chips when tabs and
+a cell and a half; the navigation band under it (see "Navigation band") is as tall as a chip, or two chips when tabs and
 status chips don't fit side by side; the room and lens headers are 1 row; and each floor heading half a cell.
 Each floor's room cards fill their own grid under its heading (see "Room cards").
 
@@ -170,6 +170,13 @@ neutral / cool where it has colour temperature; a climate device has its target 
 temperature, its modes (off among them) and fan speeds; anything else one big switch. Each says since when it's
 on or off. A tap on the dimmed backdrop (no blur), Escape or a change of screen closes it; on a phone it comes
 up from the bottom.
+
+**Feedback.** A command that always changes a state (switching, a mode, a scene) is followed until HA reports the
+change (`ui/pending.svelte.ts`): after 0.4 s without an answer, a thin arc turns around the icon; after 8 s, or if
+HA refuses, a message at the bottom of the screen says so and offers "Try again". Running a scene first keeps the
+states of what it changes (`scene.create` with `snapshot_entities`), then shows "<scene> is on · Undo" for 8 s;
+Undo brings them back (`ui/scene.ts`). The same tiles, split the same way, are used on room screens and lenses, in
+their own 2 × 1 size. In the demo, `?latency=1500` answers that late and `?fail` refuses everything.
 
 In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) in `model/roomCard.ts`, rendered by
 `screens/RoomCard.svelte`.

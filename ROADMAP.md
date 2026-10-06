@@ -41,8 +41,11 @@ Where the app is going, in order, and how each step is checked. The README cover
   card size. Then the redesign from the "calm cards" canvas, step 1 (2026-10-06): every card control is a 1 × 1
   split tile (the chip switches, the rest opens a pop-up), with pop-ups for lights, a room's lights, climate and
   anything that switches. Step 2: cards are plain groups (a room's name over its tiles, no box) and only as tall as their
-  tiles; a size now sets the width and the most rows (M is 4 × 2.5 at most). Start-up JS 59.7 KB gzipped. Next: the
-  sidebar, then waiting / failure / undo feedback.
+  tiles; a size now sets the width and the most rows (M is 4 × 2.5 at most). Start-up JS 59.7 KB gzipped. Then feedback: a spinner while
+  HA hasn't answered, a message with "Try again" when it doesn't or refuses, Undo after a scene; room screens and
+  lenses split their tiles the same way; the header names the weather. The sidebar waits (see Later): the header
+  and status chips already say what it would. Start-up JS
+  61.8 KB gzipped. Next: the Fire HD round.
 
 **Now: Phase 6, Home: run the house from one screen.** The screen the app opens on should be enough for everyday
 use, so that opening a room is the exception. Next: hide and merge rooms; a card template with per-room
@@ -390,3 +393,6 @@ add-on for HA OS users.
 - The Energy lens.
 - Free card sizes (drag a corner) instead of fixed ones.
 - Importers from Lovelace and ha-fusion, e-ink output.
+- A sidebar on landscape screens, like hass-config's: the clock, date, greeting, a "what's on" sentence and the
+  weather, in place of the header. On the Fire HD (8 columns) it would either drop Home to 4 columns or shrink the
+  cells by about 20% to keep 8; for now the header and status chips say the same (decided 2026-10-06).
