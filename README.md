@@ -65,9 +65,43 @@ over Wi-Fi (no USB needed). If it can't connect, check your computer's firewall.
   comparison. The overlay is a separate 1 KB chunk, loaded only with `?debug`.
 - Between device tests, Chrome DevTools with 6× CPU throttling is a rough stand-in.
 
+## Running with Docker
+
+The image builds the app (the same type check and size budget as `npm run build`) and serves it with an
+unprivileged nginx on port 8080. Tell it where Home Assistant is with `HA_URL`; it's read when the container starts,
+so one image works with any HA:
+
+```sh
+docker build -t doma .
+docker run -d --name doma --restart unless-stopped -p 8080:8080 \
+  -e HA_URL=http://homeassistant.local:8123 doma
+```
+
+or with Compose:
+
+```yaml
+services:
+  doma:
+    build: .
+    ports: ["8080:8080"]
+    environment:
+      HA_URL: http://homeassistant.local:8123
+    restart: unless-stopped
+```
+
+Then open `http://<docker host>:8080` and log in on HA's own page. Without `HA_URL` the app asks for the address,
+as it does in development. Nothing needs changing in Home Assistant: it accepts Doma's address as the login's
+client. Serve Doma over HTTPS only if Home Assistant is on HTTPS too; a browser blocks an HTTPS page from talking
+to an HTTP one.
+
+How it works: the page loads `config.js` before the app; the container's start script
+(`docker/40-doma-config.sh`) writes `HA_URL` into it, and `nginx` never lets browsers cache it or the page, while
+the hashed assets are kept for a year. A build-time `VITE_HA_URL` still works when there's no `HA_URL`.
+
 ## Running on a wall tablet
 
-1. Build (`npm run build`) and serve `dist/` from any static web server on your network.
+1. Serve the app on your network: with Docker (above), or build it (`npm run build`) and serve `dist/` from any
+   static web server.
 2. Install [Fully Kiosk Browser](https://www.fully-kiosk.com/): full screen, screen always on,
    launch on boot, optional wake on motion. Its settings are behind a swipe from the left edge
    of the screen (**Settings → Web Content Settings → Start URL**).
@@ -106,16 +140,16 @@ templates, custom views): [ROADMAP.md](ROADMAP.md#views-and-navigation).
 ## Layouts
 
 The home screen shows each floor as a heading and each room as a card: its name, temperature and humidity, and
-its controls (lights, climate), with "+N" for what doesn't fit. Cards come in five sizes, XS, S, M (the default),
-L and Wide. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
+its controls (lights, climate), with "+N" for what doesn't fit. A card's size is its width: XS, M (the default), Wide or the
+whole row; it's as tall as its tiles, up to two rows. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
 the screen and reflows on rotation; the rules are in [LAYOUTS.md](LAYOUTS.md).
 
 The layout is generated from your HA floors and areas, and a **home layout** adjusts it: where each room card sits
 and its size. It only stores those changes, so new rooms still appear by themselves. Each HA user has
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `doma.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
-tap the **edit button** next to the settings gear: drag a card by its handle to any spot on its floor, pick its
-size (XS, S, M, L or Wide) from the chip on the card, set what the card shows (**+** adds a control, × removes
+tap the **edit button** next to the settings gear: drag a card by its handle to change the order (cards go in rows,
+so titles line up), pick its width (XS, M, Wide or the whole row) from the chip on the card, set what the card shows (**+** adds a control, × removes
 one, drag one to move it, tap one to swap it; lights, switches, climate, scenes and an all-lights button), hide
 rooms with the eye (**Hidden rooms** brings them back), untick **Group by floor** to put every card on one grid
 without floor headings, pick and order the tabs under **Tabs**, then **Done**.

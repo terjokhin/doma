@@ -45,7 +45,9 @@ Where the app is going, in order, and how each step is checked. The README cover
   HA hasn't answered, a message with "Try again" when it doesn't or refuses, Undo after a scene; room screens and
   lenses split their tiles the same way; the header names the weather. The sidebar waits (see Later): the header
   and status chips already say what it would. Start-up JS
-  61.8 KB gzipped. Next: the Fire HD round.
+  61.8 KB gzipped. Then rows: cards go left to right in an order and wrap, each row on one line, so titles
+  always line up (replaces free placement); sizes are widths only (XS, M, Wide, Full: the whole row), every card up
+  to two rows of tiles. Next: the Fire HD round.
 
 **Now: Phase 6, Home: run the house from one screen.** The screen the app opens on should be enough for everyday
 use, so that opening a room is the exception. Next: hide and merge rooms; a card template with per-room
@@ -284,10 +286,11 @@ areas and floors stay as HA has them, and the cards' contents still come from th
    across a move, so none of them re-renders (script time over a drag down about a quarter on a laptop with 6×
    CPU throttling).
 
-Cards are **placed freely** on each floor's grid, and every card floats up so there are no gaps above it.
-Positions are kept per column count (phone, portrait and landscape tablet, large screen); a width you haven't
-arranged follows the reading order of the nearest one. (We started with an order-only model; it couldn't put
-a small card under another while the row still had room.)
+Cards were **placed freely** on each floor's grid, and every card floated up so there were no gaps above it.
+Positions were kept per column count. (We started with an order-only model; it couldn't put a small card under
+another while the row still had room.) Replaced on 2026-10-06 by rows in an order (Phase 6): with cards only as
+tall as their tiles, the masonry put titles of neighbouring rooms at different heights; HA's sections view and
+ha-fusion use rows for the same reason.
 
 ### 4. Views and lenses ✅
 The first views beyond Home and the rooms, and the navigation between them
