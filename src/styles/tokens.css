@@ -27,6 +27,14 @@
   --cool: #6cc4ff; /* climate, cooling */
   --cool-soft: rgb(108 196 255 / 0.14);
   --heat: #ff8a5c;
+  --heat-soft: rgb(255 138 92 / 0.18);
+  --air: #4fc3d9; /* fans, purifiers */
+  --air-soft: rgb(79 195 217 / 0.16);
+  --device: #7aa7ff; /* sockets, media and other devices */
+  --device-soft: rgb(122 167 255 / 0.16);
+  --scene: #a594f9;
+  --scene-soft: rgb(165 148 249 / 0.16);
+  --neutral-soft: rgb(255 255 255 / 0.12);
   --good: #6fdc9b;
   --alert: #ff6b6b;
   --alert-soft: rgb(255 107 107 / 0.16);

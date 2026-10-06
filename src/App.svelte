@@ -21,6 +21,7 @@
   import LensScreen from "./screens/LensScreen.svelte";
   import RoomScreen from "./screens/RoomScreen.svelte";
   import SetupScreen from "./screens/SetupScreen.svelte";
+  import SheetHost from "./ui/SheetHost.svelte";
 
   type Boot = { phase: "loading" } | { phase: "setup"; error?: string } | { phase: "ready" };
 
@@ -136,6 +137,7 @@
       </div>
     {/if}
   </div>
+  <SheetHost />
   {#if home.status === "disconnected"}
     <div class="status">{t("app.offline")}</div>
   {/if}

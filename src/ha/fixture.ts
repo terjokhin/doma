@@ -94,10 +94,18 @@ function simulate(states: Record<string, HassEntity>, domain: string, service: s
     } else if (["turn_on", "turn_off", "toggle"].includes(service)) {
       const on = service === "toggle" ? e.state !== "on" : service === "turn_on";
       next = { ...e, state: on ? "on" : "off" };
+      if (domain === "light" && service === "turn_on") {
+        const attributes = { ...e.attributes };
+        if (typeof data.brightness_pct === "number") attributes.brightness = Math.round((data.brightness_pct / 100) * 255);
+        if (typeof data.color_temp_kelvin === "number") attributes.color_temp_kelvin = data.color_temp_kelvin;
+        next = { ...next, attributes };
+      }
     } else if (domain === "climate" && service === "set_temperature") {
       next = { ...e, attributes: { ...e.attributes, temperature: data.temperature } };
     } else if (domain === "climate" && service === "set_hvac_mode") {
       next = { ...e, state: String(data.hvac_mode) };
+    } else if (domain === "climate" && service === "set_fan_mode") {
+      next = { ...e, attributes: { ...e.attributes, fan_mode: data.fan_mode } };
     }
     // Like HA: last_updated moves on every change, last_changed only when the state does.
     const now = new Date().toISOString();

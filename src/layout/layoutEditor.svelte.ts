@@ -1,5 +1,5 @@
 import type { LensId } from "../model/lenses";
-import { DEFAULT_CARD_SIZE, EMPTY_LAYOUT, type CardSize, type HomeLayout, type Position } from "./homeLayout";
+import { byFloor, DEFAULT_CARD_SIZE, EMPTY_LAYOUT, type CardSize, type HomeLayout, type Position } from "./homeLayout";
 import { homeLayout, saveLayout } from "./layoutStore.svelte";
 import { DEFAULT_SECTIONS, roomSections, withRoom, withTemplate, type SectionTemplate } from "./roomTemplate";
 
@@ -46,9 +46,21 @@ export const editor = {
   reset() {
     if (draft) draft = draft.room ? { ...EMPTY_LAYOUT, room: draft.room } : EMPTY_LAYOUT;
   },
-  /** Every card's position on a screen `cols` columns wide; the home screen passes all of them after a change. */
+  /**
+   * Every card's position on a screen `cols` columns wide, on the floor grids or on the one grid, whichever Home
+   * shows; the home screen passes all of them after a change.
+   */
   place(cols: number, positions: Record<string, Position>) {
-    if (draft) draft = { ...draft, grids: { ...draft.grids, [cols]: positions } };
+    if (!draft) return;
+    draft = byFloor(draft)
+      ? { ...draft, grids: { ...draft.grids, [cols]: positions } }
+      : { ...draft, flatGrids: { ...draft.flatGrids, [cols]: positions } };
+  },
+  /** Whether Home groups its cards by floor. Each way keeps its own card positions. */
+  setByFloor(on: boolean) {
+    if (!draft) return;
+    const { floors: _, ...rest } = draft;
+    draft = on ? rest : { ...rest, floors: false };
   },
   /** A room card's size. The default size isn't stored. */
   setSize(areaId: string, size: CardSize) {
@@ -56,6 +68,19 @@ export const editor = {
     const { [areaId]: _, ...sizes } = draft.sizes ?? {};
     if (size !== DEFAULT_CARD_SIZE) sizes[areaId] = size;
     draft = { ...draft, sizes };
+  },
+  /** Hide a room's card from Home, or show it again. */
+  setRoomHidden(areaId: string, hidden: boolean) {
+    if (!draft) return;
+    const rest = (draft.hidden ?? []).filter((id) => id !== areaId);
+    draft = { ...draft, hidden: hidden ? [...rest, areaId] : rest };
+  },
+  /** A room card's own controls, in order, or undefined to show the generated ones again. */
+  setSlots(areaId: string, slots: string[] | undefined) {
+    if (!draft) return;
+    const { [areaId]: _, ...cards } = draft.cards ?? {};
+    if (slots) cards[areaId] = slots;
+    draft = { ...draft, cards };
   },
   /** The tabs after Home, in order. */
   setTabs(tabs: LensId[]) {

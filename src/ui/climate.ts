@@ -47,6 +47,11 @@ export function togglePower(s: HassEntity) {
   }
 }
 
+/** Switch to `mode`; a device that's off turns on in it. */
+export function setMode(s: HassEntity, mode: string) {
+  void callService("climate", "set_hvac_mode", { hvac_mode: mode }, { entity_id: s.entity_id });
+}
+
 /** Move the target temperature by `delta`, within the device's limits and on its step. */
 export function stepTarget(s: HassEntity, delta: number) {
   const a = s.attributes;

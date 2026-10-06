@@ -8,14 +8,14 @@
   import type { Room } from "../model/home";
   import { cardRows, type CardItem } from "../model/roomCard";
   import { navigate } from "../router.svelte";
-  import ClimateCompact from "../ui/ClimateCompact.svelte";
+  import EntityTile from "../ui/EntityTile.svelte";
+  import LightsTile from "../ui/LightsTile.svelte";
   import { formatHumidity, formatTemperature } from "../ui/format";
   import Icon from "../ui/Icon.svelte";
-  import ToggleButton from "../ui/ToggleButton.svelte";
 
   /**
    * A room on the home screen: a card of `size` cells (LAYOUTS.md, "Room cards"): a title band that opens the
-   * room, then a row of its controls per cell below it (see roomCardItems).
+   * room, then a row of its controls per cell below it (see roomCardItems): its own list, or the generated one.
    * While `editing`, the card's own controls don't react (the edit overlay is ui/CardEditor.svelte).
    */
   let {
@@ -45,10 +45,10 @@
   <div class="room-grid" inert={editing}>
     {#each items as item (item.kind === "more" ? "+more" : item.id)}
       <GridItem size={item.size}>
-        {#if item.kind === "toggle"}
-          <ToggleButton entityId={item.id} area={room.area} />
-        {:else if item.kind === "climate"}
-          <ClimateCompact entityId={item.id} area={room.area} />
+        {#if item.kind === "lights"}
+          <LightsTile {room} />
+        {:else if item.kind !== "more"}
+          <EntityTile entityId={item.id} area={room.area} />
         {:else}
           <button class="mini more" aria-label={t("home.more", { count: item.count })} onclick={open}>
             +{item.count}

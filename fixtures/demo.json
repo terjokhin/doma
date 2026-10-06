@@ -134,9 +134,13 @@
    "attributes": {
     "friendly_name": "Counter light",
     "supported_color_modes": [
-     "brightness"
+     "color_temp"
     ],
-    "brightness": 255
+    "brightness": 255,
+    "color_mode": "color_temp",
+    "min_color_temp_kelvin": 2700,
+    "max_color_temp_kelvin": 6500,
+    "color_temp_kelvin": 2700
    },
    "last_changed": "2026-09-30T16:00:27.642Z",
    "last_updated": "2026-09-30T16:00:27.642Z",
@@ -505,9 +509,13 @@
    "attributes": {
     "friendly_name": "Desk light",
     "supported_color_modes": [
-     "brightness"
+     "color_temp"
     ],
-    "brightness": 220
+    "brightness": 220,
+    "color_mode": "color_temp",
+    "min_color_temp_kelvin": 2700,
+    "max_color_temp_kelvin": 6500,
+    "color_temp_kelvin": 4000
    },
    "last_changed": "2026-09-30T16:00:27.642Z",
    "last_updated": "2026-09-30T16:00:27.642Z",
@@ -584,7 +592,14 @@
     "temperature": 22,
     "min_temp": 16,
     "max_temp": 30,
-    "target_temp_step": 0.5
+    "target_temp_step": 0.5,
+    "fan_modes": [
+     "auto",
+     "low",
+     "medium",
+     "high"
+    ],
+    "fan_mode": "auto"
    },
    "last_changed": "2026-09-30T16:00:27.642Z",
    "last_updated": "2026-09-30T16:00:27.642Z",

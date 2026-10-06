@@ -52,3 +52,13 @@ export const formatTemperature = (s: HassEntity | undefined) =>
 
 export const formatHumidity = (s: HassEntity | undefined) =>
   isUnavailable(s) ? "—" : `${formatNumber(s!.state, 0)}%`;
+
+const timeFormats = new Map<string, Intl.DateTimeFormat>();
+
+/** A time of day in the current language, e.g. "18:10". */
+export function formatTime(iso: string) {
+  const lang = language();
+  let format = timeFormats.get(lang);
+  if (!format) timeFormats.set(lang, (format = new Intl.DateTimeFormat(lang, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })));
+  return format.format(new Date(iso));
+}

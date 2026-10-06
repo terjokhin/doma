@@ -542,9 +542,9 @@ button {
 }
 
 /*
- * A room card fills its grid item (w × h cells): at the bottom, an inset grid of --card-w × --card-rows controls,
- * one cell row each, so they're a little smaller than a cell; above it the title band, one cell tall (half a
- * cell on an S card).
+ * A room card fills its grid item (w × h cells), with no box of its own: the title band, half a cell, over a grid of
+ * --card-w × --card-rows tiles, a cell tall. The gap that's left over goes between the title and the tiles, and the
+ * tiles are inset by a gap at each side, so rooms side by side are three gaps apart and their tiles one.
  */
 .room-card {
   contain: content;
@@ -553,23 +553,29 @@ button {
   flex: 1;
   flex-direction: column;
   min-width: 0;
-  border-radius: var(--radius-l);
-  background: var(--card);
-  box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 
-/* The title band: name, climate, and an arrow; the whole band opens the room. */
+/*
+ * The title band: name, climate, and an arrow; the whole band opens the room. Whatever the card's size, the title
+ * sits where it does on an S card, centred in the top half cell, so titles line up across a row of cards.
+ */
 .room-title {
   display: flex;
   flex: 1;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
   width: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 0 var(--space-3) 0 var(--space-4);
+  padding: 0 var(--gap);
   color: var(--text-dim);
   text-align: left;
+}
+
+/* Half the height of an S card's title band (LAYOUTS.md, "Room cards"). */
+.room-title > * {
+  margin-top: calc((var(--cell) - var(--gap)) / 4);
+  transform: translateY(-50%);
 }
 
 .room-label {
@@ -611,12 +617,11 @@ button {
   grid-template-rows: repeat(var(--card-rows), 1fr);
   grid-auto-flow: row dense;
   gap: var(--gap);
-  padding: 0 var(--gap) var(--gap);
+  padding: var(--gap) var(--gap) 0;
 }
 
 /* Controls on a card are a shade lighter than the card. */
-.room-card .mini,
-.room-card .compact {
+.room-card .mini {
   background-color: var(--card-control);
 }
 
@@ -679,32 +684,6 @@ button {
   line-height: 1.2;
 }
 
-.mini-value {
-  font-size: var(--text-l);
-  line-height: 1.1;
-}
-
-.mini-value small {
-  margin-left: 2px;
-  color: var(--text-dim);
-  font-size: var(--text-xs);
-}
-
-.mini-state {
-  color: var(--text-dim);
-  font-size: var(--text-s);
-}
-
-.mini.on {
-  /* Only the glow: the colour underneath depends on where the button sits. */
-  background-image: linear-gradient(135deg, var(--warm-soft), transparent 80%);
-}
-
-.mini.on .mini-icon {
-  background: var(--warm);
-  color: #2a1d05;
-}
-
 .mini.more {
   align-items: center;
   justify-content: center;
@@ -712,65 +691,426 @@ button {
   font-size: var(--text-l);
 }
 
-.mini.unavailable,
-.compact.unavailable {
+.mini.unavailable {
   opacity: 0.45;
 }
 
-/* 2×1 climate control on room cards. */
-.compact {
+/*
+ * Tiles on room cards (ui/Tile.svelte): 1×1, split. The chip at the top left switches; the rest opens the pop-up.
+ * While on, only the chip takes a colour and the name brightens; the tile keeps its own. The colours come from a
+ * tint class (ui/tint.ts), written out as pairs since Chrome 108 has no color-mix().
+ */
+.card-tile {
   contain: content;
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
   border-radius: var(--radius-m);
-  background: var(--surface);
+  background: var(--card-control);
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
-.compact .mini-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-}
+.tint-light { --tint: var(--warm); --tint-soft: var(--warm-soft); }
+.tint-heat { --tint: var(--heat); --tint-soft: var(--heat-soft); }
+.tint-cool { --tint: var(--cool); --tint-soft: var(--cool-soft); }
+.tint-air { --tint: var(--air); --tint-soft: var(--air-soft); }
+.tint-device { --tint: var(--device); --tint-soft: var(--device-soft); }
+.tint-neutral { --tint: var(--text); --tint-soft: var(--neutral-soft); }
+.tint-scene { --tint: var(--scene); --tint-soft: var(--scene-soft); }
 
-.compact button.mini-icon:active {
-  transform: scale(0.92);
-}
-
-.compact-body {
+.card-tile-body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--space-1);
+  justify-content: flex-end;
+  min-width: 0;
+  padding: var(--space-3);
+  border-radius: inherit;
+  text-align: left;
+  transition: transform var(--fast) var(--ease);
+}
+
+.card-tile-body:active {
+  transform: scale(0.97);
+}
+
+.card-tile-name,
+.card-tile-state {
+  overflow: hidden;
+  font-size: var(--text-xs);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-tile-name {
+  color: var(--text-dim);
+  font-weight: 600;
+  transition: color var(--slow) var(--ease);
+}
+
+.card-tile-state {
+  color: var(--text-dim);
+}
+
+.card-tile.on .card-tile-name {
+  color: var(--text);
+}
+
+/* The chip: round, with a bigger tap target than it looks (kept inside the tile, which clips). */
+.tile-chip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--card-control-icon);
+  color: var(--text-dim);
+  transition: background var(--slow) var(--ease), color var(--slow) var(--ease), transform var(--fast) var(--ease);
+}
+
+.tile-chip::before {
+  content: "";
+  position: absolute;
+  inset: -0.4rem;
+  border-radius: 50%;
+}
+
+.tile-chip:active {
+  transform: scale(0.92);
+}
+
+.card-tile > .tile-chip {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+}
+
+.on > .tile-chip,
+.on .sheet-light-head .tile-chip {
+  background: var(--tint-soft);
+  color: var(--tint);
+}
+
+.card-tile.unavailable {
+  opacity: 0.45;
+}
+
+/* A level in a tile's corner: brightness, or a thermostat's target. */
+.ring {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2.1rem;
+  height: 2.1rem;
+}
+
+.ring svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.ring circle {
+  fill: none;
+  stroke-width: 2;
+}
+
+.ring-track {
+  stroke: var(--line-strong);
+}
+
+.ring-arc {
+  stroke: var(--text-dim);
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.ring-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-dim);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+/*
+ * Pop-ups (ui/SheetHost.svelte): a centred panel on a dimmed backdrop, no blur; on a phone, a sheet from the bottom.
+ * They fade and rise in (opacity and transform only).
+ */
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(6 7 9 / 0.62);
+  animation: fade var(--fast) var(--ease);
+}
+
+.sheet {
+  width: min(30rem, 100%);
+  max-height: calc(100vh - 2 * var(--space-4));
+  overflow-y: auto;
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 24px 60px rgb(0 0 0 / 0.55);
+  animation: enter var(--fast) var(--ease);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .sheet-scrim {
+    align-items: end;
+    padding: 0;
+  }
+
+  .sheet {
+    width: 100%;
+    max-height: 90vh;
+    border-radius: var(--radius-l) var(--radius-l) 0 0;
+  }
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-3) var(--space-4) var(--space-5);
+  background: var(--surface-2);
+}
+
+.sheet-head .tile-chip {
+  width: 3rem;
+  height: 3rem;
+}
+
+.sheet-head.on .tile-chip {
+  background: var(--tint-soft);
+  color: var(--tint);
+}
+
+.sheet-title {
+  flex: 1;
   min-width: 0;
 }
 
-.compact-stepper {
+.sheet-title h2 {
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--text-l);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sheet-title p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-dim);
+  font-size: var(--text-s);
+}
+
+.sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5);
+}
+
+.sheet-foot {
+  padding: 0 var(--space-5) var(--space-5);
+}
+
+.sheet-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sheet-label span {
+  color: var(--text);
+  letter-spacing: 0;
+}
+
+.sheet-note {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-s);
+}
+
+.sheet-wide,
+.sheet-big {
+  width: 100%;
+  min-height: var(--touch);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: var(--text-m);
+  font-weight: 600;
+}
+
+.sheet-big {
+  min-height: 3.75rem;
+  background: var(--text);
+  color: var(--bg);
+}
+
+.sheet-big.on {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* A row of choices, one picked: colour temperature, fan speed. */
+.segmented {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+.segmented button {
+  min-height: 2.75rem;
+  border-radius: calc(var(--radius-s) - 0.25rem);
+  color: var(--text-dim);
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* A light's brightness: tap or drag. The fill is scaled, not resized, so a drag repaints only the bar. */
+.bar {
+  position: relative;
+  height: 3.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+  touch-action: none;
+  cursor: pointer;
+}
+
+.bar.on {
+  background: var(--warm-soft);
+}
+
+.bar-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--warm);
+  transform-origin: left;
+}
+
+.sheet-light-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.sheet-light-head b {
+  flex: 1;
+  font-size: var(--text-m);
+  font-weight: 600;
+}
+
+.sheet-light-head span {
+  color: var(--text-dim);
+  font-size: var(--text-s);
+}
+
+/* Climate: the target between − and +, then the modes. */
+.sheet-temp {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--text-m);
+}
+
+.round-btn.big {
+  width: 4rem;
+  height: 4rem;
+}
+
+.sheet-target {
+  text-align: center;
+}
+
+.sheet-target b {
+  display: block;
+  font-size: 4rem;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.sheet-target span {
+  display: block;
+  margin-top: var(--space-2);
+  color: var(--text-dim);
+  font-size: var(--text-s);
+}
+
+.sheet-target.dim b {
+  color: var(--text-faint);
+}
+
+.sheet-modes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.sheet-mode {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 3rem;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+
+.sheet-mode[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.sheet-mode.heat[aria-pressed="true"] {
+  background: var(--heat);
+  color: #2b0f05;
+}
+
+.sheet-mode.cool[aria-pressed="true"] {
+  background: var(--cool);
+  color: #04202e;
 }
 
 .round-btn.small {
   width: 2.1rem;
   height: 2.1rem;
-}
-
-.compact.climate.active .mini-icon {
-  background: var(--surface-3);
-  color: var(--text);
-}
-
-.compact.climate.heat .mini-icon {
-  background: var(--heat);
-  color: #2b0f05;
-}
-
-.compact.climate.cool .mini-icon {
-  background: var(--cool);
-  color: #04202e;
 }
 
 .round-btn {
@@ -1107,17 +1447,61 @@ a.btn {
   cursor: grab;
 }
 
-/* The chip and its menu, centred in the title band (everything above the controls). Above the other cards. */
-.size-picker {
+/*
+ * In the title band, level with the title: the drag handle, hide, "+" and the size chip, on the right.
+ * Above the other cards; the one with an open menu above every other band (they share one stacking level).
+ */
+.card-edit-bar {
   position: absolute;
-  top: calc((100% - var(--card-rows) * (var(--cell) + var(--gap))) / 2 - 0.9rem);
-  right: var(--space-3);
+  top: 0;
+  right: 0;
+  left: 0;
   z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  height: calc((var(--cell) - var(--gap)) / 2); /* in line with the title (.room-title) */
+  padding: 0 var(--space-3);
 }
 
-/* The open one goes above every other chip: they all share one stacking level, later ones on top. */
-.size-picker.open {
+.card-edit-bar.open {
   z-index: 40;
+}
+
+.menu-anchor,
+.size-picker {
+  position: relative;
+}
+
+/* Round buttons as small as the size chip, with a bigger tap target than they look. */
+.edit-btn {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--text);
+  transition: transform var(--fast) var(--ease);
+}
+
+.edit-btn::before {
+  content: "";
+  position: absolute;
+  inset: -0.5rem -0.2rem;
+}
+
+.edit-btn:active {
+  transform: scale(0.92);
+}
+
+.edit-btn[aria-expanded="true"] {
+  background: var(--text);
+  color: var(--bg);
 }
 
 .size-chip {
@@ -1217,19 +1601,153 @@ a.btn {
   color: var(--cool);
 }
 
-/* In the middle of the controls area. Touch drags only here, so the rest of the card scrolls the page. */
+/* Touch drags the card only here, so the rest of the card scrolls the page. */
 .drag-handle {
+  touch-action: none;
+  cursor: grab;
+}
+
+/* The controls menu: what the room has, ticked when it's on the card; or what to swap a control for. */
+.slot-menu {
   position: absolute;
-  bottom: calc(var(--card-rows) * (var(--cell) + var(--gap)) / 2);
-  left: 50%;
-  transform: translate(-50%, 50%);
-  background: var(--surface-3);
+  top: calc(100% + 0.4rem);
+  right: 0;
+  width: max-content;
+  min-width: 14rem;
+  max-width: min(22rem, calc(100vw - 2rem));
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: var(--space-3);
+  border-radius: var(--radius-m);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 18px 50px rgb(0 0 0 / 0.5);
+  cursor: default;
+}
+
+.slot-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-s);
   color: var(--text);
+  font-size: var(--text-s);
+  text-align: left;
+}
+
+.slot-option:active {
+  background: var(--surface-3);
+}
+
+.slot-option[role="menuitemcheckbox"][aria-checked="false"] {
+  color: var(--text-dim);
+}
+
+.slot-option-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slot-option-note {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+}
+
+.slot-option.automatic {
+  justify-content: center;
+  margin-top: var(--space-2);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--text);
+}
+
+/* The card's controls as slots to edit: laid out exactly like the controls under them (.room-grid). */
+.slot-grid {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  height: calc(var(--card-rows) * (var(--cell) + var(--gap)));
+  grid-template-columns: repeat(var(--card-w), 1fr);
+  grid-template-rows: repeat(var(--card-rows), 1fr);
+  grid-auto-flow: row dense;
+  gap: var(--gap);
+  padding: var(--gap) var(--gap) 0;
+}
+
+/* A control on the card: its icon and name; dragged to move it, tapped to swap it. */
+.slot-edit {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-m);
+  background: var(--card-control);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  cursor: grab;
   touch-action: none;
 }
 
-.drag-handle:active {
-  transform: translate(-50%, 50%) scale(0.92);
+.slot-edit .mini-icon {
+  background: var(--card-control-icon);
+}
+
+/* The slot being dragged: above the others, on its own layer, ignored by hit-testing (see layout/drag.ts). */
+.slot-edit.dragging {
+  z-index: 10;
+  pointer-events: none;
+  will-change: transform;
+  box-shadow: inset 0 0 0 2px var(--cool), 0 10px 24px rgb(0 0 0 / 0.5);
+  cursor: grabbing;
+}
+
+.slot-remove {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.45rem;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--text);
+}
+
+.slot-remove::before {
+  content: "";
+  position: absolute;
+  inset: -0.5rem;
+}
+
+/* A free cell: tap to add a control. */
+.slot-free,
+.slot-more {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  border-radius: var(--radius-m);
+  color: var(--text-dim);
+}
+
+.slot-free {
+  border: 1.5px dashed var(--line-strong);
+}
+
+.slot-more {
+  background: var(--card-control);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  font-size: var(--text-l);
 }
 
 /* Where the dragged card will land. */

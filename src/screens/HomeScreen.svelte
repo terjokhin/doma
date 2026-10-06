@@ -3,7 +3,7 @@
   import type { CardSize, Position } from "../layout/homeLayout";
   import { dragItem } from "../layout/drag";
   import { GAP, grid } from "../layout/grid.svelte";
-  import { tabsOf } from "../layout/homeLayout";
+  import { byFloor, tabsOf } from "../layout/homeLayout";
   import { editor } from "../layout/layoutEditor.svelte";
   import { homeLayout } from "../layout/layoutStore.svelte";
   import { compact, moveBox, resizeBox, type Box } from "../layout/place";
@@ -12,16 +12,19 @@
   import { CARD_CELLS, fitCard } from "../model/roomCard";
   import CardEditor from "../ui/CardEditor.svelte";
   import EditBar from "../ui/EditBar.svelte";
+  import FloorsToggle from "../ui/FloorsToggle.svelte";
+  import HiddenRoomsMenu from "../ui/HiddenRoomsMenu.svelte";
   import Header from "../ui/Header.svelte";
   import NavBand, { docked } from "../ui/NavBand.svelte";
   import TabsMenu from "../ui/TabsMenu.svelte";
   import RoomCard from "./RoomCard.svelte";
 
   // Each floor is a full-width heading; its room cards sit on one grid under it, where and at the sizes the home
-  // layout says (LAYOUTS.md, "The floor grid"). In edit mode it shows the editor's draft.
+  // layout says (LAYOUTS.md, "The floor grid"). Without grouping by floor, all cards share one grid and there are
+  // no headings. In edit mode it shows the editor's draft.
   const editing = $derived(editor.target === "/");
   const layout = $derived(editing ? editor.layout : homeLayout());
-  const floors = $derived(homeView(homeModel(), layout, grid.cols));
+  const floors = $derived(homeView(homeModel(), layout, grid.cols, editing));
 
   /** The card being dragged, to show where it will land. */
   let dragging = $state<{ floor: string; id: string } | null>(null);
@@ -41,9 +44,10 @@
   const floorOf = (key: string) => floors.find((f) => f.key === key)!;
 
   function resize(floorKey: string, card: RoomCardView, size: CardSize) {
+    // The new height follows from the tiles once the size is set; the cards around float up to it.
     const cells = fitCard(CARD_CELLS[size], grid.cols);
     editor.setSize(card.room.area.area_id, size);
-    place(floorKey, resizeBox(boxesOf(floorOf(floorKey)), card.room.area.area_id, cells.w, gridRows(cells), grid.cols));
+    place(floorKey, resizeBox(boxesOf(floorOf(floorKey)), card.room.area.area_id, cells.w, gridRows(card.size), grid.cols));
   }
 
   function startDrag(e: PointerEvent, floorKey: string, card: RoomCardView) {
@@ -83,6 +87,8 @@
 <main class="screen" class:editing class:docked={docked()}>
   {#if editing}
     <EditBar title={t("edit.title")} hint={t("edit.hint")} onReset={editor.reset}>
+      <HiddenRoomsMenu />
+      <FloorsToggle checked={byFloor(layout)} />
       <TabsMenu />
     </EditBar>
   {:else}
@@ -90,7 +96,9 @@
   {/if}
   <NavBand current="home" tabs={tabsOf(layout)} {editing} />
   {#each floors as floor (floor.key)}
-    <h2 class="floor-band">{floor.name ?? t("app.otherFloor")}</h2>
+    {#if floor.heading}
+      <h2 class="floor-band">{floor.name ?? t("app.otherFloor")}</h2>
+    {/if}
     <div class="floor-grid">
       {#each floor.rooms as card (card.room.area.area_id)}
         {#if dragging?.floor === floor.key && dragging.id === card.room.area.area_id}
@@ -111,9 +119,13 @@
             <CardEditor
               size={card.size}
               sizeName={card.sizeName}
-              name={card.room.area.name}
+              room={card.room}
+              items={card.items}
+              slots={card.slots}
               onSize={(size) => resize(floor.key, card, size)}
               onDrag={(e) => startDrag(e, floor.key, card)}
+              onSlots={(slots) => editor.setSlots(card.room.area.area_id, slots)}
+              onHide={() => editor.setRoomHidden(card.room.area.area_id, true)}
             />
           {/if}
         </div>

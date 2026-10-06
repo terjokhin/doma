@@ -26,7 +26,10 @@
     "greeting_afternoon": "Good afternoon",
     "greeting_evening": "Good evening",
     "greeting_night": "Good night",
-    "more": "{{count}} more"
+    "more": "{{count}} more",
+    "roomLights": "All lights",
+    "lightsOn": "{{count}} on",
+    "scene": "Scene"
   },
   "room": {
     "back": "Back",
@@ -67,7 +70,10 @@
   },
   "climate": {
     "turnOn": "Turn on",
-    "turnOff": "Turn off"
+    "turnOff": "Turn off",
+    "mode": "Mode: {{mode}}",
+    "warmer": "Warmer",
+    "cooler": "Cooler"
   },
   "settings": {
     "language": "Language",
@@ -78,7 +84,7 @@
   "edit": {
     "open": "Edit layout",
     "title": "Arrange the home screen",
-    "hint": "Drag a card by its handle to move it; tap its size to pick another.",
+    "hint": "Drag a card by its handle; tap its size to change it. On a card, + adds a control, × removes one; drag a control to move it, tap it to swap it.",
     "done": "Done",
     "cancel": "Cancel",
     "reset": "Reset to default",
@@ -92,10 +98,23 @@
       "l": "L",
       "wide": "Wide"
     },
+    "byFloor": "Group by floor",
     "tabs": "Tabs",
     "tabsHint": "Which tabs to show, in order",
     "moveUp": "Move {{name}} up",
-    "moveDown": "Move {{name}} down"
+    "moveDown": "Move {{name}} down",
+    "addControl": "Add a control to {{name}}",
+    "controlsOf": "On the {{name}} card",
+    "replaceControl": "Swap {{name}} for",
+    "removeControl": "Remove {{name}}",
+    "moveControl": "Move {{name}}",
+    "automatic": "Back to automatic",
+    "noControls": "Nothing in this room can go on a card.",
+    "hideRoom": "Hide {{name}}",
+    "doesntFit": "doesn't fit",
+    "hiddenRooms": "Hidden rooms",
+    "hiddenRoomsHint": "Tap a room to show its card again",
+    "showRoom": "Show {{name}}"
   },
   "views": {
     "home": "Home"
@@ -164,5 +183,48 @@
     "move": "{{name}}: tap to rename, drag or use the arrow keys to move",
     "rename": "Name of {{name}}",
     "resize": "Width of {{name}}: drag, or Shift and the left or right arrow"
+  },
+  "hvacMode": {
+    "off": "Off",
+    "heat": "Heat",
+    "cool": "Cool",
+    "heat_cool": "Heat / cool",
+    "auto": "Auto",
+    "dry": "Dry",
+    "fan_only": "Fan"
+  },
+  "tile": {
+    "turnOn": "Turn on {{name}}",
+    "turnOff": "Turn off {{name}}",
+    "run": "Run {{name}}",
+    "more": "More for {{name}}"
+  },
+  "sheet": {
+    "close": "Close",
+    "openRoom": "Open {{room}}",
+    "brightness": "Brightness",
+    "brightnessOf": "{{name}} brightness",
+    "colour": "Colour",
+    "warm": "Warm",
+    "neutral": "Neutral",
+    "cool": "Cool",
+    "mode": "Mode",
+    "fan": "Fan",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "onSince": "On since {{time}}",
+    "offSince": "Off since {{time}}",
+    "now": "Now {{value}}"
+  },
+  "fanMode": {
+    "auto": "Auto",
+    "low": "Low",
+    "medium": "Medium",
+    "middle": "Medium",
+    "high": "High",
+    "quiet": "Quiet",
+    "turbo": "Turbo",
+    "on": "On",
+    "off": "Off"
   }
 }

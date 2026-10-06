@@ -23,6 +23,10 @@ import {
   mdiBlur,
   mdiWater,
   mdiPalette,
+  mdiFire,
+  mdiSnowflake,
+  mdiSunSnowflakeVariant,
+  mdiThermostatAuto,
 } from "@mdi/js";
 import type { HassEntity } from "home-assistant-js-websocket";
 import { deviceClass, domainOf, isHeatingSwitch, isLight } from "../model/home";
@@ -71,3 +75,16 @@ export const VIEW_ICONS: Record<"home" | LensId, string> = {
   security: mdiShieldHomeOutline,
   devices: mdiBatteryHeartVariant,
 };
+
+/** Icons of HVAC modes (`hvac_modes`); a mode not listed uses the thermostat. */
+export const MODE_ICONS: Record<string, string> = {
+  off: mdiPower,
+  heat: mdiFire,
+  cool: mdiSnowflake,
+  heat_cool: mdiSunSnowflakeVariant,
+  auto: mdiThermostatAuto,
+  dry: mdiWaterPercent,
+  fan_only: mdiFan,
+};
+
+export const modeIcon = (mode: string) => MODE_ICONS[mode] ?? mdiThermostat;
