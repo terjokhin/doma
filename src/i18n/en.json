@@ -226,5 +226,29 @@
     "turbo": "Turbo",
     "on": "On",
     "off": "Off"
+  },
+  "feedback": {
+    "retry": "Try again",
+    "undo": "Undo",
+    "noAnswer": "{{name}} didn't answer.",
+    "failed": "Couldn't switch {{name}}: {{message}}",
+    "sceneOn": "{{name}} is on"
+  },
+  "weather": {
+    "clear-night": "Clear",
+    "cloudy": "Cloudy",
+    "exceptional": "Unusual weather",
+    "fog": "Fog",
+    "hail": "Hail",
+    "lightning": "Thunderstorm",
+    "lightning-rainy": "Thunderstorm and rain",
+    "partlycloudy": "Partly cloudy",
+    "pouring": "Heavy rain",
+    "rainy": "Rain",
+    "snowy": "Snow",
+    "snowy-rainy": "Sleet",
+    "sunny": "Sunny",
+    "windy": "Windy",
+    "windy-variant": "Windy and cloudy"
   }
 }

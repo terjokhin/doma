@@ -8,6 +8,7 @@
   import { formatState, formatTime, isUnavailable } from "./format";
   import { entityIcon } from "./icons";
   import { lightOf, setBrightness, setTemperature, toggle } from "./light";
+  import { isPending, send } from "./pending.svelte";
   import SheetFrame from "./SheetFrame.svelte";
   import { tintOf } from "./tint";
 
@@ -20,6 +21,7 @@
   const name = $derived(s ? entityName(s, home.registry[entityId], area) : "");
   /** The brightness the bar shows, while dragging too. */
   let shown = $state(0);
+  const flip = () => s && send(entityId, [entityId], name, () => toggle(s!));
 
   /** Warm, neutral and cool: the ends of the light's range and the middle. */
   const temperatures = $derived.by(() => {
@@ -40,7 +42,8 @@
     sub="{area.name} · {formatState(s).value}"
     chipLabel={light.on ? t("tile.turnOff", { name }) : t("tile.turnOn", { name })}
     chipDisabled={isUnavailable(s)}
-    onChip={() => toggle(s)}
+    pending={isPending(entityId)}
+    onChip={flip}
     areaId={area.area_id}
     roomName={area.name}
   >
@@ -56,7 +59,7 @@
         />
       </div>
     {:else}
-      <button class="sheet-big" class:on={light.on} onclick={() => toggle(s)}>
+      <button class="sheet-big" class:on={light.on} onclick={flip}>
         {light.on ? t("sheet.turnOff") : t("sheet.turnOn")}
       </button>
     {/if}

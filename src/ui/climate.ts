@@ -31,26 +31,24 @@ export function climateOf(s: HassEntity): Climate {
   };
 }
 
-/** Off: turn on into the last mode (or the first available one). On: turn off. */
-export function togglePower(s: HassEntity) {
+/** Off: turn on into the last mode (or the first available one). On: turn off. Resolves when HA has the command. */
+export function togglePower(s: HassEntity): Promise<unknown> | undefined {
   const a = s.attributes;
   const features = Number(a.supported_features ?? 0);
   const target = { entity_id: s.entity_id };
   if (s.state === "off") {
     const firstMode = ((a.hvac_modes as string[] | undefined) ?? []).find((m) => m !== "off");
-    if (features & TURN_ON) void callService("climate", "turn_on", {}, target);
-    else if (firstMode) void callService("climate", "set_hvac_mode", { hvac_mode: firstMode }, target);
-  } else if (features & TURN_OFF) {
-    void callService("climate", "turn_off", {}, target);
-  } else {
-    void callService("climate", "set_hvac_mode", { hvac_mode: "off" }, target);
+    if (features & TURN_ON) return callService("climate", "turn_on", {}, target);
+    if (firstMode) return callService("climate", "set_hvac_mode", { hvac_mode: firstMode }, target);
+    return undefined;
   }
+  if (features & TURN_OFF) return callService("climate", "turn_off", {}, target);
+  return callService("climate", "set_hvac_mode", { hvac_mode: "off" }, target);
 }
 
 /** Switch to `mode`; a device that's off turns on in it. */
-export function setMode(s: HassEntity, mode: string) {
-  void callService("climate", "set_hvac_mode", { hvac_mode: mode }, { entity_id: s.entity_id });
-}
+export const setMode = (s: HassEntity, mode: string) =>
+  callService("climate", "set_hvac_mode", { hvac_mode: mode }, { entity_id: s.entity_id });
 
 /** Move the target temperature by `delta`, within the device's limits and on its step. */
 export function stepTarget(s: HassEntity, delta: number) {

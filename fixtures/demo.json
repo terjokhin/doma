@@ -787,7 +787,12 @@
    "entity_id": "scene.living_room_movie_night",
    "state": "2026-09-30T19:30:00.000Z",
    "attributes": {
-    "friendly_name": "Movie night"
+    "friendly_name": "Movie night",
+    "entity_id": [
+     "light.living_room_ceiling_light",
+     "light.living_room_floor_lamp",
+     "light.living_room_wall_sconce"
+    ]
    },
    "last_changed": "2026-09-30T19:30:00.000Z",
    "last_updated": "2026-09-30T19:30:00.000Z",
@@ -801,7 +806,11 @@
    "entity_id": "scene.living_room_reading",
    "state": "2026-09-30T19:30:00.000Z",
    "attributes": {
-    "friendly_name": "Reading"
+    "friendly_name": "Reading",
+    "entity_id": [
+     "light.living_room_floor_lamp",
+     "light.living_room_wall_sconce"
+    ]
    },
    "last_changed": "2026-09-30T19:30:00.000Z",
    "last_updated": "2026-09-30T19:30:00.000Z",
@@ -815,7 +824,11 @@
    "entity_id": "scene.kitchen_cooking",
    "state": "2026-09-30T19:30:00.000Z",
    "attributes": {
-    "friendly_name": "Cooking"
+    "friendly_name": "Cooking",
+    "entity_id": [
+     "light.kitchen_counter_light",
+     "light.kitchen_spot_lights"
+    ]
    },
    "last_changed": "2026-09-30T19:30:00.000Z",
    "last_updated": "2026-09-30T19:30:00.000Z",
@@ -829,7 +842,11 @@
    "entity_id": "scene.bedroom_good_night",
    "state": "2026-09-30T19:30:00.000Z",
    "attributes": {
-    "friendly_name": "Good night"
+    "friendly_name": "Good night",
+    "entity_id": [
+     "light.bedroom_ceiling_light",
+     "light.bedroom_bedside_light"
+    ]
    },
    "last_changed": "2026-09-30T19:30:00.000Z",
    "last_updated": "2026-09-30T19:30:00.000Z",

@@ -46,8 +46,15 @@ export async function connectFixture(name: string): Promise<Backend> {
   home.catalog = { ...states };
   home.status = "ready";
 
+  // For trying out feedback: `?latency=1500` answers that many ms late, `?fail` refuses every command.
+  const params = new URLSearchParams(location.search);
+  const latency = Number(params.get("latency")) || 0;
+  const failing = params.has("fail");
+
   return {
     async callService(domain, service, data, target) {
+      if (latency) await new Promise((r) => setTimeout(r, latency));
+      if (failing) throw new Error("the demo refuses commands (?fail)");
       const changed = simulate(states, domain, service, { ...(data as Record<string, unknown>), ...target });
       Object.assign(states, changed);
       // Like HA: deliver asynchronously, only to subscriptions that include the entity.
@@ -77,10 +84,33 @@ export async function connectFixture(name: string): Promise<Backend> {
   };
 }
 
+/** Scenes made with `scene.create` (Undo after a scene): the states they bring back. */
+const snapshots = new Map<string, HassEntity[]>();
+
 /** Just enough service behaviour to click around the UI. Returns the new states of the entities it changed. */
 function simulate(states: Record<string, HassEntity>, domain: string, service: string, data: Record<string, unknown>) {
   const ids = ([] as string[]).concat((data.entity_id as string | string[]) ?? []);
   const changed: Record<string, HassEntity> = {};
+  const now = new Date().toISOString();
+  if (domain === "scene" && service === "create") {
+    const members = (data.snapshot_entities as string[] | undefined) ?? [];
+    snapshots.set(`scene.${String(data.scene_id)}`, members.flatMap((id) => (states[id] ? [states[id]] : [])));
+    return changed;
+  }
+  if (domain === "scene" && service === "turn_on") {
+    for (const id of ids) {
+      const snapshot = snapshots.get(id);
+      if (snapshot) {
+        for (const e of snapshot) changed[e.entity_id] = { ...e, last_updated: now, last_changed: now };
+        continue;
+      }
+      // A demo scene dims its lights to 30%: enough to see it work, and to undo it.
+      for (const member of (states[id]?.attributes.entity_id as string[] | undefined) ?? []) {
+        const e = states[member];
+        if (e) changed[member] = { ...e, state: "on", attributes: { ...e.attributes, brightness: 77 }, last_updated: now, last_changed: now };
+      }
+    }
+  }
 
   for (const id of ids) {
     const e = states[id];

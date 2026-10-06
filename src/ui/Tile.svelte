@@ -16,6 +16,7 @@
     tint,
     ring,
     unavailable = false,
+    pending = false,
     chipLabel,
     bodyLabel,
     onChip,
@@ -28,6 +29,8 @@
     tint: string;
     ring?: { value: number; label: string };
     unavailable?: boolean;
+    /** A command is waiting for HA (ui/pending.svelte.ts): a spinner around the chip. */
+    pending?: boolean;
     chipLabel: string;
     bodyLabel: string;
     onChip: () => void;
@@ -41,7 +44,7 @@
     <span class="card-tile-name">{name}</span>
     <span class="card-tile-state">{state}</span>
   </button>
-  <button class="tile-chip" aria-label={chipLabel} aria-pressed={active} disabled={unavailable} onclick={onChip}>
+  <button class="tile-chip" class:pending aria-label={chipLabel} aria-pressed={active} disabled={unavailable} onclick={onChip}>
     <Icon path={icon} size={22} />
   </button>
 </div>

@@ -18,6 +18,7 @@
     sub,
     chipLabel,
     chipDisabled = false,
+    pending = false,
     onChip,
     areaId,
     roomName,
@@ -30,6 +31,7 @@
     sub: string;
     chipLabel: string;
     chipDisabled?: boolean;
+    pending?: boolean;
     onChip: () => void;
     areaId: string;
     roomName: string;
@@ -38,7 +40,7 @@
 </script>
 
 <header class="sheet-head {tint}" class:on={active}>
-  <button class="tile-chip" aria-label={chipLabel} aria-pressed={active} disabled={chipDisabled} onclick={onChip}>
+  <button class="tile-chip" class:pending aria-label={chipLabel} aria-pressed={active} disabled={chipDisabled} onclick={onChip}>
     <Icon path={icon} size={26} />
   </button>
   <div class="sheet-title">

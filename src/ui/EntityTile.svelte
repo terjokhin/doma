@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { callService, home } from "../ha/store.svelte";
+  import { home } from "../ha/store.svelte";
   import { watchEntities } from "../ha/subscriptions.svelte";
   import type { AreaEntry } from "../ha/types";
   import { t } from "../i18n/index.svelte";
@@ -8,6 +8,8 @@
   import { formatNumber, formatState, isUnavailable } from "./format";
   import { entityIcon, modeIcon } from "./icons";
   import { lightOf, toggle } from "./light";
+  import { isPending, send } from "./pending.svelte";
+  import { runScene } from "./scene";
   import { sheet } from "./sheet.svelte";
   import Tile from "./Tile.svelte";
   import { isActive, tintOf } from "./tint";
@@ -24,7 +26,7 @@
   const domain = $derived(domainOf(entityId));
   const name = $derived(s ? entityName(s, home.registry[entityId], area) : "");
   const open = () => sheet.open({ kind: "entity", entityId, area });
-  const runScene = () => void callService("scene", "turn_on", {}, { entity_id: entityId });
+  const run = () => void runScene(entityId, name);
 
   const view = $derived.by(() => {
     if (!s) return undefined;
@@ -56,9 +58,9 @@
 
   function chip() {
     if (!s) return;
-    if (domain === "scene") runScene();
-    else if (domain === "climate") togglePower(s);
-    else toggle(s);
+    const state = s;
+    if (domain === "scene") run();
+    else send(entityId, [entityId], name, () => (domain === "climate" ? togglePower(state) : toggle(state)));
   }
 </script>
 
@@ -71,9 +73,10 @@
     tint={view.tint}
     ring={view.ring}
     unavailable={view.unavailable}
+    pending={isPending(entityId)}
     chipLabel={domain === "scene" ? t("tile.run", { name }) : view.active ? t("tile.turnOff", { name }) : t("tile.turnOn", { name })}
     bodyLabel={domain === "scene" ? t("tile.run", { name }) : t("tile.more", { name })}
     onChip={chip}
-    onBody={domain === "scene" ? runScene : open}
+    onBody={domain === "scene" ? run : open}
   />
 {/if}

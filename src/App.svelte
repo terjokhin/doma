@@ -22,6 +22,7 @@
   import RoomScreen from "./screens/RoomScreen.svelte";
   import SetupScreen from "./screens/SetupScreen.svelte";
   import SheetHost from "./ui/SheetHost.svelte";
+  import ToastHost from "./ui/ToastHost.svelte";
 
   type Boot = { phase: "loading" } | { phase: "setup"; error?: string } | { phase: "ready" };
 
@@ -138,6 +139,7 @@
     {/if}
   </div>
   <SheetHost />
+  <ToastHost />
   {#if home.status === "disconnected"}
     <div class="status">{t("app.offline")}</div>
   {/if}

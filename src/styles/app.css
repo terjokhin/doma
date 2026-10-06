@@ -164,13 +164,13 @@ button {
 
 /* ---- Header ---- */
 
-/* A full-width band, 2 rows tall. */
+/* A full-width band, a cell and a half tall. */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-5);
-  height: calc(2 * var(--cell) + var(--gap));
+  height: calc(1.5 * var(--cell));
   margin-bottom: var(--gap);
 }
 
@@ -210,6 +210,18 @@ button {
   color: var(--text);
   font-weight: 400;
   font-size: var(--text-xl);
+}
+
+.weather-text {
+  color: var(--text-dim);
+  font-size: var(--text-m);
+}
+
+/* No room for the words beside the clock on a phone. */
+@media (max-width: 600px) {
+  .weather-text {
+    display: none;
+  }
 }
 
 .chip {
@@ -797,6 +809,72 @@ button {
   opacity: 0.45;
 }
 
+/* Waiting for HA (ui/pending.svelte.ts): a thin arc turning around the chip, on its own layer. */
+.tile-chip.pending::after,
+.tile-icon.pending::after {
+  content: "";
+  position: absolute;
+  inset: -0.2rem;
+  border: 2px solid transparent;
+  border-top-color: var(--text-dim);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The message bar (ui/ToastHost.svelte): above everything, at the bottom; a phone's dock stays visible under it. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: calc(100% - 2 * var(--space-4));
+  min-height: var(--touch);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
+  border-radius: 999px;
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 12px 30px rgb(0 0 0 / 0.45);
+  font-size: var(--text-s);
+  transform: translateX(-50%);
+  animation: toast-in var(--fast) var(--ease);
+}
+
+.toast.error {
+  box-shadow: inset 0 0 0 1px var(--alert), 0 12px 30px rgb(0 0 0 / 0.45);
+}
+
+.toast button {
+  flex: none;
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+/* Above the dock on a phone (the dock is shown at 4 columns). */
+@media (max-width: 600px) {
+  .toast {
+    bottom: calc(var(--touch) + 2 * var(--space-1) + var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+
 /* A level in a tile's corner: brightness, or a thermostat's target. */
 .ring {
   position: absolute;
@@ -1175,12 +1253,18 @@ button {
   transition: background var(--slow) var(--ease), transform var(--fast) var(--ease);
 }
 
-button.tile:active {
+button.tile:active,
+.tile button.tile-body:active {
   transform: scale(0.98);
 }
 
+.tile button.tile-icon:active {
+  transform: scale(0.92);
+}
+
 .tile-icon {
-  /* Also a button: the power switch on climate tiles. */
+  /* Also a button: what switches the tile's device. */
+  position: relative;
   display: grid;
   place-items: center;
   flex: none;
@@ -1195,6 +1279,12 @@ button.tile:active {
 .tile-body {
   min-width: 0;
   flex: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+  transition: transform var(--fast) var(--ease);
 }
 
 /* Up to two lines: a 2×1 tile is narrow, and names like "Ceiling light" shouldn't be cut off. */
@@ -1214,38 +1304,18 @@ button.tile:active {
   font-size: var(--text-s);
 }
 
-.tile.on {
-  background: linear-gradient(135deg, var(--warm-soft), transparent 80%), var(--surface);
-}
-
-.tile.on .tile-icon {
-  background: var(--warm);
-  color: #2a1d05;
+/* While on, only the icon takes a colour (its tint class, ui/tint.ts), as on Home. */
+.tile.on .tile-icon,
+.tile.climate.active .tile-icon {
+  background: var(--tint-soft, var(--warm-soft));
+  color: var(--tint, var(--warm));
 }
 
 .tile.unavailable {
   opacity: 0.45;
 }
 
-.tile.climate button.tile-icon:active {
-  transform: scale(0.92);
-}
 
-/* On in a mode without its own colour (auto, dry, fan). */
-.tile.climate.active .tile-icon {
-  background: var(--surface-3);
-  color: var(--text);
-}
-
-.tile.climate.heat .tile-icon {
-  background: var(--heat);
-  color: #2b0f05;
-}
-
-.tile.climate.cool .tile-icon {
-  background: var(--cool);
-  color: #04202e;
-}
 
 .climate-temp {
   font-size: var(--text-xl);

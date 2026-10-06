@@ -226,5 +226,29 @@
     "turbo": "Турбо",
     "on": "Вкл.",
     "off": "Выкл."
+  },
+  "feedback": {
+    "retry": "Ещё раз",
+    "undo": "Отменить",
+    "noAnswer": "«{{name}}» не отвечает.",
+    "failed": "Не удалось переключить «{{name}}»: {{message}}",
+    "sceneOn": "Сцена «{{name}}» включена"
+  },
+  "weather": {
+    "clear-night": "Ясно",
+    "cloudy": "Облачно",
+    "exceptional": "Необычная погода",
+    "fog": "Туман",
+    "hail": "Град",
+    "lightning": "Гроза",
+    "lightning-rainy": "Гроза с дождём",
+    "partlycloudy": "Переменная облачность",
+    "pouring": "Ливень",
+    "rainy": "Дождь",
+    "snowy": "Снег",
+    "snowy-rainy": "Мокрый снег",
+    "sunny": "Солнечно",
+    "windy": "Ветрено",
+    "windy-variant": "Ветрено, облачно"
   }
 }

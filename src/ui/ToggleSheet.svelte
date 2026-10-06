@@ -7,6 +7,7 @@
   import { formatState, formatTime, isUnavailable } from "./format";
   import { entityIcon } from "./icons";
   import { toggle } from "./light";
+  import { isPending, send } from "./pending.svelte";
   import SheetFrame from "./SheetFrame.svelte";
   import { isActive, tintOf } from "./tint";
 
@@ -17,6 +18,7 @@
   const s = $derived(home.entity(entityId));
   const name = $derived(s ? entityName(s, home.registry[entityId], area) : "");
   const on = $derived(!!s && isActive(s));
+  const flip = () => s && send(entityId, [entityId], name, () => toggle(s!));
 </script>
 
 {#if s}
@@ -28,12 +30,13 @@
     sub="{area.name} · {formatState(s).value}"
     chipLabel={on ? t("tile.turnOff", { name }) : t("tile.turnOn", { name })}
     chipDisabled={isUnavailable(s)}
-    onChip={() => toggle(s)}
+    pending={isPending(entityId)}
+    onChip={flip}
     areaId={area.area_id}
     roomName={area.name}
   >
-    <button class="sheet-big" class:on disabled={isUnavailable(s)} onclick={() => toggle(s)}>
-      {on ? t("sheet.turnOff") : t("sheet.turnOn")}
+    <button class="sheet-big" class:on disabled={isUnavailable(s)} onclick={flip}>
+      {isPending(entityId) ? "…" : on ? t("sheet.turnOff") : t("sheet.turnOn")}
     </button>
     <p class="sheet-note">{t(on ? "sheet.onSince" : "sheet.offSince", { time: formatTime(s.last_changed) })}</p>
   </SheetFrame>

@@ -9,6 +9,7 @@
   import { formatNumber, formatState, isUnavailable } from "./format";
   import Icon from "./Icon.svelte";
   import { entityIcon, modeIcon } from "./icons";
+  import { isPending, send } from "./pending.svelte";
   import SheetFrame from "./SheetFrame.svelte";
   import { isActive, tintOf } from "./tint";
 
@@ -23,6 +24,8 @@
   const fans = $derived((s?.attributes.fan_modes as string[] | undefined) ?? []);
   const current = $derived(s?.attributes.current_temperature);
   const label = (mode: string) => t(`hvacMode.${mode}`, { defaultValue: mode });
+  const power = () => s && send(entityId, [entityId], name, () => togglePower(s!));
+  const pick = (mode: string) => s && mode !== s.state && send(entityId, [entityId], name, () => setMode(s!, mode));
 </script>
 
 {#if s && c}
@@ -34,7 +37,8 @@
     sub="{area.name} · {t(`hvac.${s.state}`, { defaultValue: formatState(s).value })}"
     chipLabel={c.off ? t("climate.turnOn") : t("climate.turnOff")}
     chipDisabled={isUnavailable(s) || !c.canTogglePower}
-    onChip={() => togglePower(s)}
+    pending={isPending(entityId)}
+    onChip={power}
     areaId={area.area_id}
     roomName={area.name}
   >
@@ -57,7 +61,7 @@
         <div class="sheet-label">{t("sheet.mode")}</div>
         <div class="sheet-modes">
           {#each modes as mode (mode)}
-            <button class="sheet-mode {mode}" aria-pressed={s.state === mode} disabled={isUnavailable(s)} onclick={() => setMode(s, mode)}>
+            <button class="sheet-mode {mode}" aria-pressed={s.state === mode} disabled={isUnavailable(s)} onclick={() => pick(mode)}>
               <Icon path={modeIcon(mode)} size={20} />
               {label(mode)}
             </button>

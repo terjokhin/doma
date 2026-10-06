@@ -35,9 +35,9 @@ export const setBrightness = (s: HassEntity, percent: number) =>
 export const setTemperature = (s: HassEntity, kelvin: number) =>
   void callService("light", "turn_on", { color_temp_kelvin: kelvin }, { entity_id: s.entity_id });
 
-/** Switch anything that toggles: lights, switches, fans. */
-export const toggle = (s: HassEntity) => void callService(domainOf(s.entity_id), "toggle", {}, { entity_id: s.entity_id });
+/** Switch anything that toggles: lights, switches, fans. Resolves when HA has the command. */
+export const toggle = (s: HassEntity) => callService(domainOf(s.entity_id), "toggle", {}, { entity_id: s.entity_id });
 
 /** All of `ids` off when any is on, else all on. */
 export const switchAll = (ids: string[], anyOn: boolean) =>
-  ids.length && void callService("homeassistant", anyOn ? "turn_off" : "turn_on", {}, { entity_id: ids });
+  ids.length ? callService("homeassistant", anyOn ? "turn_off" : "turn_on", {}, { entity_id: ids }) : undefined;

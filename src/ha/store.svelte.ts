@@ -45,6 +45,13 @@ class Home {
 
   #states = new SvelteMap<string, HassEntity>();
   #plain = new Map<string, HassEntity>();
+  #watchers = new Set<(entityId: string) => void>();
+
+  /** Hear about every entity whose state really changed (not a state sent again). Returns how to stop. */
+  onChange(watcher: (entityId: string) => void) {
+    this.#watchers.add(watcher);
+    return () => void this.#watchers.delete(watcher);
+  }
 
   /** One entity's state. Reactive, for that entity only. */
   entity(entityId: string | undefined): HassEntity | undefined {
@@ -66,6 +73,7 @@ class Home {
       if (known && known.state === next.state && sameTime(known.last_updated, next.last_updated)) continue;
       this.#plain.set(id, changed[id]);
       this.#states.set(id, changed[id]);
+      if (known) for (const watcher of this.#watchers) watcher(id);
     }
     for (const id of removed) {
       this.#plain.delete(id);

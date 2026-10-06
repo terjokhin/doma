@@ -9,6 +9,7 @@
   import Icon from "./Icon.svelte";
   import { entityIcon } from "./icons";
   import { lightOf, setBrightness, switchAll, toggle } from "./light";
+  import { isPending, send } from "./pending.svelte";
   import SheetFrame from "./SheetFrame.svelte";
 
   /** All of a room's lights in one pop-up, each with its switch and brightness (like hass-config's light groups). */
@@ -23,6 +24,7 @@
   );
   const on = $derived(lights.filter((l) => l.light.on).length);
   const name = $derived(t("home.roomLights"));
+  const key = $derived(`lights:${room.area.area_id}`);
 </script>
 
 <SheetFrame
@@ -32,7 +34,8 @@
   {name}
   sub="{room.area.name} · {on ? t('home.lightsOn', { count: on }) : t('state.off')}"
   chipLabel={on ? t("tile.turnOff", { name }) : t("tile.turnOn", { name })}
-  onChip={() => switchAll(room.lights, on > 0)}
+  pending={isPending(key)}
+  onChip={() => send(key, room.lights, `${room.area.name}: ${name}`, () => switchAll(room.lights, on > 0))}
   areaId={room.area.area_id}
   roomName={room.area.name}
 >
@@ -41,10 +44,11 @@
       <div class="sheet-light-head">
         <button
           class="tile-chip"
+          class:pending={isPending(s.entity_id)}
           aria-label={light.on ? t("tile.turnOff", { name: lightName }) : t("tile.turnOn", { name: lightName })}
           aria-pressed={light.on}
           disabled={isUnavailable(s)}
-          onclick={() => toggle(s)}
+          onclick={() => send(s.entity_id, [s.entity_id], lightName, () => toggle(s))}
         >
           <Icon path={entityIcon(s)} size={22} />
         </button>

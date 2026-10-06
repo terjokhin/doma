@@ -2,7 +2,7 @@
   import { mdiViewDashboardEditOutline } from "@mdi/js";
   import { home } from "../ha/store.svelte";
   import { watchEntities } from "../ha/subscriptions.svelte";
-  import { language, t } from "../i18n/index.svelte";
+  import { exists, language, t } from "../i18n/index.svelte";
   import { editor } from "../layout/layoutEditor.svelte";
   import { weatherEntityId } from "../model/model.svelte";
   import { formatNumber } from "./format";
@@ -10,7 +10,7 @@
   import { entityIcon } from "./icons";
   import SettingsMenu from "./SettingsMenu.svelte";
 
-  /** Big clock, date and outside weather: readable from across the room. */
+  /** Big clock, date and outside weather (its temperature, and the sky in words): readable from across the room. */
 
   let now = $state(new Date());
   $effect(() => {
@@ -45,6 +45,7 @@
       <div class="weather">
         <Icon path={entityIcon(weather)} size={32} />
         <strong>{formatNumber(weather.attributes.temperature)}°</strong>
+        {#if exists(`weather.${weather.state}`)}<span class="weather-text">{t(`weather.${weather.state}`)}</span>{/if}
       </div>
     {/if}
     <button class="round-btn" aria-label={t("edit.open")} onclick={() => editor.start("/")}>
