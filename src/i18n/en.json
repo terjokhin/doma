@@ -84,10 +84,10 @@
   "edit": {
     "open": "Edit layout",
     "title": "Arrange the home screen",
-    "hint": "Drag a card by its handle to move it in the order; tap its size to change it. On a card, + adds a control, × removes one; drag a control to move it, tap it to swap it.",
+    "hint": "Drag a card by its title to move it in the order; ⋯ sets its size, adds a control or hides the room. On a card, × removes a control; drag one to move it, tap it to swap it.",
     "done": "Done",
     "cancel": "Cancel",
-    "reset": "Reset to default",
+    "reset": "Reset",
     "move": "Move {{name}}",
     "sizeOf": "{{name}}: size {{size}}",
     "saveFailed": "Couldn't save: {{message}}",
@@ -114,7 +114,11 @@
     "hiddenRooms": "Hidden rooms",
     "hiddenRoomsHint": "Tap a room to show its card again",
     "showRoom": "Show {{name}}",
-    "wholeRow": "whole row"
+    "wholeRow": "whole row",
+    "cardMenu": "{{name}}: size {{size}}, more",
+    "size": "Size",
+    "addControlItem": "Add a control",
+    "hideRoomItem": "Hide room"
   },
   "views": {
     "home": "Home"

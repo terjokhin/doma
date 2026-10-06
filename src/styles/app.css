@@ -1477,6 +1477,27 @@ a.btn {
   min-width: 0;
 }
 
+/* A tablet: the title gives way (cut short), so the buttons stay on one row with it. */
+@media (min-width: 601px) and (max-width: 1100px) {
+  .edit-bar {
+    flex-wrap: nowrap;
+  }
+
+  .edit-bar-text {
+    flex-basis: 0;
+  }
+
+  .edit-bar h1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .edit-bar > :not(.edit-bar-text) {
+    flex: none;
+  }
+}
+
 .edit-bar h1 {
   margin: 0;
   font-size: var(--text-l);
@@ -1491,6 +1512,13 @@ a.btn {
 
 .edit-bar p.error {
   color: var(--alert);
+}
+
+/* No room for the hint beside the buttons on a tablet: the title and buttons are enough. Errors still show. */
+@media (max-width: 1100px) {
+  .edit-bar p:not(.error) {
+    display: none;
+  }
 }
 
 .chip.primary {
@@ -1539,9 +1567,33 @@ a.btn {
   z-index: 40;
 }
 
-.menu-anchor,
-.size-picker {
+.menu-anchor {
   position: relative;
+  z-index: 1;
+}
+
+/* The title band as the card's drag handle, with a small grip to show it. */
+.card-drag {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 5.2rem; /* the grip just left of the size chip */
+  border-radius: var(--radius-l) var(--radius-l) 0 0;
+  color: var(--text-dim);
+  cursor: grab;
+  touch-action: none;
+}
+
+.card-menu {
+  min-width: 15rem;
+}
+
+.menu-sep {
+  height: 1px;
+  margin: var(--space-2) 0;
+  background: var(--line-strong);
 }
 
 /* Round buttons as small as the size chip, with a bigger tap target than they look. */
@@ -1607,17 +1659,6 @@ a.btn {
   transform: scale(0.95);
 }
 
-.size-menu {
-  position: absolute;
-  top: calc(100% + 0.4rem);
-  right: 0;
-  min-width: 12rem;
-  padding: var(--space-2);
-  border-radius: var(--radius-m);
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--line-strong), 0 18px 50px rgb(0 0 0 / 0.5);
-  cursor: default;
-}
 
 .size-option {
   display: flex;
@@ -1672,10 +1713,6 @@ a.btn {
 }
 
 /* Touch drags the card only here, so the rest of the card scrolls the page. */
-.drag-handle {
-  touch-action: none;
-  cursor: grab;
-}
 
 /* The controls menu: what the room has, ticked when it's on the card; or what to swap a control for. */
 .slot-menu {
@@ -1780,10 +1817,11 @@ a.btn {
   cursor: grabbing;
 }
 
+/* Inside the slot's top right corner, where the ring is on the card: nothing reaches past the tile. */
 .slot-remove {
   position: absolute;
-  top: -0.45rem;
-  right: -0.45rem;
+  top: 0.3rem;
+  right: 0.3rem;
   display: grid;
   place-items: center;
   width: 1.5rem;

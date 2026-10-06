@@ -3,9 +3,9 @@
     mdiCheck,
     mdiCheckboxBlankOutline,
     mdiCheckboxMarked,
-    mdiChevronDown,
     mdiClose,
-    mdiDrag,
+    mdiDotsHorizontal,
+    mdiDragHorizontalVariant,
     mdiEyeOffOutline,
     mdiLightbulbGroupOutline,
     mdiPlus,
@@ -31,12 +31,12 @@
   import { entityIcon } from "./icons";
 
   /**
-   * Edit mode over a room card (LAYOUTS.md, "Edit mode"). In the title band: a drag handle, a button that hides the
-   * room, "+" to add a control and a size chip with a menu of every size. Over the controls, the card's slots: each
-   * one is dragged to move it, tapped to swap it for another and has a × that removes it; free cells show a "+".
-   * The first change gives the card its own list, starting from what it showed. It sits in the card's grid cell,
-   * outside the card, so the menus aren't clipped by the card's `contain`. A mouse can drag the card from anywhere
-   * but the slots; touch uses the handle, so the rest still scrolls the page.
+   * Edit mode over a room card (LAYOUTS.md, "Edit mode"). The title band is the drag handle; at its right, one chip
+   * with the card's size opens its menu: the sizes, "Add a control" and "Hide room". Over the controls, the card's
+   * slots: each one is dragged to move it, tapped to swap it for another and has a × that removes it; free cells
+   * show a "+". The first change gives the card its own list, starting from what it showed. It sits in the card's
+   * grid cell, outside the card, so the menus aren't clipped by the card's `contain`. A mouse can drag the card from
+   * anywhere but the slots; touch uses the title band, so the rest still scrolls the page.
    */
   let {
     size,
@@ -73,7 +73,7 @@
   /** Cells the controls leave free, each a "+". */
   const free = $derived(more ? 0 : size.w * cardRows(size) - shown.reduce((n, i) => n + cellsOf(i.size), 0));
 
-  let menu = $state<"size" | "slots" | null>(null);
+  let menu = $state<"card" | "slots" | null>(null);
   /** The slot the controls menu swaps; null: the menu adds and removes. */
   let swapping = $state<string | null>(null);
   let root: HTMLDivElement;
@@ -100,7 +100,7 @@
 
   function mouseDrag(e: PointerEvent) {
     if (e.pointerType !== "mouse" || e.button !== 0) return;
-    if (!(e.target as Element).closest("button, .size-menu, .slot-menu, .slot-edit")) drag(e);
+    if (!(e.target as Element).closest("button, .slot-menu, .slot-edit")) drag(e);
   }
 
   function pickSize(s: CardSize) {
@@ -224,25 +224,62 @@
   bind:this={root}
 >
   <div class="card-edit-bar" class:open={menu}>
-    <button class="edit-btn drag-handle" aria-label={t("edit.move", { name })} onpointerdown={drag}>
-      <Icon path={mdiDrag} size={18} />
+    <!-- The title band is the drag handle (touch drags only here, so the rest of the card scrolls the page). -->
+    <button class="card-drag" aria-label={t("edit.move", { name })} onpointerdown={drag}>
+      <!-- On a narrow card the grip would cover the name: the whole band still drags. -->
+      {#if size.w >= 4}<Icon path={mdiDragHorizontalVariant} size={18} />{/if}
     </button>
-    <button class="edit-btn" aria-label={t("edit.hideRoom", { name })} onclick={onHide}>
-      <Icon path={mdiEyeOffOutline} size={18} />
-    </button>
-    <div class="menu-anchor" data-menu="slots">
+    <div class="menu-anchor" data-menu="card">
       <button
-        class="edit-btn"
+        class="size-chip"
         aria-haspopup="menu"
-        aria-expanded={menu === "slots" && !swapping}
-        aria-label={t("edit.addControl", { name })}
-        onclick={() => (menu === "slots" && !swapping ? (menu = null) : openMenu(null))}
+        aria-expanded={menu === "card"}
+        aria-label={t("edit.cardMenu", { name, size: t(`edit.sizes.${sizeName}`) })}
+        onclick={() => (menu = menu === "card" ? null : "card")}
       >
-        <Icon path={mdiPlus} size={18} />
+        {t(`edit.sizes.${sizeName}`)}
+        <Icon path={mdiDotsHorizontal} size={16} />
       </button>
+      {#if menu === "card"}
+        <div class="slot-menu card-menu" role="menu">
+          <div class="menu-label">{t("edit.size")}</div>
+          {#each CARD_SIZES as s (s)}
+            <button class="size-option" role="menuitemradio" aria-checked={s === sizeName} onclick={() => pickSize(s)}>
+              <span class="size-glyph-box">
+                <span
+                  class="size-glyph"
+                  style:width="calc({glyphWidth(s)} * 0.28rem)"
+                  style:height="calc({CARD_CELLS[s].h} * 0.28rem)"
+                ></span>
+              </span>
+              <span class="size-name">{t(`edit.sizes.${s}`)}</span>
+              <span class="size-cells">{cells(s)}</span>
+              <span class="size-check">
+                {#if s === sizeName}<Icon path={mdiCheck} size={16} />{/if}
+              </span>
+            </button>
+          {/each}
+          <div class="menu-sep"></div>
+          <button class="slot-option" role="menuitem" onclick={() => openMenu(null)}>
+            <Icon path={mdiPlus} size={20} />
+            <span class="slot-option-name">{t("edit.addControlItem")}</span>
+          </button>
+          <button
+            class="slot-option"
+            role="menuitem"
+            onclick={() => {
+              menu = null;
+              onHide();
+            }}
+          >
+            <Icon path={mdiEyeOffOutline} size={20} />
+            <span class="slot-option-name">{t("edit.hideRoomItem")}</span>
+          </button>
+        </div>
+      {/if}
       {#if menu === "slots"}
         {@const choices = slotChoices(room)}
-        <div class="slot-menu" role="menu">
+        <div class="slot-menu" role="menu" data-menu="slots">
           <div class="menu-label">
             {swapping ? t("edit.replaceControl", { name: label(swapping) }) : t("edit.controlsOf", { name })}
           </div>
@@ -272,38 +309,6 @@
           {#if slots}
             <button class="slot-option automatic" onclick={automatic}>{t("edit.automatic")}</button>
           {/if}
-        </div>
-      {/if}
-    </div>
-    <div class="size-picker" data-menu="size">
-      <button
-        class="size-chip"
-        aria-haspopup="menu"
-        aria-expanded={menu === "size"}
-        aria-label={t("edit.sizeOf", { name, size: t(`edit.sizes.${sizeName}`) })}
-        onclick={() => (menu = menu === "size" ? null : "size")}
-      >
-        {t(`edit.sizes.${sizeName}`)}
-        <Icon path={mdiChevronDown} size={14} />
-      </button>
-      {#if menu === "size"}
-        <div class="size-menu" role="menu">
-          {#each CARD_SIZES as s (s)}
-            <button class="size-option" role="menuitemradio" aria-checked={s === sizeName} onclick={() => pickSize(s)}>
-              <span class="size-glyph-box">
-                <span
-                  class="size-glyph"
-                  style:width="calc({glyphWidth(s)} * 0.28rem)"
-                  style:height="calc({CARD_CELLS[s].h} * 0.28rem)"
-                ></span>
-              </span>
-              <span class="size-name">{t(`edit.sizes.${s}`)}</span>
-              <span class="size-cells">{cells(s)}</span>
-              <span class="size-check">
-                {#if s === sizeName}<Icon path={mdiCheck} size={16} />{/if}
-              </span>
-            </button>
-          {/each}
         </div>
       {/if}
     </div>
