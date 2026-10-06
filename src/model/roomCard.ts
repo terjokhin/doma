@@ -4,16 +4,16 @@ import { SIZES } from "../layout/sizes";
 import type { Room } from "./home";
 
 /**
- * Each room card size in cells at its largest (LAYOUTS.md, "Room cards"): its width, and a title band of half a
- * cell over as many rows of tiles as it may hold. A card is only as tall as its tiles (`shownSize`). Heights come in
+ * Each room card size in cells at its largest (LAYOUTS.md, "Room cards"): a size is a width; every card has a title
+ * band of half a cell over up to two rows of tiles, and is only as tall as its tiles (`shownSize`). Heights come in
  * half cells: the floor grid has half-cell rows.
  */
 export const CARD_CELLS: Record<CardSize, Size> = {
-  xs: { w: 2, h: 1.5 },
-  s: { w: 4, h: 1.5 },
+  xs: { w: 2, h: 2.5 },
   m: { w: 4, h: 2.5 },
-  l: { w: 4, h: 3.5 },
   wide: { w: 8, h: 2.5 },
+  // The whole row, however wide the screen (`fitCard` narrows it).
+  full: { w: 64, h: 2.5 },
 };
 
 /** The title band, in cells: the same on every card. */

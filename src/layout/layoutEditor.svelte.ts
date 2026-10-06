@@ -1,5 +1,5 @@
 import type { LensId } from "../model/lenses";
-import { byFloor, DEFAULT_CARD_SIZE, EMPTY_LAYOUT, type CardSize, type HomeLayout, type Position } from "./homeLayout";
+import { byFloor, DEFAULT_CARD_SIZE, EMPTY_LAYOUT, type CardSize, type HomeLayout } from "./homeLayout";
 import { homeLayout, saveLayout } from "./layoutStore.svelte";
 import { DEFAULT_SECTIONS, roomSections, withRoom, withTemplate, type SectionTemplate } from "./roomTemplate";
 
@@ -46,15 +46,10 @@ export const editor = {
   reset() {
     if (draft) draft = draft.room ? { ...EMPTY_LAYOUT, room: draft.room } : EMPTY_LAYOUT;
   },
-  /**
-   * Every card's position on a screen `cols` columns wide, on the floor grids or on the one grid, whichever Home
-   * shows; the home screen passes all of them after a change.
-   */
-  place(cols: number, positions: Record<string, Position>) {
+  /** The order of every room card, grouped by floor or not, whichever Home shows; the same on every screen width. */
+  setOrder(ids: string[]) {
     if (!draft) return;
-    draft = byFloor(draft)
-      ? { ...draft, grids: { ...draft.grids, [cols]: positions } }
-      : { ...draft, flatGrids: { ...draft.flatGrids, [cols]: positions } };
+    draft = byFloor(draft) ? { ...draft, order: ids } : { ...draft, flatOrder: ids };
   },
   /** Whether Home groups its cards by floor. Each way keeps its own card positions. */
   setByFloor(on: boolean) {

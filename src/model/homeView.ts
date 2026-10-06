@@ -1,6 +1,6 @@
-import { byFloor, gridsOf, hiddenOf, nearestGrid, sizeOf, slotsOf, type CardSize, type HomeLayout, type Position } from "../layout/homeLayout";
+import { byFloor, hiddenOf, nearestGrid, sizeOf, slotsOf, type CardSize, type HomeLayout, type Position } from "../layout/homeLayout";
 import type { Size } from "../layout/pack";
-import { arrange } from "../layout/place";
+import { rows } from "../layout/rows";
 import type { FloorGroup, Room } from "./home";
 import { CARD_CELLS, fitCard, roomCardItems, shownSize, type CardItem } from "./roomCard";
 
@@ -12,7 +12,7 @@ export interface RoomCardView {
   size: Size;
   /** Its own controls, in order; undefined when it shows the generated ones. */
   slots?: string[];
-  /** Where it sits on its floor's grid: `x` in columns, `y` in rows of half a cell (see layout/place.ts). */
+  /** Where it sits on its floor's grid: `x` in columns, `y` in rows of half a cell (see layout/rows.ts). */
   x: number;
   y: number;
   items: CardItem[];
@@ -55,7 +55,19 @@ function cardItems(room: Room, size: Size, slots: string[] | undefined): CardIte
 /** Grid rows a card spans: its height in cells, in rows of half a cell. */
 export const gridRows = (size: Size) => size.h * 2;
 
-/** Rooms in the reading order of `reference`; those it doesn't place keep their order, after the rest. */
+/** Rooms in `order`; those it doesn't list keep their order, after the rest. */
+function inOrder(rooms: Room[], order: readonly string[]): Room[] {
+  const rank = new Map(order.map((id, i) => [id, i]));
+  return rooms
+    .map((room, index) => ({ room, index }))
+    .sort((a, b) => (rank.get(a.room.area.area_id) ?? Infinity) - (rank.get(b.room.area.area_id) ?? Infinity) || a.index - b.index)
+    .map(({ room }) => room);
+}
+
+/**
+ * Rooms in the reading order of `reference`, positions from when cards were placed freely; those it doesn't place
+ * keep their order, after the rest.
+ */
 function readingOrder(rooms: Room[], reference: Record<string, Position> | undefined): Room[] {
   if (!reference) return rooms;
   const rank = (room: Room) => {
@@ -74,52 +86,48 @@ const ALL_ROOMS = "_all";
 /**
  * The home screen on a screen `cols` cells wide: the generated model with the home layout applied. Each card has
  * the layout's size, fitted to the screen and only as tall as its tiles (in edit mode a row more where the size
- * allows, to add one), and sits where the layout's grid for this column count puts it.
- * Cards it doesn't place (new rooms, or a column count not arranged yet) fill the free spots in the reading
- * order of the nearest arranged grid, else in the default order. Hidden rooms have no card, and floors without
- * rooms are dropped.
- *
- * When the layout doesn't group by floor, every room is on one grid, with positions of its own (`flatGrids`); one
- * not arranged that way yet starts floor by floor, each floor in the order of its own grid.
+ * allows, to add one). Cards go in rows, in the layout's order (`order`, or `flatOrder` when Home doesn't group by
+ * floor), the same on every screen width; rooms it doesn't list follow in HA's order. An arrangement from when cards
+ * were placed freely (`grids`) gives the order until one is set. Hidden rooms have no card, and floors without rooms
+ * are dropped.
  */
 export function homeView(model: FloorGroup[], layout: HomeLayout, cols: number, editing = false): FloorView[] {
-  const grids = gridsOf(layout);
-  const grid = grids?.[cols];
-  const reference = grid ?? nearestGrid(grids, cols);
   const hidden = new Set(hiddenOf(layout));
   const shown = (rooms: Room[]) => (hidden.size ? rooms.filter((r) => !hidden.has(r.area.area_id)) : rooms);
+  const floorOrder = (rooms: Room[]) =>
+    layout.order ? inOrder(rooms, layout.order) : readingOrder(rooms, nearestGrid(layout.grids, cols));
 
-  const groups: { key: string; name?: string; heading: boolean; rooms: Room[] }[] = byFloor(layout)
-    ? model.map((g) => ({ key: g.floor?.floor_id ?? "_none", name: g.floor?.name, heading: true, rooms: shown(g.rooms) }))
-    : [{
-        key: ALL_ROOMS,
-        heading: false,
-        rooms: model.flatMap((g) => readingOrder(shown(g.rooms), layout.grids?.[cols] ?? nearestGrid(layout.grids, cols))),
-      }];
+  let groups: { key: string; name?: string; heading: boolean; rooms: Room[] }[];
+  if (byFloor(layout)) {
+    groups = model.map((g) => ({ key: g.floor?.floor_id ?? "_none", name: g.floor?.name, heading: true, rooms: floorOrder(shown(g.rooms)) }));
+  } else {
+    const floorByFloor = model.flatMap((g) => floorOrder(shown(g.rooms)));
+    const rooms = layout.flatOrder
+      ? inOrder(floorByFloor, layout.flatOrder)
+      : layout.flatGrids
+        ? readingOrder(floorByFloor, nearestGrid(layout.flatGrids, cols))
+        : floorByFloor;
+    groups = [{ key: ALL_ROOMS, heading: false, rooms }];
+  }
 
   return groups
     .map((group) => {
-      const cards = readingOrder(group.rooms, reference).map((room) => {
+      const cards = group.rooms.map((room) => {
         const sizeName = sizeOf(layout, room.area.area_id);
         const slots = slotsOf(layout, room.area.area_id);
         const max = fittedSize(sizeName, cols);
         const items = cardItems(room, max, slots);
         return { room, sizeName, size: cached(shownSize(max, items, editing ? 1 : 0)), slots, items };
       });
-      const boxes = arrange(
+      const boxes = rows(
         cards.map((c) => ({ id: c.room.area.area_id, w: c.size.w, h: gridRows(c.size) })),
         cols,
-        grid,
       );
-      const byId = new Map(cards.map((c) => [c.room.area.area_id, c]));
       return {
         key: group.key,
         name: group.name,
         heading: group.heading,
-        rooms: boxes.map((b) => {
-          const card = byId.get(b.id)!;
-          return { ...card, x: b.x, y: b.y };
-        }),
+        rooms: boxes.map((b, i) => ({ ...cards[i], x: b.x, y: b.y })),
       };
     })
     .filter((floor) => floor.rooms.length > 0);

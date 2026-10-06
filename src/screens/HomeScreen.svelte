@@ -1,15 +1,14 @@
 <script lang="ts">
   import { t } from "../i18n/index.svelte";
-  import type { CardSize, Position } from "../layout/homeLayout";
+  import type { CardSize } from "../layout/homeLayout";
   import { dragItem } from "../layout/drag";
   import { GAP, grid } from "../layout/grid.svelte";
   import { byFloor, tabsOf } from "../layout/homeLayout";
   import { editor } from "../layout/layoutEditor.svelte";
   import { homeLayout } from "../layout/layoutStore.svelte";
-  import { compact, moveBox, resizeBox, type Box } from "../layout/place";
-  import { gridRows, homeView, type FloorView, type RoomCardView } from "../model/homeView";
+  import { moveTo } from "../layout/rows";
+  import { gridRows, homeView, type RoomCardView } from "../model/homeView";
   import { homeModel } from "../model/model.svelte";
-  import { CARD_CELLS, fitCard } from "../model/roomCard";
   import CardEditor from "../ui/CardEditor.svelte";
   import EditBar from "../ui/EditBar.svelte";
   import FloorsToggle from "../ui/FloorsToggle.svelte";
@@ -19,9 +18,9 @@
   import TabsMenu from "../ui/TabsMenu.svelte";
   import RoomCard from "./RoomCard.svelte";
 
-  // Each floor is a full-width heading; its room cards sit on one grid under it, where and at the sizes the home
-  // layout says (LAYOUTS.md, "The floor grid"). Without grouping by floor, all cards share one grid and there are
-  // no headings. In edit mode it shows the editor's draft.
+  // Each floor is a full-width heading; its room cards sit in rows under it, in the layout's order and at its sizes
+  // (LAYOUTS.md, "The floor grid"). Without grouping by floor, all cards share one grid and there are no headings.
+  // In edit mode it shows the editor's draft.
   const editing = $derived(editor.target === "/");
   const layout = $derived(editing ? editor.layout : homeLayout());
   const floors = $derived(homeView(homeModel(), layout, grid.cols, editing));
@@ -29,57 +28,46 @@
   /** The card being dragged, to show where it will land. */
   let dragging = $state<{ floor: string; id: string } | null>(null);
 
-  const boxesOf = (floor: FloorView): Box[] =>
-    floor.rooms.map((r) => ({ id: r.room.area.area_id, x: r.x, y: r.y, w: r.size.w, h: gridRows(r.size) }));
-
-  /** Store every card's position on this screen width, with `floorKey`'s cards at `boxes`. */
-  function place(floorKey: string, boxes: Box[]) {
-    const positions: Record<string, Position> = {};
-    for (const floor of floors) {
-      for (const b of floor.key === floorKey ? boxes : boxesOf(floor)) positions[b.id] = { x: b.x, y: b.y };
-    }
-    editor.place(grid.cols, positions);
-  }
-
+  /** Every card in the order Home shows them, all floors. */
+  const shownOrder = () => floors.flatMap((f) => f.rooms.map((r) => r.room.area.area_id));
   const floorOf = (key: string) => floors.find((f) => f.key === key)!;
 
-  function resize(floorKey: string, card: RoomCardView, size: CardSize) {
-    // The new height follows from the tiles once the size is set; the cards around float up to it.
-    const cells = fitCard(CARD_CELLS[size], grid.cols);
-    editor.setSize(card.room.area.area_id, size);
-    place(floorKey, resizeBox(boxesOf(floorOf(floorKey)), card.room.area.area_id, cells.w, gridRows(card.size), grid.cols));
-  }
+  /** A new size: the rows follow by themselves. */
+  const resize = (card: RoomCardView, size: CardSize) => editor.setSize(card.room.area.area_id, size);
 
+  /**
+   * Drag a card to another place in the order: when its middle is over another card on its floor, it takes that
+   * card's place, and the rows re-flow around it.
+   */
   function startDrag(e: PointerEvent, floorKey: string, card: RoomCardView) {
     const target = e.currentTarget as HTMLElement;
     const el = target.closest<HTMLElement>("[data-card]");
     const floorEl = target.closest<HTMLElement>(".floor-grid");
     if (!el || !floorEl) return;
     const id = card.room.area.area_id;
-    // Every step starts from where the cards were when the drag began: a card the dragged one passes over makes
-    // room, then goes back to its place once it has passed.
-    const start = boxesOf(floorOf(floorKey));
-    // The dragged card's target is the grid cell nearest to where it is.
     const pitchX = grid.cell * (1 + GAP); // a column and a gap
     const pitchY = pitchX / 2; // a row of half a cell and a gap
-    let cell = { x: card.x, y: card.y };
+    // The card it last took the place of: a bigger card that moves into the dragged one's old place may still be
+    // under the pointer, and taking its place again would swap the two back and forth.
+    let last: string | undefined;
     dragging = { floor: floorKey, id };
     dragItem(
       e,
       el,
       floorEl,
       (left, top) => {
-        const x = Math.max(0, Math.min(Math.round(left / pitchX), grid.cols - card.size.w));
-        const y = Math.max(0, Math.round(top / pitchY));
-        if (x === cell.x && y === cell.y) return false;
-        cell = { x, y };
-        place(floorKey, moveBox(start, id, x, y, grid.cols));
+        const x = (left + el.offsetWidth / 2) / pitchX;
+        const y = (top + el.offsetHeight / 2) / pitchY;
+        const under = floorOf(floorKey).rooms.find(
+          (r) => r.room.area.area_id !== id && x >= r.x && x < r.x + r.size.w && y >= r.y && y < r.y + gridRows(r.size),
+        )?.room.area.area_id;
+        if (under === last) return false;
+        last = under;
+        if (!under) return false;
+        editor.setOrder(moveTo(shownOrder(), id, under));
         return true;
       },
-      () => {
-        dragging = null;
-        place(floorKey, compact(boxesOf(floorOf(floorKey))));
-      },
+      () => (dragging = null),
     );
   }
 </script>
@@ -122,7 +110,7 @@
               room={card.room}
               items={card.items}
               slots={card.slots}
-              onSize={(size) => resize(floor.key, card, size)}
+              onSize={(size) => resize(card, size)}
               onDrag={(e) => startDrag(e, floor.key, card)}
               onSlots={(slots) => editor.setSlots(card.room.area.area_id, slots)}
               onHide={() => editor.setRoomHidden(card.room.area.area_id, true)}

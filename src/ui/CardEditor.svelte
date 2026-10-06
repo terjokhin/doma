@@ -108,7 +108,9 @@
     if (s !== sizeName) onSize(s);
   }
 
-  const cells = (s: CardSize) => `${CARD_CELLS[s].w} × ${formatNumber(CARD_CELLS[s].h)}`;
+  // "Full" is as wide as the screen: no number of cells, and a glyph as wide as the widest other one.
+  const cells = (s: CardSize) => (s === "full" ? t("edit.wholeRow") : `${CARD_CELLS[s].w} × ${formatNumber(CARD_CELLS[s].h)}`);
+  const glyphWidth = (s: CardSize) => Math.min(CARD_CELLS[s].w, 10);
 
   // Controls not on the card aren't watched: their state comes from the one loaded at start.
   const stateOf = (id: string) => home.entity(id) ?? home.catalog[id];
@@ -291,7 +293,7 @@
               <span class="size-glyph-box">
                 <span
                   class="size-glyph"
-                  style:width="calc({CARD_CELLS[s].w} * 0.28rem)"
+                  style:width="calc({glyphWidth(s)} * 0.28rem)"
                   style:height="calc({CARD_CELLS[s].h} * 0.28rem)"
                 ></span>
               </span>

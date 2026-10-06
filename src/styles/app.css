@@ -543,7 +543,7 @@ button {
 }
 
 /*
- * A floor's room cards: one grid as wide as the page, each card at the position layout/place.ts gives it. Rows
+ * A floor's room cards: one grid as wide as the page, each card at the position layout/rows.ts gives it. Rows
  * are half a cell (two of them and the gap between make one cell), so an S card can be half as tall as an M.
  */
 .floor-grid {
