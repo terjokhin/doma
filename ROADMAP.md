@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-04: Phase 6, Home, is the priority now.*
+*Updated 2026-10-06: Phase 6, Home, is well under way; next is a round on the Fire HD.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -35,24 +35,30 @@ Where the app is going, in order, and how each step is checked. The README cover
   a Scenes section; sections dragged by their title into the column you want, renamed, widened and hidden, for
   every room or only this one; tiles hidden on one room's screen. Start-up JS 50.7 KB gzipped.
 
-- **Phase 6 so far** (laptop only, 2026-10-05): Home can drop the floor grouping (one grid, its own positions);
-  rooms can be hidden (a "Hidden rooms" menu brings them back); each card's controls are edited in place, for that
-  card only: add, remove, move, swap; all-lights and scene buttons; titles at the same height on every
-  card size. Then the redesign from the "calm cards" canvas, step 1 (2026-10-06): every card control is a 1 × 1
-  split tile (the chip switches, the rest opens a pop-up), with pop-ups for lights, a room's lights, climate and
-  anything that switches. Step 2: cards are plain groups (a room's name over its tiles, no box) and only as tall as their
-  tiles; a size now sets the width and the most rows (M is 4 × 2.5 at most). Start-up JS 59.7 KB gzipped. Then feedback: a spinner while
-  HA hasn't answered, a message with "Try again" when it doesn't or refuses, Undo after a scene; room screens and
-  lenses split their tiles the same way; the header names the weather. The sidebar waits (see Later): the header
-  and status chips already say what it would. Start-up JS
-  61.8 KB gzipped. Then rows: cards go left to right in an order and wrap, each row on one line, so titles
-  always line up (replaces free placement); sizes are widths only (XS, M, Wide, Full: the whole row), every card up
-  to two rows of tiles. Next: the Fire HD round.
+- **Phase 6 so far** (2026-10-05/06, checked on a laptop only), from the "calm cards" design inspired by
+  hass-config:
+  - **tiles**: every control on a card is a 1 × 1 split tile: the icon switches, the rest opens a **pop-up**
+    (a light's brightness and colour, a room's lights, climate target, modes and fan, a big switch for the rest).
+    Only the icon is tinted when on; the tile keeps its colour. Room screens and lenses split theirs the same way;
+  - **feedback**: a spinner while HA hasn't answered, a message with "Try again" when it doesn't or refuses, Undo
+    after a scene;
+  - **cards**: no box, only as tall as their tiles (up to two rows); sizes are widths only (XS, M, Wide, Full);
+    cards go in **rows** in an order, so titles line up (replaced free placement, like HA's sections view);
+  - **editing Home**: each card's controls in place (add, remove, move, swap), hide rooms, Home with or without
+    floor grouping (each keeps its own order); drag a card by its title, one ⋯ menu per card;
+  - the header names the weather, its clock is smaller; a **Docker image** that's told where HA is at start.
+  Start-up JS 61.9 KB gzipped.
 
-**Now: Phase 6, Home: run the house from one screen.** The screen the app opens on should be enough for everyday
-use, so that opening a room is the exception. Next: hide and merge rooms; a card template with per-room
-overrides; the quick-controls editor; device sheets on a long press; more kinds of control on a card; what a
-card's title shows; a house-wide section ([Phase 6](#6-home-run-the-house-from-one-screen)).
+**Now: Phase 6, Home: run the house from one screen.** Next, in order:
+1. **A round on the Fire HD** with `?debug`: tiles, opening a pop-up, the spinner, live updates with the new tiles,
+   against the budgets. (The room template from Phase 5 was never measured there either.)
+2. **"Start a new row"** in a card's ⋯ menu: that room always begins a row, leaving the rest of the row before it
+   empty, like ending a horizontal stack in ha-fusion. Today rows fill themselves, so space can't be left empty.
+3. **A calmer edit mode** with a design pass (see Later): only the selected card shows its tools.
+4. Tile names are cut short ("Ceiling li…"): maybe drop the On / Off line on lights, so names get two lines.
+5. Then the rest of [Phase 6](#6-home-run-the-house-from-one-screen): merge rooms; blinds, media and locks as tiles
+   with pop-ups; readings and alert badges in card titles; a house-wide section; rooms without tiles folded into one
+   line of names.
 
 Then Phase 7: **custom views** of free sections, any devices in any section, each with its own name, size and
 place. Home and the room screens stay the generated starting point.
@@ -396,6 +402,10 @@ add-on for HA OS users.
 - The Energy lens.
 - Free card sizes (drag a corner) instead of fixed ones.
 - Importers from Lovelace and ha-fusion, e-ink output.
+- A calmer edit mode on Home: every card shows only a faint outline, its name and plain tiles; tapping one selects it,
+  and only the selected card shows its size chip, the × on its tiles and a single "+". Today every card shows all of
+  them at once, which is busy, and the chip covers part of an XS room's name. Agreed 2026-10-06 to do later, with a
+  design pass.
 - A sidebar on landscape screens, like hass-config's: the clock, date, greeting, a "what's on" sentence and the
   weather, in place of the header. On the Fire HD (8 columns) it would either drop Home to 4 columns or shrink the
   cells by about 20% to keep 8; for now the header and status chips say the same (decided 2026-10-06).

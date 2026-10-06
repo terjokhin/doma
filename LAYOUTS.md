@@ -397,24 +397,26 @@ right after appearing. (`layout/layoutStore.svelte.ts`)
 
 The **edit button** next to the settings gear turns the home screen into an editor; nothing is saved until **Done**.
 
-- Controls on the cards don't react (`inert`); each card shows an outline and, on the right of its title band, a
-  **drag handle**, an **eye** that hides the room, a **+** for its controls and a small **size chip**. The chip opens a menu of every size, each with a miniature of its shape,
-  its cells and a check on the current one; picking one applies it, and a tap outside or Escape closes the menu.
-  The default size isn't stored.
-- **Drag a card** to another place in the order on its floor: by the handle on touch (only the handle has
+- Controls on the cards don't react (`inert`); each card shows an outline, and its **title band is the drag
+  handle** (a grip shows it on cards 4 cells wide or more). At the band's right, one **chip with the card's size**
+  opens its menu: every size, each with a miniature of its shape and a check on the current one; **Add a
+  control**; and **Hide room**. A tap outside or Escape closes it. The default size isn't stored. Nothing of the
+  editor reaches past the card, so even an XS room keeps its name readable.
+- **Drag a card** to another place in the order on its floor: by its title band on touch (only the band has
   `touch-action: none`, so swiping anywhere else on a card still scrolls the page), from anywhere on the card with
   a mouse. Only the dragged card moves, with `transform`. When its middle is over another card, it takes that
   card's place in the order and the rows re-flow (`moveTo`); a faint outline shows where it will land. Near the
   top or bottom edge the page scrolls by itself.
 - **The card's controls** are slots in edit mode, laid out as they'll be shown: drag one to move it (it takes the
-  place of the control under its middle), tap it to swap it for another, × removes it; each free cell shows a "+".
+  place of the control under its middle), tap it to swap it for another, × (in its top right corner) removes it; each free cell shows a "+".
   "+" and "+N" open a menu of what the room has (all lights, its lights, climate, switches, scenes), ticked when
   it's on the card, with **Back to automatic** once the card has its own list. The first change gives the card
   its own list, starting from what it showed.
-- **Hide a room** with the eye on its card: the rows close up; it comes back at the end of its floor. **Hidden rooms** in the bar lists them; tap one to show its card again. A hidden room's screen is
+- **Hide a room** from its card's menu: the rows close up; it comes back at the end of its floor. **Hidden rooms** in the bar lists them; tap one to show its card again. A hidden room's screen is
   still reached from the lenses, and its devices still count in the status chips.
 - A new size keeps the card's place in the order; the rows re-flow around it.
-- A bar replaces the header and sticks to the top: **Hidden rooms** (once a room is hidden), **Group by floor** (a checkbox; unticked, every card shares one
+- A bar replaces the header and sticks to the top (on a tablet without its hint, the title cut short, so the buttons
+  stay on one row): **Hidden rooms** (once a room is hidden), **Group by floor** (a checkbox; unticked, every card shares one
   grid and there are no floor headings), **Tabs** (a menu: tick the lenses to show as tabs, order them
   with arrows; the navigation band shows the draft), **Done** (saves, if anything changed), **Cancel** (discards)
   and **Reset to default** (the generated home screen with every lens as a tab, saved on Done; the room template
