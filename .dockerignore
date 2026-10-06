@@ -1,0 +1,16 @@
+# Only what the build needs goes into the image's build context.
+node_modules
+dist
+.git
+.idea
+*.iml
+.vscode
+.DS_Store
+.env
+.env.*
+!.env.example
+# Snapshots of a real home: private, never in an image
+fixtures/local*.json
+.probe
+discovery
+images

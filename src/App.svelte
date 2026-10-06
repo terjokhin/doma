@@ -21,6 +21,7 @@
   import LensScreen from "./screens/LensScreen.svelte";
   import RoomScreen from "./screens/RoomScreen.svelte";
   import SetupScreen from "./screens/SetupScreen.svelte";
+  import { presetHaUrl } from "./config";
   import SheetHost from "./ui/SheetHost.svelte";
   import ToastHost from "./ui/ToastHost.svelte";
 
@@ -79,7 +80,7 @@
         if (err === ERR_HASS_HOST_REQUIRED) {
           // No saved login. A preset URL goes straight to HA's login page (handy on a fresh kiosk),
           // except right after a logout, when the user may want the demo or another HA.
-          const preset = import.meta.env.VITE_HA_URL;
+          const preset = presetHaUrl();
           if (preset && !hassUrl && !justLoggedOut()) return start(preset);
           boot = { phase: "setup" };
           return;
@@ -114,7 +115,7 @@
 {#if boot.phase === "loading"}
   <div class="center">{t("app.connecting")}</div>
 {:else if boot.phase === "setup"}
-  <SetupScreen defaultUrl={import.meta.env.VITE_HA_URL ?? lastUrl()} error={boot.error} onConnect={start} />
+  <SetupScreen defaultUrl={presetHaUrl() ?? lastUrl()} error={boot.error} onConnect={start} />
 {:else}
   <div class="screens">
     {#each kept as s (s)}
