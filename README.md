@@ -115,7 +115,10 @@ and its size. It only stores those changes, so new rooms still appear by themsel
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `doma.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
 tap the **edit button** next to the settings gear: drag a card by its handle to any spot on its floor, pick its
-size (XS, S, M, L or Wide) from the chip on the card, pick and order the tabs under **Tabs**, then **Done**.
+size (XS, S, M, L or Wide) from the chip on the card, set what the card shows (**+** adds a control, × removes
+one, drag one to move it, tap one to swap it; lights, switches, climate, scenes and an all-lights button), hide
+rooms with the eye (**Hidden rooms** brings them back), untick **Group by floor** to put every card on one grid
+without floor headings, pick and order the tabs under **Tabs**, then **Done**.
 
 Room screens follow a **room template**, stored in the same layout. A room's edit button (in its header) lets you
 drag its sections by their titles into any column, rename them (tap the title), make them wider (the grip on

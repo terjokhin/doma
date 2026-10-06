@@ -35,6 +35,15 @@ Where the app is going, in order, and how each step is checked. The README cover
   a Scenes section; sections dragged by their title into the column you want, renamed, widened and hidden, for
   every room or only this one; tiles hidden on one room's screen. Start-up JS 50.7 KB gzipped.
 
+- **Phase 6 so far** (laptop only, 2026-10-05): Home can drop the floor grouping (one grid, its own positions);
+  rooms can be hidden (a "Hidden rooms" menu brings them back); each card's controls are edited in place, for that
+  card only: add, remove, move, swap; all-lights and scene buttons; titles at the same height on every
+  card size. Then the redesign from the "calm cards" canvas, step 1 (2026-10-06): every card control is a 1 × 1
+  split tile (the chip switches, the rest opens a pop-up), with pop-ups for lights, a room's lights, climate and
+  anything that switches. Step 2: cards are plain groups (a room's name over its tiles, no box) and only as tall as their
+  tiles; a size now sets the width and the most rows (M is 4 × 2.5 at most). Start-up JS 59.7 KB gzipped. Next: the
+  sidebar, then waiting / failure / undo feedback.
+
 **Now: Phase 6, Home: run the house from one screen.** The screen the app opens on should be enough for everyday
 use, so that opening a room is the exception. Next: hide and merge rooms; a card template with per-room
 overrides; the quick-controls editor; device sheets on a long press; more kinds of control on a card; what a

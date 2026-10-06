@@ -85,7 +85,7 @@ Every element has a size in cells, `w × h`. Starting set:
 | Light button (room card) | 1 × 1 |
 | Compact climate (room card) | 2 × 1 |
 | "+N" button (room card) | 1 × 1 |
-| Room card | XS 2 × 1.5, S 4 × 1.5, M 4 × 3, L 4 × 4, Wide 8 × 3 (see "Room cards") |
+| Room card | 2, 4 or 8 wide; half a cell of title plus its rows of tiles, at most 1–3 (see "Room cards") |
 | Header (clock, date, weather) | full width × 2 |
 | Navigation band (tabs, status chips) | full width, one or two rows of chips |
 
@@ -125,35 +125,51 @@ Room screens have no tabs: they're one level down, with a back button.
 
 ## Room cards (home screen)
 
-Each room is a card in one of **five fixed sizes**, in cells:
+Each room is a card in one of **five sizes**. A size sets the card's width and the most rows of tiles it holds; the
+card itself is only as tall as its tiles need (in edit mode, one row more where the size allows, to add one), so a
+room with three lights takes one row whatever its size:
 
-| Size | Cells (w × h) | Controls |
-|---|---|---|
-| XS | 2 × 1.5 | 1 row of 2 |
-| S | 4 × 1.5 | 1 row of 4 |
-| **M** (default) | 4 × 3 | 2 rows of 4 |
-| L | 4 × 4 | 3 rows of 4 |
-| Wide | 8 × 3 | 2 rows of 8 |
+| Size | Width | Rows of tiles, at most | Largest (w × h cells) |
+|---|---|---|---|
+| XS | 2 | 1 | 2 × 1.5 |
+| S | 4 | 1 | 4 × 1.5 |
+| **M** (default) | 4 | 2 | 4 × 2.5 |
+| L | 4 | 3 | 4 × 3.5 |
+| Wide | 8 | 2 | 8 × 2.5 |
 
-A card covers its cells and the gaps between them: `w × c + (w − 1) × g` wide. Heights come in half cells, so an
-S card is exactly half an M (and an XS half an S): two S cards stacked, with the gap between them, are as tall as one M. **At the
-bottom of a card, one row of controls per cell below the title band** (`ceil(h) − 1` rows), in an inset grid of
-`w` columns, so controls are slightly smaller than a page cell; **above them the title band**, one cell tall, or
-half a cell on S and XS cards. A card is never wider than the screen: on a 4-column phone a Wide card is 4 cells wide
-(and shows 4 controls per row).
-
-Cards are clearly lifted off the background, and their controls are a step lighter again: three tokens in
-`styles/tokens.css`, `--card`, `--card-control` and `--card-control-icon`, with a `--line-strong` edge.
+A card has **no box of its own**: a title band half a cell tall, then its rows of tiles, each a cell tall, with the
+gap that's left between the title and the tiles. The tiles are inset by a gap at each side, so two rooms side by
+side are three gaps apart and the tiles within a room one. A card covers its cells and the gaps between them:
+`w × c + (w − 1) × g` wide; heights come in half cells. A card is never wider than the screen: on a 4-column phone
+a Wide card is 4 cells wide (and shows 4 tiles per row). Tiles are a step lighter than the page (`--card-control`).
 
 The title band shows the room's name, temperature and humidity (on an XS card, which is 2 cells wide, only the
-name and temperature), and an arrow; tapping it opens the room. Below the band, the room's controls:
+name and temperature), and an arrow; tapping it opens the room. Below the band, the room's controls. Until a card
+is edited they're generated:
 
-- lights as 1 × 1 buttons (tap to toggle), then climate devices as compact 2 × 1 controls (power, and the target
-  temperature while on), then heating switches (underfloor heating, a radiator: a switch whose ID says so) as
-  1 × 1 buttons;
+- every control is a **1 × 1 tile** (`ui/Tile.svelte`), split in two: the round chip at the top left does the
+  main thing (switch on or off; a climate device's power), the rest of the tile opens its **pop-up**. A ring at
+  the top right shows a light's brightness or a thermostat's target; the name and state are at the bottom. While
+  on, only the chip takes a colour (warm for lights, orange for heating, blue for cooling, teal for fans, blue-grey
+  for other devices) and the name brightens; the tile keeps its colour;
+- the generated controls: lights, then climate devices, then heating switches (underfloor heating, a radiator: a
+  switch whose ID says so);
 - **as many rows as the size has**. What doesn't fit is replaced by a 1 × 1 "+N" button that opens the room.
   When something has to go, climate and heating are kept before lights; the order on screen stays lights first.
 - A room without lights, climate or heating keeps an empty card.
+
+A card can have **its own list** instead (edit mode, below), in the order you set: lights and switches as 1 × 1
+tiles, climate devices, scenes (a tap anywhere on the tile runs one) and **all lights**, one tile for all the
+room's lights (lit while any is on, showing how many; its chip turns them all off, or all on; the rest opens all
+of them in one pop-up). What doesn't fit goes into "+N" from the end. A control the room no longer has is skipped.
+
+**Pop-ups** (`ui/SheetHost.svelte`, opened through `ui/sheet.svelte.ts`) share one frame: a header with the same
+chip as the tile (it does the same thing), the name, the room and state, and a close button; the controls; and
+"Open <room>" at the bottom. A light has a brightness bar to tap or drag (sent when the finger lifts) and warm /
+neutral / cool where it has colour temperature; a climate device has its target with − and +, the room's
+temperature, its modes (off among them) and fan speeds; anything else one big switch. Each says since when it's
+on or off. A tap on the dimmed backdrop (no blur), Escape or a change of screen closes it; on a phone it comes
+up from the bottom.
 
 In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) in `model/roomCard.ts`, rendered by
 `screens/RoomCard.svelte`.
@@ -296,7 +312,8 @@ These rules target Chrome 108 (see the README):
 
 The layout stores **only the user's changes** on top of the layout generated from HA's floors and areas, never a
 full copy, so new rooms still appear by themselves. It holds **card sizes**, **card positions per column
-count** (in grid units, never pixels), the **tabs** and the **room template**. Rooms, areas and floors themselves are HA's and
+count** (in grid units, never pixels), whether Home **groups cards by floor**, the **tabs** and the **room
+template**. Rooms, areas and floors themselves are HA's and
 aren't changed here.
 (`layout/homeLayout.ts`)
 
@@ -307,6 +324,8 @@ aren't changed here.
   "grids": {
     "12": { "garden": { "x": 0, "y": 0 }, "hallway": { "x": 0, "y": 3 }, "kitchen": { "x": 4, "y": 0 } }
   },
+  "hidden": ["garage"],
+  "cards": { "kitchen": ["lights", "climate.kitchen", "scene.kitchen_dinner"] },
   "tabs": ["lights", "devices", "climate"],
   "room": {
     "places": {
@@ -329,6 +348,14 @@ aren't changed here.
   tablet, 12 on a landscape tablet or laptop, 16 on a large screen), by area ID: `x` in columns, `y` in rows of
   half a cell, from the top left of the card's floor grid. A card stays on its floor (the area's floor in HA).
   The editor stores every card of a column count once you change anything there.
+- **`hidden`**: the rooms hidden from Home, by area ID.
+- **`cards`**: a card's own list of controls, by area ID: entity IDs, or `lights` for the all-lights button.
+  Unlisted rooms show the generated controls. Like `hide`, it names entity IDs, since it picks single devices.
+- **`floors`**: `false` when Home doesn't group its cards by floor: every card is then on one grid, with no floor
+  headings. Unset means grouped.
+- **`flatGrids.<cols>`**: card positions on that one grid, in the same shape as `grids`. Each way keeps its own
+  positions, so switching back and forth loses nothing. A column count not arranged on one grid yet starts with
+  the floors in order, each in its own grid's order.
 - **`tabs`**: the tabs after Home, in order: `lights`, `climate`, `security`, `devices`. Unset means all four in
   that order; `[]` means Home alone. Home is always the first tab. A lens that isn't a tab is still reached from
   its status chip.
@@ -360,8 +387,8 @@ right after appearing. (`layout/layoutStore.svelte.ts`)
 
 The **edit button** next to the settings gear turns the home screen into an editor; nothing is saved until **Done**.
 
-- Controls on the cards don't react (`inert`); each card shows an outline, a small **size chip** in its title band
-  and a **drag handle** in the middle. The chip opens a menu of every size, each with a miniature of its shape,
+- Controls on the cards don't react (`inert`); each card shows an outline and, on the right of its title band, a
+  **drag handle**, an **eye** that hides the room, a **+** for its controls and a small **size chip**. The chip opens a menu of every size, each with a miniature of its shape,
   its cells and a check on the current one; picking one applies it, and a tap outside or Escape closes the menu.
   The default size isn't stored.
 - **Drag a card** to any spot on its floor: by the handle on touch (only the handle has `touch-action: none`,
@@ -371,8 +398,17 @@ The **edit button** next to the settings gear turns the home screen into an edit
   where the cards were when the drag began, so a card you pass over goes back to its place. A faint outline shows
   where the card will land; when it's let go, every card floats up, this one too. Near the top or bottom edge the
   page scrolls by itself.
+- **The card's controls** are slots in edit mode, laid out as they'll be shown: drag one to move it (it takes the
+  place of the control under its middle), tap it to swap it for another, × removes it; each free cell shows a "+".
+  "+" and "+N" open a menu of what the room has (all lights, its lights, climate, switches, scenes), ticked when
+  it's on the card, with **Back to automatic** once the card has its own list. The first change gives the card
+  its own list, starting from what it showed.
+- **Hide a room** with the eye on its card: the other cards float up, and the room's position is kept for when
+  it comes back. **Hidden rooms** in the bar lists them; tap one to show its card again. A hidden room's screen is
+  still reached from the lenses, and its devices still count in the status chips.
 - A new size keeps the card where it is (moved left if it no longer fits); the cards around it make room.
-- A bar replaces the header and sticks to the top: **Tabs** (a menu: tick the lenses to show as tabs, order them
+- A bar replaces the header and sticks to the top: **Hidden rooms** (once a room is hidden), **Group by floor** (a checkbox; unticked, every card shares one
+  grid and there are no floor headings), **Tabs** (a menu: tick the lenses to show as tabs, order them
   with arrows; the navigation band shows the draft), **Done** (saves, if anything changed), **Cancel** (discards)
   and **Reset to default** (the generated home screen with every lens as a tab, saved on Done; the room template
   stays). A failed save keeps the draft and says why.
