@@ -180,8 +180,8 @@ On a wide screen (a tablet in landscape, a laptop) a **sidebar** at the left hol
 weather, the **status chips**, which appear only when there's something to say (each opens its lens), and the
 **tabs** (Home, then the lenses you chose, in your order). On a tablet in portrait they're under the home header
 instead, and on a phone the tabs move to a bar at the bottom. A room's back button returns to where you came from. Home and the lenses that are tabs
-stay built once visited, so going back to one is quick even on a slow tablet. Where this is heading (room
-templates, custom views): [ROADMAP.md](ROADMAP.md#views-and-navigation).
+stay built once visited, so going back to one is quick even on a slow tablet. The design behind the views:
+[ROADMAP.md](ROADMAP.md#views-and-navigation).
 
 ## Layouts
 
@@ -261,4 +261,5 @@ src/
 
 ## Status
 
-Early. See [ROADMAP.md](ROADMAP.md) for the plan, target devices and performance budgets.
+Early. See [ROADMAP.md](ROADMAP.md) for what's next (a redesign of the device tile), target devices and
+performance budgets.

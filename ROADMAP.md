@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-07: Phase 6, Home, is well under way; v0.1.0 is out; next is a Fire HD round with the sidebar.*
+*Updated 2026-10-07: v0.2.1 is out. The rest of the plan was dropped; next is a redesign of the device tile.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -61,22 +61,12 @@ Where the app is going, in order, and how each step is checked. The README cover
     arm/v7 and makes a GitHub release.
   Start-up JS 64.1 KB gzipped.
 
-**Now: Phase 6, Home: run the house from one screen.** Next, in order:
-1. **A round on the Fire HD** with the sidebar and the calmer edit mode (checked on a laptop only): screen changes,
-   scrolling Home, live updates, selecting and dragging in edit mode, against the budgets.
-2. Tile names are cut short ("Ceiling li…"): maybe drop the On / Off line on lights, so names get two lines.
-3. Then the rest of [Phase 6](#6-home-run-the-house-from-one-screen): merge rooms; blinds, media and locks as tiles
-   with pop-ups; readings and alert badges in card titles; a house-wide section; rooms without tiles folded into one
-   line of names.
+**Next: the device tile, redesigned.** The tile each device has (the 1 × 1 split tile on Home's cards, and the
+tiles on room screens and lenses), made more functional and slicker. That's the whole plan for now.
 
-Then Phase 7: **custom views** of free sections, any devices in any section, each with its own name, size and
-place. Home and the room screens stay the generated starting point.
-
-**Waiting until later**
-- Scrolling performance on the slowest tablet hasn't been measured on its own.
-- The first visit to a tab still builds it (up to about 200 ms on the Fire HD). Building the tabs in the background
-  after start-up would make that fast too, at the cost of a busier start.
-- Fitting a wall panel's home screen without scrolling (cells would shrink to fit) is an option, not a rule.
+The rest of the plan was dropped on 2026-10-07: merging rooms; blinds, media and locks as tiles; readings and alert
+badges in card titles; a house-wide section on Home; custom views; the Organiser; layout history; an HA add-on;
+the wall-panel ideas. Something comes back here only when it's picked up again.
 
 ## What sets it apart
 
@@ -135,7 +125,7 @@ anything:
 
 ### Free sections
 
-Decided 2026-10-02, for **custom views** (Phase 7). A custom view is made of sections that aren't tied to a room or
+Decided 2026-10-02, for **custom views** (planned as Phase 7, dropped on 2026-10-07). A custom view is made of sections that aren't tied to a room or
 a kind of device: **any section can hold any devices**, from any room, and **each section has its own name, width
 and place**, independently of the others. Room screens stay generated from the room template; custom views are
 where you build something of your own.
@@ -186,7 +176,7 @@ the full entity list second.
 ### Where it's stored
 
 Everything stays per HA user, in the same `doma.layout` entry: the home layout today, plus `tabs` (Phase 4),
-the room template (`room`, Phase 5), Home's rooms and cards (Phase 6) and custom views (Phase 7). A sketch of where it's heading:
+the room template (`room`, Phase 5), Home's rooms and cards (Phase 6) and custom views (dropped on 2026-10-07). A sketch of where it was heading:
 
 ```json
 { "version": 1,
@@ -357,62 +347,23 @@ The first views beyond Home and the rooms, and the navigation between them
    renamed by tapping its title, widened to 2 or more columns or the full width by a grip on its right side, and
    hidden with an eye, for **all rooms** (the template) or **only this room** (its own copy). Tapping a tile
    hides it on that room's screen only; lenses and the room card still show it. Pins (adding entities the room
-   screen leaves out) are left to Phase 7. Arrows in the titles came first and were replaced by dragging the
+   screen leaves out) were left to custom views, since dropped. Arrows in the titles came first and were replaced by dragging the
    same day: moving a section across the room took many taps. Dragging first changed only the sections' order,
    packed into the shortest columns like lenses; sections then landed where the packer put them and the rest
    reshuffled (with the tallest section first, nothing could go under it), so they got places of their own:
    placed in order, each below what's above it in the columns it spans.
 
-The phase was cut short on 2026-10-04 to put Home first: device sheets moved to Phase 6, swiping between rooms to
-[Later](#later).
+The phase was cut short on 2026-10-04 to put Home first: device sheets moved to Phase 6.
 
-### 6. Home: run the house from one screen
+### 6. Home: run the house from one screen ✅
 The screen the app opens on should be enough for everyday use; opening a room is the exception
-([Home: the starting point](#home-the-starting-point)). Customised the way the room template is: for every card,
-or for one room only.
+([Home: the starting point](#home-the-starting-point)). What was built is in [Where we stand](#where-we-stand): split
+tiles and pop-ups, a card's own controls edited in place, hidden and renamed rooms, rows and stacks, the calmer edit
+mode, the sidebar. The rest of the phase was dropped on 2026-10-07.
 
-1. **Hide and merge rooms**: a hidden room has no card (its room screen stays reachable from lenses); merged
-   areas show as one card and one room screen, without changing HA's areas.
-2. **Card template and per-room cards**: what every card shows, as kinds of control in order (the default stays
-   lights, then climate, then heating), and a room's own list in its place.
-3. **Quick-controls editor**: in edit mode, tapping a card opens a sheet with the room's devices, suggested ones
-   first; switch each on or off for the card, drag them into order, pick a control's form where there is a choice
-   (a 1 × 1 button or a 2 × 1 control), for every card or this room only. "+N" stays for what doesn't fit.
-4. **Device sheets**, opened by a long press on any control (Home, rooms, lenses): brightness and colour for
-   lights, HVAC modes for air conditioners (heat / cool / dry / fan; today a tile only switches on and off, into
-   the last mode), a short history. A tap still toggles.
-5. **More kinds of control on a card**: the room's lights on/off, scenes, climate with − / + for the target
-   temperature, blinds (open / stop / close), media (play / pause), locks.
-6. **The card's title**: which readings it shows and from which sensor (temperature, humidity, CO₂), and alert
-   badges (window open, motion, leak); for every card or one.
-7. **A house-wide section on Home**: house scenes, all lights off, weather. Fixed contents for now; the full
-   builder is Phase 7.
-8. ✅ **Check on the Fire HD** (2026-10-07, with the room template from Phase 5), against a real home: one
-   entity update took at most 12.9 ms of script (usually 1–5 ms), going back to a kept screen 44–48 ms, building
-   a room screen 78 ms, a first visit to a tab up to 183 ms (as before, see "Waiting until later"). Opening a
-   pop-up gives single frames of 150–330 ms: a pop-up that shows entities Home doesn't changes the subscription,
-   and HA sends every state again (the store skips the ones it has, so the script stays cheap); the rest is
-   painting the sheet. It felt fine, so it stays as it is. Lenses and edit mode weren't measured in this round.
-
-### 7. Custom views
-Per HA user, built from [free sections](#free-sections): any devices in any section, from any room, each section
-named, sized and placed on its own, sections added and removed. Start from a template (Blank, Copy of Home, One
-floor, One room, a lens); add sections and cards with **+ Add**, which suggests what's in a room first, then any
-entity; cards bound to selectors or pinned entities. Extra sections on Home that aren't floors, built
-like any free section (Phase 6 brings one fixed house-wide section). Custom views can be tabs like lenses.
-
-### 8. Organiser
-Suggests and bulk-applies names, areas and labels from Zigbee2MQTT friendly names (configurable pattern, default
-`<area>/<what>`). Shows a dry-run diff and applies only after confirmation; needs an admin login.
-
-### 9. History and packaging
-Version history with undo for layouts. A static build in a small container image (nginx), plus a Home Assistant
-add-on for HA OS users.
-
-### Later
-- Wall panels: a start view per screen, back to it after a few idle minutes; swipe between rooms, with a strip
-  of room names at the top.
-- A layout shared by the whole house (HA's system data, saving needs an admin), with per-user layouts on top.
-- The Energy lens.
-- Free card sizes (drag a corner) instead of fixed ones.
-- Importers from Lovelace and ha-fusion, e-ink output.
+**Checked on the Fire HD** (2026-10-07, with the room template from Phase 5), against a real home: one
+entity update took at most 12.9 ms of script (usually 1–5 ms), going back to a kept screen 44–48 ms, building
+a room screen 78 ms, a first visit to a tab up to 183 ms. Opening a
+pop-up gives single frames of 150–330 ms: a pop-up that shows entities Home doesn't changes the subscription,
+and HA sends every state again (the store skips the ones it has, so the script stays cheap); the rest is
+painting the sheet. It felt fine, so it stays as it is. Lenses and edit mode weren't measured in this round.
