@@ -15,7 +15,11 @@ export const LAYOUT_KEY = "doma.layout";
 export const LEGACY_LAYOUT_KEY = "ha-ui.layout";
 
 /** A room card's size on the home screen (LAYOUTS.md, "Room cards"); the cells are in `CARD_CELLS`. */
-/** Widths only: every card is as tall as its tiles, up to two rows. "s" and "l", once heights, now read as "m". */
+/**
+ * Widths only: every card is as tall as its tiles, up to two rows. Shown as S, M, L and Full; stored under the names
+ * they had before (until 2026-10-07: XS, M, Wide 8 cells, Full), so a saved layout keeps its sizes. "s" and "l",
+ * once heights, read as "m".
+ */
 export const CARD_SIZES = ["xs", "m", "wide", "full"] as const;
 export type CardSize = (typeof CARD_SIZES)[number];
 
@@ -35,13 +39,21 @@ export interface HomeLayout {
   /** Rooms without a card on Home, by area ID. Their screens are still reached from the lenses. */
   hidden?: string[];
   /**
-   * The order of the room cards on Home, by area ID; they're laid out in rows in this order (`model/homeView.ts`).
-   * Rooms it doesn't list follow, in HA's order. Unset: the order of `grids`, else HA's.
+   * Home's rows of room cards, by area ID, in order (`layout/rows.ts`): a room on its own, or a stack of rooms side
+   * by side. With floors, each floor shows the rows of its rooms. Rooms they don't list get rows of their own after
+   * the rest, filled as the screen allows. Unset: rows filled in the order of `order`.
+   */
+  rows?: string[][];
+  /** Home's rows when it doesn't group by floor: like `rows`, which keeps its own. */
+  flatRows?: string[][];
+  /**
+   * The order of the room cards on Home, by area ID, from before rows were kept (until 2026-10-07). Only read: it
+   * seeds the rows until they're set. Unset: the order of `grids`, else HA's.
    */
   order?: string[];
   /** Whether Home groups its cards by floor. Unset: it does. Only `false` is stored. */
   floors?: false;
-  /** The order of the room cards when Home doesn't group by floor: like `order`, which keeps its own. */
+  /** Like `order`, when Home doesn't group by floor. */
   flatOrder?: string[];
   /**
    * Card positions by column count ("12", "4", …), then by area ID, from when cards were placed freely (before
@@ -66,8 +78,8 @@ export const EMPTY_LAYOUT: HomeLayout = { version: 1 };
 /** Whether Home groups its cards by floor in this layout. */
 export const byFloor = (layout: HomeLayout) => layout.floors !== false;
 
-/** The card order Home uses in this layout, grouped by floor or not; undefined while it was never set. */
-export const orderOf = (layout: HomeLayout) => (byFloor(layout) ? layout.order : layout.flatOrder);
+/** The rows of cards Home uses in this layout, grouped by floor or not; undefined while they were never set. */
+export const rowsOf = (layout: HomeLayout) => (byFloor(layout) ? layout.rows : layout.flatRows);
 
 /** The rooms hidden from Home in this layout. */
 export const hiddenOf = (layout: HomeLayout): readonly string[] => layout.hidden ?? [];
@@ -149,6 +161,14 @@ export function parseLayout(value: unknown): HomeLayout {
       if (!Array.isArray(slots)) continue;
       layout.cards[areaId] = [...new Set(slots.filter((s): s is string => typeof s === "string" && SLOT.test(s)))];
     }
+  }
+  for (const key of ["rows", "flatRows"] as const) {
+    const rows = value[key];
+    if (!Array.isArray(rows)) continue;
+    const seen = new Set<string>();
+    layout[key] = rows
+      .map((row) => (Array.isArray(row) ? row : []).filter((id): id is string => typeof id === "string" && !seen.has(id) && !!seen.add(id)))
+      .filter((row) => row.length > 0);
   }
   for (const key of ["order", "flatOrder"] as const) {
     const ids = value[key];

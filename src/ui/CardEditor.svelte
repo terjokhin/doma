@@ -9,6 +9,7 @@
     mdiEyeOffOutline,
     mdiLightbulbGroupOutline,
     mdiPlus,
+    mdiTableRowPlusAfter,
   } from "@mdi/js";
   import { home } from "../ha/store.svelte";
   import { t } from "../i18n/index.svelte";
@@ -32,7 +33,7 @@
 
   /**
    * Edit mode over a room card (LAYOUTS.md, "Edit mode"). The title band is the drag handle; at its right, one chip
-   * with the card's size opens its menu: the sizes, "Add a control" and "Hide room". Over the controls, the card's
+   * with the card's size opens its menu: the sizes, "Add a control", "Own row" (in a stack) and "Hide room". Over the controls, the card's
    * slots: each one is dragged to move it, tapped to swap it for another and has a × that removes it; free cells
    * show a "+". The first change gives the card its own list, starting from what it showed. It sits in the card's
    * grid cell, outside the card, so the menus aren't clipped by the card's `contain`. A mouse can drag the card from
@@ -48,6 +49,7 @@
     onDrag,
     onSlots,
     onHide,
+    onOwnRow,
   }: {
     /** The card's size in cells, as shown. */
     size: Size;
@@ -62,6 +64,8 @@
     /** A new list of controls for the card, or undefined for the generated ones again. */
     onSlots: (slots: string[] | undefined) => void;
     onHide: () => void;
+    /** Take the card out of its stack into a row of its own; undefined when it has one. */
+    onOwnRow?: () => void;
   } = $props();
 
   const name = $derived(room.area.name);
@@ -264,6 +268,19 @@
             <Icon path={mdiPlus} size={20} />
             <span class="slot-option-name">{t("edit.addControlItem")}</span>
           </button>
+          {#if onOwnRow}
+            <button
+              class="slot-option"
+              role="menuitem"
+              onclick={() => {
+                menu = null;
+                onOwnRow();
+              }}
+            >
+              <Icon path={mdiTableRowPlusAfter} size={20} />
+              <span class="slot-option-name">{t("edit.ownRowItem")}</span>
+            </button>
+          {/if}
           <button
             class="slot-option"
             role="menuitem"

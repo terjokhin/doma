@@ -46,12 +46,13 @@ export const editor = {
   reset() {
     if (draft) draft = draft.room ? { ...EMPTY_LAYOUT, room: draft.room } : EMPTY_LAYOUT;
   },
-  /** The order of every room card, grouped by floor or not, whichever Home shows; the same on every screen width. */
-  setOrder(ids: string[]) {
+  /** Home's rows of room cards, grouped by floor or not, whichever Home shows; the same on every screen width. */
+  setRows(rows: readonly string[][]) {
     if (!draft) return;
-    draft = byFloor(draft) ? { ...draft, order: ids } : { ...draft, flatOrder: ids };
+    const copy = rows.map((r) => [...r]);
+    draft = byFloor(draft) ? { ...draft, rows: copy } : { ...draft, flatRows: copy };
   },
-  /** Whether Home groups its cards by floor. Each way keeps its own card positions. */
+  /** Whether Home groups its cards by floor. Each way keeps its own rows. */
   setByFloor(on: boolean) {
     if (!draft) return;
     const { floors: _, ...rest } = draft;

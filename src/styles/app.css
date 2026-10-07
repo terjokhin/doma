@@ -598,7 +598,7 @@ button {
   min-width: 0;
 }
 
-/* An XS card is 2 cells wide: name and temperature only. */
+/* An S card is 2 cells wide: name and temperature only. */
 .narrow .room-humidity {
   display: none;
 }
@@ -1865,6 +1865,39 @@ a.btn {
   box-shadow: inset 0 0 0 2px var(--cool);
   opacity: 0.6;
   pointer-events: none;
+}
+
+/* In edit mode, each of Home's rows framed, the empty space at its end too, so a stack reads as one. */
+.row-frame {
+  grid-column: 1 / -1;
+  margin: calc(var(--gap) / -2);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-l);
+  pointer-events: none;
+}
+
+/* Between Home's rows in edit mode: while a card is dragged, "+ New row", where letting go gives it a row of its own. */
+.row-band {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px dashed var(--cool);
+  border-radius: var(--radius-l);
+  color: var(--cool);
+  font-size: 0.85rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.row-band.shown {
+  opacity: 0.45;
+}
+
+.row-band.over {
+  background: var(--cool-soft);
+  opacity: 1;
 }
 
 /* The card being dragged: above the others, on its own layer, ignored by hit-testing (see layout/drag.ts). */

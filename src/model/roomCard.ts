@@ -11,7 +11,8 @@ import type { Room } from "./home";
 export const CARD_CELLS: Record<CardSize, Size> = {
   xs: { w: 2, h: 2.5 },
   m: { w: 4, h: 2.5 },
-  wide: { w: 8, h: 2.5 },
+  // Half the Fire HD's row in landscape: two side by side, or one next to an M and an S.
+  wide: { w: 6, h: 2.5 },
   // The whole row, however wide the screen (`fitCard` narrows it).
   full: { w: 64, h: 2.5 },
 };

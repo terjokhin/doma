@@ -1,6 +1,6 @@
-import { byFloor, hiddenOf, nearestGrid, sizeOf, slotsOf, type CardSize, type HomeLayout, type Position } from "../layout/homeLayout";
+import { byFloor, hiddenOf, nearestGrid, rowsOf, sizeOf, slotsOf, type CardSize, type HomeLayout, type Position } from "../layout/homeLayout";
 import type { Size } from "../layout/pack";
-import { rows } from "../layout/rows";
+import { fillRows, flow, type Drop } from "../layout/rows";
 import type { FloorGroup, Room } from "./home";
 import { CARD_CELLS, fitCard, roomCardItems, shownSize, type CardItem } from "./roomCard";
 
@@ -15,6 +15,8 @@ export interface RoomCardView {
   /** Where it sits on its floor's grid: `x` in columns, `y` in rows of half a cell (see layout/rows.ts). */
   x: number;
   y: number;
+  /** Whether other cards share its row: a stack. */
+  stacked: boolean;
   items: CardItem[];
 }
 
@@ -26,6 +28,10 @@ export interface FloorView {
   heading: boolean;
   /** In reading order. */
   rooms: RoomCardView[];
+  /** Its rows: `y` and `h` in rows of half a cell, `first` the area ID that names the row. */
+  rows: { first: string; y: number; h: number }[];
+  /** In edit mode, the gaps before, between and after its rows, half a cell tall: a card dropped there gets a row. */
+  bands: { y: number; drop: Drop }[];
 }
 
 /*
@@ -84,51 +90,109 @@ function readingOrder(rooms: Room[], reference: Record<string, Position> | undef
 const ALL_ROOMS = "_all";
 
 /**
+ * The width rows are filled to for a home that never set them, and for rooms its rows don't list: a landscape
+ * tablet's, so the same on every screen.
+ */
+const FILL_COLS = 12;
+
+interface Group {
+  key: string;
+  name?: string;
+  heading: boolean;
+  /** Every room in it, hidden ones too, in the order rows are filled in. */
+  rooms: Room[];
+}
+
+/**
+ * Home's groups of cards: one per floor, or one for all rooms. Their rooms are in the order from before rows were
+ * kept (`order`, or an arrangement from when cards were placed freely), else HA's.
+ */
+function groupsOf(model: FloorGroup[], layout: HomeLayout): Group[] {
+  const floorOrder = (rooms: Room[]) =>
+    layout.order ? inOrder(rooms, layout.order) : readingOrder(rooms, nearestGrid(layout.grids, FILL_COLS));
+  if (byFloor(layout)) {
+    return model.map((g) => ({ key: g.floor?.floor_id ?? "_none", name: g.floor?.name, heading: true, rooms: floorOrder(g.rooms) }));
+  }
+  const floorByFloor = model.flatMap((g) => floorOrder(g.rooms));
+  const rooms = layout.flatOrder
+    ? inOrder(floorByFloor, layout.flatOrder)
+    : layout.flatGrids
+      ? readingOrder(floorByFloor, nearestGrid(layout.flatGrids, FILL_COLS))
+      : floorByFloor;
+  return [{ key: ALL_ROOMS, heading: false, rooms }];
+}
+
+/**
+ * Home's rows of cards in this layout, by area ID, every floor's and hidden rooms too (see `rows` in the home
+ * layout): the stored rows, without rooms HA no longer has, then rows filled with the rooms they don't list.
+ */
+export function homeRows(model: FloorGroup[], layout: HomeLayout, groups = groupsOf(model, layout)): string[][] {
+  const known = new Set(groups.flatMap((g) => g.rooms.map((r) => r.area.area_id)));
+  const listed = new Set<string>();
+  const rows = (rowsOf(layout) ?? [])
+    .map((row) => row.filter((id) => known.has(id) && !listed.has(id) && !!listed.add(id)))
+    .filter((row) => row.length > 0);
+  const hidden = new Set(hiddenOf(layout));
+  for (const group of groups) {
+    const rest = group.rooms.filter((r) => !listed.has(r.area.area_id));
+    const width = (r: Room) => ({ id: r.area.area_id, w: CARD_CELLS[sizeOf(layout, r.area.area_id)].w });
+    // The rooms on show first, so a home that never set its rows looks as it did.
+    rows.push(...fillRows(rest.filter((r) => !hidden.has(r.area.area_id)).map(width), FILL_COLS));
+    rows.push(...fillRows(rest.filter((r) => hidden.has(r.area.area_id)).map(width), FILL_COLS));
+  }
+  return rows;
+}
+
+/**
  * The home screen on a screen `cols` cells wide: the generated model with the home layout applied. Each card has
  * the layout's size, fitted to the screen and only as tall as its tiles (in edit mode a row more where the size
- * allows, to add one). Cards go in rows, in the layout's order (`order`, or `flatOrder` when Home doesn't group by
- * floor), the same on every screen width; rooms it doesn't list follow in HA's order. An arrangement from when cards
- * were placed freely (`grids`) gives the order until one is set. Hidden rooms have no card, and floors without rooms
- * are dropped.
+ * allows, to add one). Cards go in the layout's rows (`homeRows`), one under another; a row wider than the screen
+ * wraps inside itself. In edit mode the rows are half a cell apart, with a band there to drop a card into a new
+ * row. Hidden rooms have no card, and floors without rooms are dropped.
  */
 export function homeView(model: FloorGroup[], layout: HomeLayout, cols: number, editing = false): FloorView[] {
   const hidden = new Set(hiddenOf(layout));
-  const shown = (rooms: Room[]) => (hidden.size ? rooms.filter((r) => !hidden.has(r.area.area_id)) : rooms);
-  const floorOrder = (rooms: Room[]) =>
-    layout.order ? inOrder(rooms, layout.order) : readingOrder(rooms, nearestGrid(layout.grids, cols));
-
-  let groups: { key: string; name?: string; heading: boolean; rooms: Room[] }[];
-  if (byFloor(layout)) {
-    groups = model.map((g) => ({ key: g.floor?.floor_id ?? "_none", name: g.floor?.name, heading: true, rooms: floorOrder(shown(g.rooms)) }));
-  } else {
-    const floorByFloor = model.flatMap((g) => floorOrder(shown(g.rooms)));
-    const rooms = layout.flatOrder
-      ? inOrder(floorByFloor, layout.flatOrder)
-      : layout.flatGrids
-        ? readingOrder(floorByFloor, nearestGrid(layout.flatGrids, cols))
-        : floorByFloor;
-    groups = [{ key: ALL_ROOMS, heading: false, rooms }];
-  }
+  const groups = groupsOf(model, layout);
+  const allRows = homeRows(model, layout, groups);
+  const band = editing ? 1 : 0;
 
   return groups
     .map((group) => {
-      const cards = group.rooms.map((room) => {
-        const sizeName = sizeOf(layout, room.area.area_id);
-        const slots = slotsOf(layout, room.area.area_id);
-        const max = fittedSize(sizeName, cols);
-        const items = cardItems(room, max, slots);
-        return { room, sizeName, size: cached(shownSize(max, items, editing ? 1 : 0)), slots, items };
-      });
-      const boxes = rows(
-        cards.map((c) => ({ id: c.room.area.area_id, w: c.size.w, h: gridRows(c.size) })),
-        cols,
-      );
-      return {
-        key: group.key,
-        name: group.name,
-        heading: group.heading,
-        rooms: boxes.map((b, i) => ({ ...cards[i], x: b.x, y: b.y })),
-      };
+      const here = new Map(group.rooms.filter((r) => !hidden.has(r.area.area_id)).map((r) => [r.area.area_id, r]));
+      const rooms: RoomCardView[] = [];
+      const rows: FloorView["rows"] = [];
+      let y = band;
+      for (const ids of allRows) {
+        const cards = ids.flatMap((id) => {
+          const room = here.get(id);
+          if (!room) return [];
+          const sizeName = sizeOf(layout, id);
+          const slots = slotsOf(layout, id);
+          const max = fittedSize(sizeName, cols);
+          const items = cardItems(room, max, slots);
+          return [{ room, sizeName, size: cached(shownSize(max, items, editing ? 1 : 0)), slots, items }];
+        });
+        if (!cards.length) continue;
+        const boxes = flow(
+          cards.map((c) => ({ id: c.room.area.area_id, w: c.size.w, h: gridRows(c.size) })),
+          cols,
+        );
+        boxes.forEach((b, i) => rooms.push({ ...cards[i], x: b.x, y: y + b.y, stacked: cards.length > 1 }));
+        const h = Math.max(...boxes.map((b) => b.y + b.h));
+        rows.push({ first: boxes[0].id, y, h });
+        y += h + band;
+      }
+      const bands: FloorView["bands"] = !editing
+        ? []
+        : rows.map((row, i) => ({
+            y: i === 0 ? 0 : rows[i - 1].y + rows[i - 1].h,
+            drop: { kind: "before" as const, row: row.first },
+          }));
+      if (editing && rows.length) {
+        const last = rows[rows.length - 1];
+        bands.push({ y: last.y + last.h, drop: { kind: "after", row: last.first } });
+      }
+      return { key: group.key, name: group.name, heading: group.heading, rooms, rows, bands };
     })
     .filter((floor) => floor.rooms.length > 0);
 }

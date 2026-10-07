@@ -1,43 +1,66 @@
 <script lang="ts">
+  import { mdiPlus } from "@mdi/js";
   import { t } from "../i18n/index.svelte";
   import type { CardSize } from "../layout/homeLayout";
   import { dragItem } from "../layout/drag";
   import { GAP, grid } from "../layout/grid.svelte";
-  import { byFloor, tabsOf } from "../layout/homeLayout";
+  import { byFloor, sizeOf, tabsOf } from "../layout/homeLayout";
   import { editor } from "../layout/layoutEditor.svelte";
   import { homeLayout } from "../layout/layoutStore.svelte";
-  import { moveTo } from "../layout/rows";
-  import { gridRows, homeView, type RoomCardView } from "../model/homeView";
+  import { dropCard, ownRow, type Drop } from "../layout/rows";
+  import { gridRows, homeRows, homeView, type FloorView, type RoomCardView } from "../model/homeView";
   import { homeModel } from "../model/model.svelte";
   import CardEditor from "../ui/CardEditor.svelte";
   import EditBar from "../ui/EditBar.svelte";
   import FloorsToggle from "../ui/FloorsToggle.svelte";
   import HiddenRoomsMenu from "../ui/HiddenRoomsMenu.svelte";
+  import Icon from "../ui/Icon.svelte";
   import Header from "../ui/Header.svelte";
   import NavBand, { docked } from "../ui/NavBand.svelte";
   import TabsMenu from "../ui/TabsMenu.svelte";
   import RoomCard from "./RoomCard.svelte";
 
-  // Each floor is a full-width heading; its room cards sit in rows under it, in the layout's order and at its sizes
-  // (LAYOUTS.md, "The floor grid"). Without grouping by floor, all cards share one grid and there are no headings.
-  // In edit mode it shows the editor's draft.
+  // Each floor is a full-width heading; its room cards sit under it in the layout's rows, a room on its own or a stack
+  // of rooms side by side, at their sizes (LAYOUTS.md, "The floor grid"). Without grouping by floor, all cards share
+  // one grid and there are no headings. In edit mode it shows the editor's draft.
   const editing = $derived(editor.target === "/");
   const layout = $derived(editing ? editor.layout : homeLayout());
   const floors = $derived(homeView(homeModel(), layout, grid.cols, editing));
 
-  /** The card being dragged, to show where it will land. */
-  let dragging = $state<{ floor: string; id: string } | null>(null);
+  /** The card being dragged, to show where it will land, and the band it's over, if any. */
+  let dragging = $state<{ floor: string; id: string; band?: string } | null>(null);
 
-  /** Every card in the order Home shows them, all floors. */
-  const shownOrder = () => floors.flatMap((f) => f.rooms.map((r) => r.room.area.area_id));
   const floorOf = (key: string) => floors.find((f) => f.key === key)!;
+  const isFull = (id: string) => sizeOf(editor.layout, id) === "full";
+  const bandKey = (drop: Drop) => `${drop.kind}:${"row" in drop ? drop.row : drop.id}`;
 
-  /** A new size: the rows follow by themselves. */
-  const resize = (card: RoomCardView, size: CardSize) => editor.setSize(card.room.area.area_id, size);
+  /** A new size; a card that takes the whole row leaves its stack for a row of its own, where it was. */
+  function resize(card: RoomCardView, size: CardSize) {
+    const id = card.room.area.area_id;
+    editor.setSize(id, size);
+    if (size === "full") editor.setRows(ownRow(homeRows(homeModel(), editor.layout), id));
+  }
 
   /**
-   * Drag a card to another place in the order: when its middle is over another card on its floor, it takes that
-   * card's place, and the rows re-flow around it.
+   * Where a card dragged with its middle at (`x`, `y`) goes, in columns and rows of half a cell: next to the card
+   * under it, into a new row in the band under it, or at the end of the row whose free space it's over. Nothing
+   * while it's over its own place.
+   */
+  function dropAt(floor: FloorView, id: string, x: number, y: number): Drop | undefined {
+    const inside = (r: RoomCardView) => x >= r.x && x < r.x + r.size.w && y >= r.y && y < r.y + gridRows(r.size);
+    const under = floor.rooms.find(inside);
+    if (under) return under.room.area.area_id === id ? undefined : { kind: "card", id: under.room.area.area_id };
+    const band = floor.bands.find((b) => y >= b.y && y < b.y + 1);
+    if (band) return band.drop;
+    const row = floor.rows.find((r) => y >= r.y && y < r.y + r.h);
+    return row && { kind: "end", row: row.first };
+  }
+
+  /**
+   * Drag a card by its title: over another card it goes next to it (into that card's row), over the free space at the
+   * end of a row it goes last in it, and the rows re-flow around it as it goes. Over a band between rows the band
+   * lights up, and letting go there gives the card a row of its own: done only then, since a card on its way to
+   * another one crosses bands, and each would re-flow everything under the pointer.
    */
   function startDrag(e: PointerEvent, floorKey: string, card: RoomCardView) {
     const target = e.currentTarget as HTMLElement;
@@ -47,9 +70,18 @@
     const id = card.room.area.area_id;
     const pitchX = grid.cell * (1 + GAP); // a column and a gap
     const pitchY = pitchX / 2; // a row of half a cell and a gap
-    // The card it last took the place of: a bigger card that moves into the dragged one's old place may still be
-    // under the pointer, and taking its place again would swap the two back and forth.
+    // The drop it last made: after a card moves, what was under the pointer may move into its old place, and
+    // dropping there again would swap the two back and forth.
     let last: string | undefined;
+    /** The band it's over, to drop into when let go. */
+    let band: Drop | undefined;
+    const apply = (drop: Drop) => {
+      const rows = homeRows(homeModel(), editor.layout);
+      const next = dropCard(rows, id, drop, isFull);
+      if (next === rows) return false;
+      editor.setRows(next);
+      return true;
+    };
     dragging = { floor: floorKey, id };
     dragItem(
       e,
@@ -58,16 +90,19 @@
       (left, top) => {
         const x = (left + el.offsetWidth / 2) / pitchX;
         const y = (top + el.offsetHeight / 2) / pitchY;
-        const under = floorOf(floorKey).rooms.find(
-          (r) => r.room.area.area_id !== id && x >= r.x && x < r.x + r.size.w && y >= r.y && y < r.y + gridRows(r.size),
-        )?.room.area.area_id;
-        if (under === last) return false;
-        last = under;
-        if (!under) return false;
-        editor.setOrder(moveTo(shownOrder(), id, under));
-        return true;
+        const drop = dropAt(floorOf(floorKey), id, x, y);
+        const key = drop && bandKey(drop);
+        band = drop && (drop.kind === "before" || drop.kind === "after") ? drop : undefined;
+        const lit = band && key;
+        if (dragging && dragging.band !== lit) dragging.band = lit;
+        if (key === last) return false;
+        last = key;
+        return !!drop && !band && apply(drop);
       },
-      () => (dragging = null),
+      () => {
+        if (band) apply(band);
+        dragging = null;
+      },
     );
   }
 </script>
@@ -88,6 +123,22 @@
       <h2 class="floor-band">{floor.name ?? t("app.otherFloor")}</h2>
     {/if}
     <div class="floor-grid">
+      {#if editing}
+        <!-- Each row framed, empty space and all, so a stack reads as one; between rows, where a card gets a row. -->
+        {#each floor.rows as row (row.first)}
+          <div class="row-frame" style:grid-row="{row.y + 1} / span {row.h}"></div>
+        {/each}
+        {#each floor.bands as band (bandKey(band.drop))}
+          <div
+            class="row-band"
+            class:shown={dragging?.floor === floor.key}
+            class:over={dragging?.band === bandKey(band.drop)}
+            style:grid-row="{band.y + 1} / span 1"
+          >
+            <Icon path={mdiPlus} size={18} />{t("edit.newRow")}
+          </div>
+        {/each}
+      {/if}
       {#each floor.rooms as card (card.room.area.area_id)}
         {#if dragging?.floor === floor.key && dragging.id === card.room.area.area_id}
           <div
@@ -114,6 +165,7 @@
               onDrag={(e) => startDrag(e, floor.key, card)}
               onSlots={(slots) => editor.setSlots(card.room.area.area_id, slots)}
               onHide={() => editor.setRoomHidden(card.room.area.area_id, true)}
+              onOwnRow={card.stacked ? () => editor.setRows(ownRow(homeRows(homeModel(), editor.layout), card.room.area.area_id)) : undefined}
             />
           {/if}
         </div>
