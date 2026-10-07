@@ -5,7 +5,8 @@
 #
 # HA_URL is read when the container starts (docker/40-doma-config.sh), so one image works with any Home Assistant.
 
-FROM node:24-alpine AS build
+# The app is the same static files on every platform: build it on the builder's own (node has no arm/v7 image).
+FROM --platform=$BUILDPLATFORM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
