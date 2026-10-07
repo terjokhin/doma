@@ -4,6 +4,10 @@
 
 <h1 align="center">Doma</h1>
 
+<p align="center">
+  <a href="https://github.com/terjokhin/doma/releases/latest"><img src="https://img.shields.io/github/v/release/terjokhin/doma?sort=semver&label=latest" alt="Latest release" /></a>
+</p>
+
 *Doma* is Russian for "at home". A modern, calm UI for [Home Assistant](https://www.home-assistant.io/), made for big screens:
 a laptop browser, a wall-mounted tablet, a kiosk display. It's a static web app that talks
 to Home Assistant directly over its WebSocket API. There's no server of its own.
@@ -11,12 +15,47 @@ to Home Assistant directly over its WebSocket API. There's no server of its own.
 - Builds itself from your HA **floors, areas and devices**: no dashboard YAML to maintain.
 - **Lenses** show one thing across the whole house (lights, climate, security, devices), and
   **status chips** say when something needs a look: "3 lights on", "Door open · Hallway", "2 offline".
-- **Fast on old tablets**: about 45 KB of gzipped JavaScript, and it only subscribes to the
+- **Fast on old tablets**: about 65 KB of gzipped JavaScript, and it only subscribes to the
   entities on screen. Each tile re-renders only when its own entity changes.
 - Touch-first: large tap targets, no hover-only controls.
 - English UI, with Russian included; translations live in `src/i18n/*.json`.
 
 ## Quick start
+
+Doma runs as a small Docker container on any machine on your network (a NAS, a Raspberry Pi, the box next to Home
+Assistant), and any browser on the network opens it: a wall tablet, a laptop.
+
+1. **Give your screens their own Home Assistant user.** In HA, open **Settings → People → Add person**, name it
+   (say, "Wall panel"), turn on **Allow login**, choose a username and password, turn on **Can only log in from the
+   local network** and leave **Administrator** off. Doma keeps its layout per HA user, so every screen logged in as
+   this user shows the same Home, and a user that isn't an admin can't open HA's settings. HA has no per-entity
+   permissions, though: this user can still switch every device.
+
+2. **Run Doma**, telling it where Home Assistant is:
+
+   ```sh
+   docker run -d --name doma --restart unless-stopped -p 8080:8080 \
+     -e HA_URL=http://homeassistant.local:8123 ghcr.io/terjokhin/doma:latest
+   ```
+
+   The image is for amd64, arm64 and arm/v7 (a Raspberry Pi); Docker picks the right one. Compose and the details
+   are in [Running with Docker](#running-with-docker).
+
+3. **Open `http://<docker host>:8080`** on the screen. Doma sends you to Home Assistant's own sign-in page: log in
+   as the user from step 1, and you're on Home. The edit button arranges it; a wall tablet has its own tips in
+   [Running on a wall tablet](#running-on-a-wall-tablet).
+
+4. **Keep it up to date.** The latest version is on the chip at the top of this page and on the
+   [releases page](https://github.com/terjokhin/doma/releases), with what changed. To update:
+
+   ```sh
+   docker pull ghcr.io/terjokhin/doma:latest
+   docker rm -f doma    # then run step 2 again
+   ```
+
+   To stay on one version instead, use its tag, such as `ghcr.io/terjokhin/doma:0.1.0`; `:0.1` follows its fixes.
+
+## Running from source
 
 ```sh
 npm install
@@ -117,10 +156,8 @@ pre-release such as `v0.2.0-rc.1`) and makes a GitHub release with notes on how 
      download the APK in Silk and open it from the Docs app (**Local Storage → Download**).
    - Fully renders with the system WebView, not with Silk or Chrome, so check its version with
      `probe.html` inside Fully.
-3. Give the panel its own Home Assistant user: **Settings → People → Add person**, allow login,
-   turn on **Can only log in from the local network**, leave **Administrator** off. A non-admin
-   user can see and control entities but can't open HA's settings. HA has no per-entity
-   permissions, though: the user can control every entity, so use Fully's kiosk lock to keep
+3. Give the panel its own Home Assistant user, as in [Quick start](#quick-start). HA has no
+   per-entity permissions: the user can control every entity, so use Fully's kiosk lock to keep
    people inside the app. The panel stays logged in through its refresh token. Optionally, HA's
    `trusted_networks` auth provider can log in the tablet's IP without a password.
 4. Old Android devices (5.x) don't trust current Let's Encrypt certificates. On a home network,
@@ -137,15 +174,16 @@ pre-release such as `v0.2.0-rc.1`) and makes a GitHub release with notes on how 
   doors, windows, leak, smoke and gas sensors, locks. Devices: devices that are offline, and battery levels,
   lowest first.
 
-Under the home header, a band holds the **tabs** (Home, then the lenses you chose, in your order) and the
-**status chips**, which appear only when there's something to say; each opens its lens. On a phone the tabs
-move to a bar at the bottom. A room's back button returns to where you came from. Home and the lenses that are tabs
+On a wide screen (a tablet in landscape, a laptop) a **sidebar** at the left holds the clock, the date, the
+weather, the **status chips**, which appear only when there's something to say (each opens its lens), and the
+**tabs** (Home, then the lenses you chose, in your order). On a tablet in portrait they're under the home header
+instead, and on a phone the tabs move to a bar at the bottom. A room's back button returns to where you came from. Home and the lenses that are tabs
 stay built once visited, so going back to one is quick even on a slow tablet. Where this is heading (room
 templates, custom views): [ROADMAP.md](ROADMAP.md#views-and-navigation).
 
 ## Layouts
 
-The home screen shows each floor as a heading and each room as a card: its name, temperature and humidity, and
+The home screen shows each room as a card: its name, temperature and humidity, and
 its controls (lights, climate), with "+N" for what doesn't fit. Rooms go in rows: a room on its own, or a stack of
 rooms side by side. A card's size is its width: S, M (the default), L or the whole row; it's as tall as its tiles,
 up to two rows. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
@@ -156,11 +194,11 @@ cards and their sizes. It only stores those changes, so new rooms still appear b
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `doma.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
 tap the **edit button** next to the settings gear: drag a card by its title onto another card to stack them side by
-side, or onto **+ New row** between rows for a row of its own (**Own row** in its ⋯ menu does that too), pick its
-width (S, M, L or the whole row) from the chip on the card, set what the card shows (**+** adds a control, × removes
-one, drag one to move it, tap one to swap it; lights, switches, climate, scenes and an all-lights button), hide
-rooms from the card's ⋯ menu (**Hidden rooms** brings them back), untick **Group by floor** to put every card on one grid
-without floor headings, pick and order the tabs under **Tabs**, then **Done**.
+side, or onto **+ New row** between rows for a row of its own. Tap a room to select it: the bar at the bottom renames it (in Doma only; HA's
+area keeps its name), sets its width (S, M, L or the whole row), gives it its own row or hides it (**Hidden rooms** brings them back), and the
+card itself sets what it shows (**+** adds a control, × removes one, drag one to move it, tap one to swap it;
+lights, switches, climate, scenes and an all-lights button); pick and order the tabs under **Tabs**, then **Done**.
+At first each floor's rooms share a row; there are no floor headings.
 
 Room screens follow a **room template**, stored in the same layout. A room's edit button (in its header) lets you
 drag its sections by their titles into any column, rename them (tap the title), make them wider (the grip on
@@ -175,7 +213,7 @@ How the screen is divided into cells and sections, and how elements are sized: [
 src/
   ha/         connection (OAuth + WebSocket, or a fixture), subscriptions and the store
   model/      HA registries → floors → rooms → lights / climate / sensors …; lenses
-  ui/         tiles, header, navigation band, icons, formatting
+  ui/         tiles, header, sidebar, navigation band, icons, formatting
   screens/    Home, Room, Lens, Setup
   i18n/       en.json is the source; other languages translate it
   debug/      performance counters and the ?debug overlay

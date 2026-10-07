@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-07: Phase 6, Home, is well under way and was checked on the Fire HD; next is trying rows and stacks.*
+*Updated 2026-10-07: Phase 6, Home, is well under way; v0.1.0 is out; next is a Fire HD round with the sidebar.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -44,20 +44,28 @@ Where the app is going, in order, and how each step is checked. The README cover
     after a scene;
   - **cards**: no box, only as tall as their tiles (up to two rows); sizes are widths only (XS, M, Wide, Full; S, M, L, Full since 2026-10-07);
     cards go in **rows** in an order, so titles line up (replaced free placement, like HA's sections view);
-  - **editing Home**: each card's controls in place (add, remove, move, swap), hide rooms, Home with or without
-    floor grouping (each keeps its own order); drag a card by its title, one ⋯ menu per card;
-  - the header names the weather, its clock is smaller; a **Docker image** that's told where HA is at start.
-  Start-up JS 61.9 KB gzipped.
+  - **editing Home**: each card's controls in place (add, remove, move, swap), hide rooms; drag a card by its title, one ⋯ menu per card;
+  - the header names the weather, its clock is smaller; a **Docker image** that's told where HA is at start;
+  - **rows and stacks** (2026-10-07, tried on the tablet): Home's rows are kept in the layout, each a room on its
+    own or a stack of rooms side by side at their own sizes, like ha-fusion's horizontal stacks; sizes S, M, L and
+    Full; a stack wider than the screen wraps inside itself ([LAYOUTS.md](LAYOUTS.md), "The floor grid");
+  - **no floor grouping** on Home (2026-10-07): one grid of rows, starting with a row per floor; **rooms renamed**
+    in Doma (HA's areas keep their names); a smaller settings panel with the language as a switch;
+  - **a calmer edit mode** (2026-10-07): cards look as on Home until one is tapped; the selected room's size, row
+    and hiding are in a bar at the bottom, its controls' × and "+" on the card;
+  - **a sidebar on wide screens** (2026-10-07): from 1100 px wide, the clock, date, greeting, weather, status chips
+    and the tabs as a list sit in a column at the left of every screen, in place of the header and the tab band;
+    the Fire HD in landscape has 8 columns of about 106 px beside it ([LAYOUTS.md](LAYOUTS.md), "Navigation band
+    and sidebar");
+  - **v0.1.0**, the first release (2026-10-07): a version tag publishes the Docker image for amd64, arm64 and
+    arm/v7 and makes a GitHub release.
+  Start-up JS 64.1 KB gzipped.
 
 **Now: Phase 6, Home: run the house from one screen.** Next, in order:
-1. **Rows and stacks** (built 2026-10-07, to try on the tablet): Home's rows are kept in the layout; each is a room
-   on its own or a stack of rooms side by side at their own sizes, like ha-fusion's horizontal stacks. Dragging a
-   card onto another puts them side by side; onto "+ New row" between rows, or "Own row" in its menu, gives it a
-   row of its own; in edit mode each row is framed. A stack wider
-   than the screen wraps inside itself (other ways are noted in [LAYOUTS.md](LAYOUTS.md), "The floor grid").
-2. **A calmer edit mode** with a design pass (see Later): only the selected card shows its tools.
-3. Tile names are cut short ("Ceiling li…"): maybe drop the On / Off line on lights, so names get two lines.
-4. Then the rest of [Phase 6](#6-home-run-the-house-from-one-screen): merge rooms; blinds, media and locks as tiles
+1. **A round on the Fire HD** with the sidebar and the calmer edit mode (checked on a laptop only): screen changes,
+   scrolling Home, live updates, selecting and dragging in edit mode, against the budgets.
+2. Tile names are cut short ("Ceiling li…"): maybe drop the On / Off line on lights, so names get two lines.
+3. Then the rest of [Phase 6](#6-home-run-the-house-from-one-screen): merge rooms; blinds, media and locks as tiles
    with pop-ups; readings and alert badges in card titles; a house-wide section; rooms without tiles folded into one
    line of names.
 
@@ -137,9 +145,10 @@ where you build something of your own.
 - **At most two levels**: a view, then a room. Details of one device (brightness, colour, HVAC modes, history)
   open as a sheet over the screen, never as a page of their own.
 - **Tabs**: Home first, then the views you pick, in the order you pick them (in edit mode). A lens that isn't a
-  tab is still reached from its status chip. On a tablet the tabs sit in a band under the header, not in a side
-  rail: a rail one cell wide would cost a 1280 px screen four of its 12 columns. On a phone (4 columns) they
-  move to a bar at the bottom.
+  tab is still reached from its status chip. On a screen 1100 px wide or more they're a list in a **sidebar** at
+  the left, under the clock, the weather and the status chips (since 2026-10-07; it leaves the Fire HD in
+  landscape 8 columns instead of 12). A tablet in portrait has them in a band under the header; a phone (4
+  columns) in a bar at the bottom.
 - **Status chips** next to the tabs say what's going on, and only when there's something to say: "3 lights on",
   "2 heating", "Door open · Hallway", "2 offline". Each opens its lens, so the band doubles as the alerts row.
 - **Back** from a room goes to the screen you came from (Home or a lens).
@@ -407,10 +416,3 @@ add-on for HA OS users.
 - The Energy lens.
 - Free card sizes (drag a corner) instead of fixed ones.
 - Importers from Lovelace and ha-fusion, e-ink output.
-- A calmer edit mode on Home: every card shows only a faint outline, its name and plain tiles; tapping one selects it,
-  and only the selected card shows its size chip, the × on its tiles and a single "+". Today every card shows all of
-  them at once, which is busy, and the chip covers part of an XS room's name. Agreed 2026-10-06 to do later, with a
-  design pass.
-- A sidebar on landscape screens, like hass-config's: the clock, date, greeting, a "what's on" sentence and the
-  weather, in place of the header. On the Fire HD (8 columns) it would either drop Home to 4 columns or shrink the
-  cells by about 20% to keep 8; for now the header and status chips say the same (decided 2026-10-06).

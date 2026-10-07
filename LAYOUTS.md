@@ -3,7 +3,7 @@
 How Doma divides the screen and sizes everything on it. The short version: **one square cell is the unit for
 everything**, elements are sized in whole cells, sections are 4 cells wide, and a small packer arranges sections
 in columns like a masonry layout. On the home screen, room cards come in a few fixed sizes and sit on one cell
-grid per floor, where you place them. Lens screens pack sections like room screens, and Home and the lenses share a
+grid, in rows you make. Lens screens pack sections like room screens, and Home and the lenses share a
 navigation band. Nothing is sized in pixels except a few readability minimums.
 
 ## Goals
@@ -34,6 +34,9 @@ the cell, so everything scales together.
 cols = max(4, 4 × floor(W / 400))
 ```
 
+`W` is the width beside the **sidebar**: on a screen 1100 px wide or more there's one, 300 px wide, at the left
+(see "Navigation band and sidebar"), and `W` is the rest.
+
 **Cell size.** Fill the width exactly:
 
 ```
@@ -43,20 +46,23 @@ c = W / (cols + (cols − 1) × 0.1 + 2 × 0.25)
 
 Examples:
 
-| Screen | `W` | `cols` | `c` | Sections side by side |
-|---|---|---|---|---|
-| Phone | 390 | 4 | 81 px | 1 |
-| Tablet portrait | 800 | 8 | 87 px | 2 |
-| Tablet landscape (Fire HD 10) | 1280 | 12 | 94 px | 3 |
-| Laptop | 1440 | 12 | 106 px | 3 |
-| 24″ panel | 1920 | 16 | 107 px | 4 |
+| Screen | Width | `W` | `cols` | `c` | Sections side by side |
+|---|---|---|---|---|---|
+| Phone | 390 | 390 | 4 | 81 px | 1 |
+| Tablet portrait | 800 | 800 | 8 | 87 px | 2 |
+| Tablet landscape (Fire HD 10), with the sidebar | 1280 | 980 | 8 | 106 px | 2 |
+| Laptop, with the sidebar | 1440 | 1140 | 8 | 124 px | 2 |
+| 24″ panel, with the sidebar | 1920 | 1620 | 16 | 90 px | 4 |
+
+(Until 2026-10-07 there was no sidebar, and the Fire HD in landscape had 12 columns of 94 px.)
 
 Rows are the same size as columns: an element 1 cell tall is `c` high. The page scrolls vertically when the
 content is taller than the screen. (Shrinking cells so that a wall panel fits without scrolling is a possible
 later option, not a rule today.)
 
 **Where it's computed.** `layout/grid.svelte.ts` computes `cols` and `c` from the viewport at start and on
-`resize` / orientation change, and sets them on `:root` as `--cols`, `--cell`, `--gap` and `--pad`. Nothing else
+`resize` / orientation change, and sets them on `:root` as `--cols`, `--cell`, `--gap` and `--pad`, with
+`--sidebar` (its width, or 0). Nothing else
 reads the viewport size. `W` is `clientWidth`, and `scrollbar-gutter: stable` keeps it from changing when the page
 starts to scroll.
 
@@ -107,17 +113,26 @@ packed the same way, but have a fixed size (see "Room cards").
   columns (`denseRows` in `layout/pack.ts`).
 
 **Full-width bands** sit above the sections and span all columns: the home header (clock, date, weather) is
-a cell and a half; the navigation band under it (see "Navigation band") is as tall as a chip, or two chips when tabs and
-status chips don't fit side by side; the room and lens headers are 1 row; and each floor heading half a cell.
-Each floor's room cards fill their own grid under its heading (see "Room cards").
+a cell and a half; the navigation band under it (see "Navigation band and sidebar") is as tall as a chip, or two chips when tabs and
+status chips don't fit side by side; the room and lens headers are 1 row; and each floor heading on a lens half a
+cell. Home's room cards fill one grid (see "Room cards").
 
-## Navigation band
+## Navigation band and sidebar
 
-Home and the lens screens start with the same band (`ui/NavBand.svelte`): the **tabs** on the left (Home, then
-the user's lenses, in their order) and the **status chips** on the right, which only appear when they have
-something to say. Both are rows of chips the size of the smallest tap target, and wrap onto a second row when
-they don't fit side by side (a portrait tablet). Not a side rail: a rail one cell wide would take a 1280 px
-screen from 12 columns to 8.
+On a screen **1100 px wide or more** (the Fire HD in landscape, a laptop) a **sidebar** 300 px wide sits at the
+left of every screen (`ui/Sidebar.svelte`), in place of the home header and the band: the clock, the date, a
+greeting, the weather, **what's on** (the status chips, one under another, each opening its lens; nothing when all
+is calm), then the **tabs** as a list (Home, then the user's lenses, in their order), and at the bottom the edit
+button (on Home) and settings, which open upwards. It's fixed, on its own layer, and stays built while the screens
+change; while a screen is being edited it doesn't react, and its tabs follow Home's draft. Messages and Home's
+edit bar are centred on the screen beside it. On the Fire HD it leaves 8 columns of about 106 px: tiles as big as
+before, a little bigger even, for 4 fewer columns. (It replaced the header and band on wide screens on 2026-10-07,
+after the calm-cards design; the band had been chosen over a side rail to keep 12 columns.)
+
+Narrower screens (a tablet in portrait, phones) keep the header and the band. Home and the lens screens start
+with the same band (`ui/NavBand.svelte`): the **tabs** on the left and the **status chips** on the right, which
+only appear when they have something to say. Both are rows of chips the size of the smallest tap target, and wrap
+onto a second row when they don't fit side by side (a portrait tablet).
 
 On a phone (4 columns) the tabs leave the band for a **dock**, a bar fixed to the bottom of the screen with an
 icon over each name, on its own layer so scrolling doesn't repaint it; the screen gets bottom padding to match.
@@ -136,8 +151,8 @@ with three lights takes one row whatever its size; what doesn't fit in two rows 
 | L | 6 | 12 |
 | Full | the whole row | 2 rows of it |
 
-On the Fire HD in landscape (12 columns) a stack holds six S rooms, three M, two L, or an S, an M and an L. In
-portrait (8 columns) an L and an S fill a row. A Full room with fewer tiles than the row has columns is a one-liner.
+On the Fire HD (8 columns, in landscape beside the sidebar and in portrait) a row holds four S rooms, two M, an L
+and an S, or an M and two S. On 12 columns, six S, three M, two L, or an S, an M and an L. A Full room with fewer tiles than the row has columns is a one-liner.
 In the layout they're stored under their earlier names, `xs`, `m`, `wide` and `full`: until 2026-10-07 they were
 XS, M, Wide (8 cells) and Full, so a Wide room is now L. (Before 2026-10-06, `s` and `l` were a one-row and a
 three-row M; in rows they only left space under their neighbours, and they read as M.)
@@ -148,8 +163,8 @@ side are three gaps apart and the tiles within a room one. A card covers its cel
 `w × c + (w − 1) × g` wide; heights come in half cells. A card is never wider than the screen: on a 4-column phone
 an L card is 4 cells wide (and shows 4 tiles per row). Tiles are a step lighter than the page (`--card-control`).
 
-The title band shows the room's name, temperature and humidity (on an S card, which is 2 cells wide, only the
-name and temperature), and an arrow; tapping it opens the room. Below the band, the room's controls. Until a card
+The title band shows the room's name, temperature and humidity, small enough to fit an S card (2 cells wide;
+a long name is cut short first), and an arrow; tapping it opens the room. Below the band, the room's controls. Until a card
 is edited they're generated:
 
 - every control is a **1 × 1 tile** (`ui/Tile.svelte`), split in two: the round chip at the top left does the
@@ -188,7 +203,7 @@ In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) 
 
 ### The floor grid
 
-Each floor's cards fill one CSS grid as wide as the page: `cols` columns of `--cell`, gap `--gap`, and rows of
+Home's cards fill one CSS grid as wide as the page, with no floor headings: `cols` columns of `--cell`, gap `--gap`, and rows of
 **half a cell**, `(c − g) / 2`, so two rows and the gap between them make one cell. A card spans `w` columns and
 `2h` rows, at an explicit position: `x` in columns, `y` in rows of half a cell.
 
@@ -202,13 +217,15 @@ lost people's memory of where things are).
 
 The rows are the same on every screen width. A stack wider than the screen **wraps inside itself**: its cards
 continue on a line below, in order, and the next row still starts below the whole stack. So a stack of three M
-rooms is one line on a landscape tablet (12 columns), two and one in portrait (8) and three lines on a phone (4).
+rooms is one line on 12 columns, two and one on the Fire HD (8, in landscape beside the sidebar or in portrait)
+and three lines on a phone (4).
 (Other ways were weighed on 2026-10-07: rows kept per screen width, stacks coming apart on narrow screens as in
 ha-fusion, cards shrinking to fit, stacks scrolling sideways. Wrapping is the one being tried first.)
 
-A home that never set its rows gets them filled: its rooms in order, as many to a row as fit on 12 columns, the
-same on every screen, so it looks as it did when rows filled themselves. Rooms the rows don't list (a new room in
-HA) get rows of their own after the rest, filled the same way.
+A home that never set its rows starts with **one row per floor**, holding that floor's rooms (a row too wide for the
+screen wraps); from there, the rows are what you make of them. Rooms the rows don't list (a new room in HA) get a
+row per floor after the rest. There are no floor headings: until 2026-10-07 Home could group its cards by floor,
+under a heading each, but rows you arrange yourself do that job better.
 
 (Until 2026-10-06 cards were placed freely and floated up, a masonry; titles of rooms in different columns
 ended up at different heights. Until 2026-10-07 rows filled themselves in an order, so space couldn't be left
@@ -335,9 +352,7 @@ These rules target Chrome 108 (see the README):
 ## Layout model
 
 The layout stores **only the user's changes** on top of the layout generated from HA's floors and areas, never a
-full copy, so new rooms still appear by themselves. It holds **card sizes**, Home's **rows of cards**, whether
-Home **groups cards by floor**, the **tabs** and the **room
-template**. Rooms, areas and floors themselves are HA's and
+full copy, so new rooms still appear by themselves. It holds **card sizes**, Home's **rows of cards**, the **tabs** and the **room template**. Rooms, areas and floors themselves are HA's and
 aren't changed here.
 (`layout/homeLayout.ts`)
 
@@ -367,19 +382,20 @@ aren't changed here.
 
 - **`sizes`**: each card's size, `xs`, `s`, `m`, `l`, `wide` or `full` (the whole row); unlisted rooms are `m`.
   The same on every screen.
-- **`rows`**: Home's rows, in order, each a list of area IDs: one room, or a stack. Each floor shows the rows of
-  its rooms (the area's floor in HA; a row whose rooms are on two floors shows on each with that floor's rooms).
-  Rooms it doesn't list get rows of their own after the rest. The same on every screen width.
-- **`order`**, **`flatOrder`**: the order of the cards from when rows filled themselves (until 2026-10-07), and
-  **`grids.<cols>`**, **`flatGrids.<cols>`**: card positions from when cards were placed freely; only read, to
-  fill the rows until they're set.
+- **`rows`**: Home's rows, in order, each a list of area IDs: one room, or a stack. Rooms it doesn't list get a
+  row per floor after the rest (the area's floor in HA), so a home that never set its rows starts with one row per
+  floor. The same on every screen width.
+- **`order`**: the order of the cards from when rows filled themselves (until 2026-10-07), and **`grids.<cols>`**:
+  card positions from when cards were placed freely; only read, to order each floor's first row.
+- **`floors`** and **`flatRows`**: from when Home could group its cards by floor (until 2026-10-07; `floors: false`
+  meant it didn't, with its rows in `flatRows`). Only read, for the rows that were on screen; the next save keeps
+  them as `rows`.
 - **`hidden`**: the rooms hidden from Home, by area ID.
+- **`roomNames`**: names given to rooms in Doma, by area ID (at most 40 characters), shown everywhere in place of
+  HA's area name: cards, room screens, lenses, pop-ups, chips and messages. HA's areas aren't renamed, so no admin
+  login is needed, and HA's area name still takes the room off entity names ("Kitchen Spots" shows as "Spots").
 - **`cards`**: a card's own list of controls, by area ID: entity IDs, or `lights` for the all-lights button.
   Unlisted rooms show the generated controls. Like `hide`, it names entity IDs, since it picks single devices.
-- **`floors`**: `false` when Home doesn't group its cards by floor: every card is then on one grid, with no floor
-  headings. Unset means grouped.
-- **`flatRows`**: the rows on that one grid, like `rows`. Each way keeps its own, so switching back and forth
-  loses nothing; one not set yet starts with the floors in order.
 - **`tabs`**: the tabs after Home, in order: `lights`, `climate`, `security`, `devices`. Unset means all four in
   that order; `[]` means Home alone. Home is always the first tab. A lens that isn't a tab is still reached from
   its status chip.
@@ -411,13 +427,20 @@ right after appearing. (`layout/layoutStore.svelte.ts`)
 
 The **edit button** next to the settings gear turns the home screen into an editor; nothing is saved until **Done**.
 
-- Controls on the cards don't react (`inert`); each card shows an outline, and its **title band is the drag
-  handle** (a grip shows it on cards 4 cells wide or more). At the band's right, one **chip with the card's size**
-  opens its menu: every size, each with a miniature of its shape and a check on the current one; **Add a
-  control**; **Own row** (in a stack: it leaves the stack for a row of its own, where it was, at its size); and
-  **Hide room**. A tap outside or Escape closes it. The default size isn't stored. Nothing of the
-  editor reaches past the card, so even an S room keeps its name readable.
-- **Drag a card** to another place on its floor: by its title band on touch (only the band has `touch-action:
+- Controls on the cards don't react (`inert`), and the cards look as they do on Home. **Tap a room to select it**:
+  it gets an outline, its controls become slots to edit (below) with one "+", and the **bar at the bottom** of the
+  screen (`ui/EditDock.svelte`) shows its **name** (tap it to rename the room: see `roomNames` below; emptied, it
+  goes back to HA's), its **size** (S, M, L, Full), **Own row** (in a stack: it leaves
+  the stack for a row of its own, where it was, at its size), **Hide** and × to put it down. With nothing
+  selected, the bar says what a tap does. The bar is always in the same place, whichever room is selected, with
+  targets big enough for a wall tablet; nothing of the editor covers a card's name, even an S room's. A tap
+  outside the rooms or Escape puts the room down. The default size isn't stored. (Until 2026-10-07 every card
+  showed all its tools at once, with its size chip and menu in the title band: busy, and on a small card the chip
+  covered the name. Of three designs, a bar at the bottom was picked over the tools on the selected card and over
+  a plan of the rows with a pop-up per card.)
+- Every card's **title band is the drag handle** (a grip shows it on the selected card, 4 cells wide or more). A
+  drag starts once the pointer has moved a little, so a tap still selects.
+- **Drag a card** to another place: by its title band on touch (only the band has `touch-action:
   none`, so swiping anywhere else on a card still scrolls the page), from anywhere on the card with a mouse. Only
   the dragged card moves, with `transform`, and what happens depends on what its middle is over (`dropCard`):
   - **another card**: it goes next to it, into that card's row (before it when coming from below, else after it),
@@ -433,17 +456,16 @@ The **edit button** next to the settings gear turns the home screen into an edit
   and the free space to drop into is seen. (The band was first a thin line, shown only while dragging; on the
   tablet it wasn't clear that it was the way to a new row.)
 - **The card's controls** are slots in edit mode, laid out as they'll be shown: drag one to move it (it takes the
-  place of the control under its middle), tap it to swap it for another, × (in its top right corner) removes it; each free cell shows a "+".
-  "+" and "+N" open a menu of what the room has (all lights, its lights, climate, switches, scenes), ticked when
+  place of the control under its middle), tap it to swap it for another, × (in its top right corner) removes it;
+  the first free cell shows a "+" (the selected card grows a row for it if its rows are full). "+" and "+N" open a menu of what the room has (all lights, its lights, climate, switches, scenes), ticked when
   it's on the card, with **Back to automatic** once the card has its own list. The first change gives the card
   its own list, starting from what it showed.
-- **Hide a room** from its card's menu: its row closes up; shown again, it comes back in its row. **Hidden rooms** in the bar lists them; tap one to show its card again. A hidden room's screen is
+- **Hide a room** from the bar: its row closes up; shown again, it comes back in its row. **Hidden rooms** in the bar lists them; tap one to show its card again. A hidden room's screen is
   still reached from the lenses, and its devices still count in the status chips.
 - A new size keeps the card in its row, which wraps if it no longer fits; **Full** takes it out of its stack into a
   row of its own, where it was (the cards before and after it stay in rows of their own).
 - A bar replaces the header and sticks to the top (on a tablet without its hint, the title cut short, so the buttons
-  stay on one row): **Hidden rooms** (once a room is hidden), **Group by floor** (a checkbox; unticked, every card shares one
-  grid and there are no floor headings), **Tabs** (a menu: tick the lenses to show as tabs, order them
+  stay on one row): **Hidden rooms** (once a room is hidden), **Tabs** (a menu: tick the lenses to show as tabs, order them
   with arrows; the navigation band shows the draft), **Done** (saves, if anything changed), **Cancel** (discards)
   and **Reset to default** (the generated home screen with every lens as a tab, saved on Done; the room template
   stays). A failed save keeps the draft and says why.
