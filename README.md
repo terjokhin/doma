@@ -139,9 +139,11 @@ How it works: the page loads `config.js` before the app; the container's start s
 (`docker/40-doma-config.sh`) writes `HA_URL` into it, and `nginx` never lets browsers cache it or the page, while
 the hashed assets are kept for a year. A build-time `VITE_HA_URL` still works when there's no `HA_URL`.
 
-Releases: pushing a version tag (`git tag v0.1.0 && git push origin v0.1.0`) runs `.github/workflows/release.yml`,
+Releases: pushing a version tag (`git tag v0.3.0 && git push origin v0.3.0`) runs `.github/workflows/release.yml`,
 which pushes the image as `ghcr.io/terjokhin/doma:<version>`, `:<major>.<minor>` and `:latest` (not for a
-pre-release such as `v0.2.0-rc.1`) and makes a GitHub release with notes on how to run it.
+pre-release such as `v0.3.0-rc.1`) and makes a GitHub release with notes on how to run it. The tag is the only place
+the version is written: `package.json` says `0.0.0-dev`, and the image build sets the tag's version into it
+(`--build-arg VERSION=…`), so the app shows it at the bottom of its settings.
 
 ## Running on a wall tablet
 
