@@ -79,7 +79,8 @@
     "language": "Язык",
     "logout": "Выйти",
     "title": "Настройки",
-    "exitDemo": "Выйти из демо"
+    "exitDemo": "Выйти из демо",
+    "version": "Doma {{version}}"
   },
   "edit": {
     "open": "Настроить экран",

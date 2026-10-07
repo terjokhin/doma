@@ -11,8 +11,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+# The version the app shows: a release's comes from its tag (.github/workflows/release.yml); package.json says
+# 0.0.0-dev, so there's no second place to keep in step. Set after `npm ci`, so the dependencies stay cached.
+ARG VERSION=0.0.0-dev
 # The same checks as on a laptop: types, then the start-up size budget.
-RUN npm run build
+RUN npm pkg set version="$VERSION" && npm run build
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf

@@ -363,6 +363,12 @@ button {
   background: var(--surface-3);
 }
 
+.settings-version {
+  padding: var(--space-1) var(--space-3) var(--space-2);
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+}
+
 
 .status {
   position: fixed;

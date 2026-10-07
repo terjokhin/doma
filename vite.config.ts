@@ -1,4 +1,4 @@
-import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { defineConfig, type Plugin } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
@@ -53,8 +53,15 @@ function deviceProbe(): Plugin {
   };
 }
 
+/**
+ * The version the app shows (in settings). The release's tag is the only place it's written: package.json says
+ * 0.0.0-dev, and the Docker build sets the tag's version into it before building (see the Dockerfile).
+ */
+const version: string = JSON.parse(readFileSync("package.json", "utf8")).version;
+
 export default defineConfig({
   plugins: [svelte(), deviceProbe()],
+  define: { __APP_VERSION__: JSON.stringify(version) },
   // Relative base: the build can be served from any path (its own container, HA's /local/, …).
   base: "./",
   // The oldest browser we run on: Fire HD 10 (2017) with Fire OS 5, whose WebView is Chrome 108 (see probe.html).

@@ -39,6 +39,7 @@
         <Icon path={mdiLogout} size={20} />
         {inDemo ? t("settings.exitDemo") : t("settings.logout")}
       </button>
+      <div class="settings-version">{t("settings.version", { version: __APP_VERSION__ })}</div>
     </div>
   {/if}
 </div>

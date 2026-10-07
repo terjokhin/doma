@@ -79,7 +79,8 @@
     "language": "Language",
     "logout": "Log out",
     "title": "Settings",
-    "exitDemo": "Exit demo"
+    "exitDemo": "Exit demo",
+    "version": "Doma {{version}}"
   },
   "edit": {
     "open": "Edit layout",
