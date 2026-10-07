@@ -67,14 +67,13 @@ over Wi-Fi (no USB needed). If it can't connect, check your computer's firewall.
 
 ## Running with Docker
 
-The image builds the app (the same type check and size budget as `npm run build`) and serves it with an
-unprivileged nginx on port 8080. Tell it where Home Assistant is with `HA_URL`; it's read when the container starts,
-so one image works with any HA:
+The image serves the app with an unprivileged nginx on port 8080. Tell it where Home Assistant is with `HA_URL`;
+it's read when the container starts, so one image works with any HA. Each release has an image for amd64, arm64
+and arm/v7 (a Raspberry Pi) on GitHub's container registry:
 
 ```sh
-docker build -t doma .
 docker run -d --name doma --restart unless-stopped -p 8080:8080 \
-  -e HA_URL=http://homeassistant.local:8123 doma
+  -e HA_URL=http://homeassistant.local:8123 ghcr.io/terjokhin/doma
 ```
 
 or with Compose:
@@ -82,12 +81,15 @@ or with Compose:
 ```yaml
 services:
   doma:
-    build: .
+    image: ghcr.io/terjokhin/doma
     ports: ["8080:8080"]
     environment:
       HA_URL: http://homeassistant.local:8123
     restart: unless-stopped
 ```
+
+To build it yourself instead, `docker build -t doma .` (with the same type check and size budget as
+`npm run build`), and use `doma` as the image.
 
 Then open `http://<docker host>:8080` and log in on HA's own page. Without `HA_URL` the app asks for the address,
 as it does in development. Nothing needs changing in Home Assistant: it accepts Doma's address as the login's
@@ -97,6 +99,10 @@ to an HTTP one.
 How it works: the page loads `config.js` before the app; the container's start script
 (`docker/40-doma-config.sh`) writes `HA_URL` into it, and `nginx` never lets browsers cache it or the page, while
 the hashed assets are kept for a year. A build-time `VITE_HA_URL` still works when there's no `HA_URL`.
+
+Releases: pushing a version tag (`git tag v0.1.0 && git push origin v0.1.0`) runs `.github/workflows/release.yml`,
+which pushes the image as `ghcr.io/terjokhin/doma:<version>`, `:<major>.<minor>` and `:latest` (not for a
+pre-release such as `v0.2.0-rc.1`) and makes a GitHub release with notes on how to run it.
 
 ## Running on a wall tablet
 
