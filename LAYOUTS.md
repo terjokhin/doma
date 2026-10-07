@@ -88,10 +88,8 @@ Every element has a size in cells, `w × h`. Starting set:
 | Media tile | 2 × 1 |
 | Scene tile | 2 × 1 |
 | Climate tile | 4 × 2 |
-| Light button (room card) | 1 × 1 |
-| Compact climate (room card) | 2 × 1 |
-| "+N" button (room card) | 1 × 1 |
-| Room card | 2, 4, 6 or a whole row wide; half a cell of title plus up to two rows of tiles (see "Room cards") |
+| Tile on a room card (any control, and "+N") | 2 wide, a row of the card (¾ of a cell) tall |
+| Room card | 2, 4, 6 or a whole row wide; half a cell of title plus up to three rows of tiles (see "Room cards") |
 | Header (clock, date, weather) | full width × 1.5 |
 | Navigation band (tabs, status chips) | full width, one or two rows of chips |
 
@@ -140,46 +138,58 @@ Room screens have no tabs: they're one level down, with a back button.
 
 ## Room cards (home screen)
 
-Each room is a card in one of **four sizes**, and a size is only a **width**. Every card shows up to two rows of
-tiles, and is only as tall as its tiles need (in edit mode, one row more where there's room, to add one), so a room
-with three lights takes one row whatever its size; what doesn't fit in two rows goes into "+N":
+Each room is a card in one of **four sizes**, and a size is only a **width**. Every card shows up to three rows of
+slim tiles, two cells wide each, and is only as tall as its tiles need (in edit mode, a tile more where there's
+room, to add one), so a room with two lights takes one row on an M card; what doesn't fit in three rows goes into
+"+N":
 
 | Size | Width, in cells | Tiles, at most |
 |---|---|---|
-| S | 2 | 4 |
-| **M** (default) | 4 | 8 |
-| L | 6 | 12 |
-| Full | the whole row | 2 rows of it |
+| S | 2 | 3 |
+| **M** (default) | 4 | 6 |
+| L | 6 | 9 |
+| Full | the whole row | 3 rows of it |
 
 On the Fire HD (8 columns, in landscape beside the sidebar and in portrait) a row holds four S rooms, two M, an L
-and an S, or an M and two S. On 12 columns, six S, three M, two L, or an S, an M and an L. A Full room with fewer tiles than the row has columns is a one-liner.
+and an S, or an M and two S. On 12 columns, six S, three M, two L, or an S, an M and an L. A Full room with fewer tiles than fit in one row is a one-liner.
 In the layout they're stored under their earlier names, `xs`, `m`, `wide` and `full`: until 2026-10-07 they were
 XS, M, Wide (8 cells) and Full, so a Wide room is now L. (Before 2026-10-06, `s` and `l` were a one-row and a
 three-row M; in rows they only left space under their neighbours, and they read as M.)
 
-A card has **no box of its own**: a title band half a cell tall, then its rows of tiles, each a cell tall, with the
-gap that's left between the title and the tiles. The tiles are inset by a gap at each side, so two rooms side by
-side are three gaps apart and the tiles within a room one. A card covers its cells and the gaps between them:
-`w × c + (w − 1) × g` wide; heights come in half cells. A card is never wider than the screen: on a 4-column phone
-an L card is 4 cells wide (and shows 4 tiles per row). Tiles are a step lighter than the page (`--card-control`).
+A card has **no box of its own**: a title band half a cell tall, then its rows of tiles, each three quarters of a
+cell and its gap (`0.75 × (c + g)`, so a tile is about 0.73 of a cell tall: 77 px on the Fire HD), with the gap
+that's left between the title and the tiles. The tiles are inset by a gap at each side, so two rooms side by side
+are three gaps apart and the tiles within a room one. A card covers its cells and the gaps between them:
+`w × c + (w − 1) × g` wide; heights come in quarter cells. A card is never wider than the screen: on a 4-column
+phone an L card is 4 cells wide (and shows 2 tiles per row). Tiles are a step lighter than the page
+(`--card-control`).
 
 The title band shows the room's name, temperature and humidity, small enough to fit an S card (2 cells wide;
 a long name is cut short first), and an arrow; tapping it opens the room. Below the band, the room's controls. Until a card
 is edited they're generated:
 
-- every control is a **1 × 1 tile** (`ui/Tile.svelte`), split in two: the round chip at the top left does the
-  main thing (switch on or off; a climate device's power), the rest of the tile opens its **pop-up**. A ring at
-  the top right shows a light's brightness or a thermostat's target; the name and state are at the bottom. While
-  on, only the chip takes a colour (warm for lights, orange for heating, blue for cooling, teal for fans, blue-grey
-  for other devices) and the name brightens; the tile keeps its colour;
+- every control is a **slim tile** (`ui/Tile.svelte`), like Apple Home's: the round chip at the left, then the
+  name and state on two lines, and a thermostat's target at the right while it runs. It's split in two: the chip
+  does the main thing (switch on or off; a climate device's power), the rest of the tile opens its **pop-up**.
+  While on, only the chip takes a colour (warm for lights, orange for heating, blue for cooling, teal for fans,
+  blue-grey for other devices) and the name brightens; the tile keeps its colour;
+- a **dimmable light's tile fills** from the left to its brightness (a layer scaled with a transform, under the
+  text), and **dragging across it dims** the light (`ui/dim.svelte.ts`): the drag starts once the finger has moved
+  8 px sideways and moves the brightness from where it was by how far it went across the tile; a move up or down
+  first is left to scrolling (`touch-action: pan-y`), and a tap still opens the pop-up. The new brightness goes to
+  HA when the finger lifts (0 switches the light off); until HA reports it, or for 8 s, the tile shows what was
+  asked for. Room screens and lenses dim their light tiles the same way;
+- a climate device says its mode while it runs, with the target at the right; off, it says "Off" and its own
+  reading. − and + are in its pop-up. (A tile as wide as the card with − and + was tried on 2026-10-07 and
+  dropped: a whole row for one device, empty while it's off.)
 - the generated controls: lights, then climate devices, then heating switches (underfloor heating, a radiator: a
   switch whose ID says so);
-- **as many rows as the size has**. What doesn't fit is replaced by a 1 × 1 "+N" button that opens the room.
+- **as many rows as the size has**. What doesn't fit is replaced by a "+N" tile ("3 more") that opens the room.
   When something has to go, climate and heating are kept before lights; the order on screen stays lights first.
 - A room without lights, climate or heating keeps an empty card.
 
-A card can have **its own list** instead (edit mode, below), in the order you set: lights and switches as 1 × 1
-tiles, climate devices, scenes (a tap anywhere on the tile runs one) and **all lights**, one tile for all the
+A card can have **its own list** instead (edit mode, below), in the order you set: lights and switches, climate
+devices, scenes (a tap anywhere on the tile runs one) and **all lights**, one tile for all the
 room's lights (lit while any is on, showing how many; its chip turns them all off, or all on; the rest opens all
 of them in one pop-up). What doesn't fit goes into "+N" from the end. A control the room no longer has is skipped.
 
@@ -195,8 +205,8 @@ up from the bottom.
 change (`ui/pending.svelte.ts`): after 0.4 s without an answer, a thin arc turns around the icon; after 8 s, or if
 HA refuses, a message at the bottom of the screen says so and offers "Try again". Running a scene first keeps the
 states of what it changes (`scene.create` with `snapshot_entities`), then shows "<scene> is on · Undo" for 8 s;
-Undo brings them back (`ui/scene.ts`). The same tiles, split the same way, are used on room screens and lenses, in
-their own 2 × 1 size. In the demo, `?latency=1500` answers that late and `?fail` refuses everything.
+Undo brings them back (`ui/scene.ts`). Room screens and lenses split their tiles the same way, in their own 2 × 1
+size. In the demo, `?latency=1500` answers that late and `?fail` refuses everything.
 
 In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) in `model/roomCard.ts`, rendered by
 `screens/RoomCard.svelte`.
@@ -204,8 +214,9 @@ In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) 
 ### The floor grid
 
 Home's cards fill one CSS grid as wide as the page, with no floor headings: `cols` columns of `--cell`, gap `--gap`, and rows of
-**half a cell**, `(c − g) / 2`, so two rows and the gap between them make one cell. A card spans `w` columns and
-`2h` rows, at an explicit position: `x` in columns, `y` in rows of half a cell.
+**a quarter cell**, `(c − 3g) / 4`, so four rows and the gaps between them make one cell: a card's title band is
+two of them, a row of its tiles three. A card spans `w` columns and `4h` rows, at an explicit position: `x` in
+columns, `y` in rows of a quarter cell. (Until 2026-10-07 the rows were half a cell, for tiles a cell tall.)
 
 Positions come from a small placement step (`layout/rows.ts`), pure arithmetic on the sizes, so nothing is
 measured. **Cards go in rows that you make**, one under another: a row is a room on its own or a **stack** of
@@ -457,7 +468,7 @@ The **edit button** next to the settings gear turns the home screen into an edit
   tablet it wasn't clear that it was the way to a new row.)
 - **The card's controls** are slots in edit mode, laid out as they'll be shown: drag one to move it (it takes the
   place of the control under its middle), tap it to swap it for another, × (in its top right corner) removes it;
-  the first free cell shows a "+" (the selected card grows a row for it if its rows are full). "+" and "+N" open a menu of what the room has (all lights, its lights, climate, switches, scenes), ticked when
+  the first free place shows a "+", a tile wide (the selected card grows a row for it if its rows are full). "+" and "+N" open a menu of what the room has (all lights, its lights, climate, switches, scenes), ticked when
   it's on the card, with **Back to automatic** once the card has its own list. The first change gives the card
   its own list, starting from what it showed.
 - **Hide a room** from the bar: its row closes up; shown again, it comes back in its row. **Hidden rooms** in the bar lists them; tap one to show its card again. A hidden room's screen is

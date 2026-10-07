@@ -188,7 +188,8 @@ stay built once visited, so going back to one is quick even on a slow tablet. Th
 The home screen shows each room as a card: its name, temperature and humidity, and
 its controls (lights, climate), with "+N" for what doesn't fit. Rooms go in rows: a room on its own, or a stack of
 rooms side by side. A card's size is its width: S, M (the default), L or the whole row; it's as tall as its tiles,
-up to two rows. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
+up to three rows of slim tiles, two cells wide, like Apple Home's. The icon switches a device, the rest of the tile
+opens its controls, and dragging across a light's tile dims it. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
 the screen and reflows on rotation; the rules are in [LAYOUTS.md](LAYOUTS.md).
 
 The layout is generated from your HA floors and areas, and a **home layout** adjusts it: Home's rows of room

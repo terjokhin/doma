@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-07: v0.2.1 is out. The rest of the plan was dropped; next is a redesign of the device tile.*
+*Updated 2026-10-07: v0.2.2 is out, with the redesigned device tile. The rest of the plan was dropped.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -61,8 +61,15 @@ Where the app is going, in order, and how each step is checked. The README cover
     arm/v7 and makes a GitHub release.
   Start-up JS 64.1 KB gzipped.
 
-**Next: the device tile, redesigned.** The tile each device has (the 1 × 1 split tile on Home's cards, and the
-tiles on room screens and lenses), made more functional and slicker. That's the whole plan for now.
+- **The device tile, redesigned** (2026-10-07, v0.2.2; tried on the laptop and with a real HA, not yet measured
+  on the Fire HD): picked from three options on the design canvas (B: calm, filled to its level). Home's tiles
+  are **slim and long**, two cells wide and three quarters of a cell tall, like Apple Home's, up to three rows
+  per card; Home's grid went to quarter-cell rows for them. A dimmable light's tile **fills to its brightness**,
+  and **dragging across it dims** the light, on room screens and lenses too. A thermostat shows its target at the
+  right. Tried and dropped the same day: a climate tile as wide as the card with − and + (option C): a whole row
+  for one device, and empty while it's off. Start-up JS 65.4 KB gzipped.
+
+**Next:** nothing planned. A Fire HD round for the new tile (dragging to dim, update times with the fill) is due.
 
 The rest of the plan was dropped on 2026-10-07: merging rooms; blinds, media and locks as tiles; readings and alert
 badges in card titles; a house-wide section on Home; custom views; the Organiser; layout history; an HA add-on;
