@@ -81,6 +81,7 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-height: 100dvh;
+  margin-left: var(--sidebar); /* 0 without the sidebar */
   overflow: clip;
 }
 
@@ -206,6 +207,10 @@ button {
   gap: var(--space-2);
 }
 
+.weather svg {
+  flex: none;
+}
+
 .weather strong {
   color: var(--text);
   font-weight: 400;
@@ -305,6 +310,59 @@ button {
   background: var(--surface-3);
 }
 
+/* Settings (ui/SettingsMenu.svelte): small, the language as a switch and logging out under it. */
+.settings-menu {
+  min-width: 0;
+  width: max-content;
+  padding: var(--space-2);
+  border-radius: 1.4rem;
+  font-size: var(--text-s);
+}
+
+.settings-language {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0.2rem 0.2rem var(--space-3);
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-dim);
+}
+
+.settings-language svg {
+  flex: none;
+  margin-right: var(--space-1);
+}
+
+.settings-language button {
+  min-height: 2.5rem;
+  padding: 0 var(--space-3);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.settings-language button[aria-checked="true"] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.settings-logout {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: var(--space-1);
+  padding: 0 var(--space-3);
+  border-radius: 999px;
+  color: var(--alert);
+}
+
+.settings-logout:active {
+  background: var(--surface-3);
+}
+
 
 .status {
   position: fixed;
@@ -317,6 +375,122 @@ button {
   color: var(--text);
   font-size: var(--text-s);
   box-shadow: 0 10px 40px rgb(0 0 0 / 0.4);
+}
+
+/* ---- Sidebar (ui/Sidebar.svelte): on wide screens, in place of the header and the tab band ---- */
+
+/* Fixed at the left, on its own layer, so scrolling a screen doesn't repaint it. */
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 14;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar);
+  box-sizing: border-box;
+  padding: max(var(--space-6), env(safe-area-inset-top)) var(--space-5) var(--space-4) var(--space-6);
+  overflow-y: auto;
+  background: var(--surface);
+  box-shadow: inset -1px 0 0 var(--line);
+  will-change: transform;
+}
+
+.sidebar-clock {
+  font-size: 4.5rem;
+  font-weight: 250;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+}
+
+.sidebar-date {
+  margin-top: var(--space-3);
+  color: var(--text-dim);
+  font-size: var(--text-m);
+}
+
+.sidebar-greeting {
+  margin-top: var(--space-4);
+  font-size: var(--text-l);
+  font-weight: 600;
+}
+
+.sidebar .weather {
+  margin-top: var(--space-3);
+  color: var(--text-dim);
+}
+
+/* What's on: the lenses' status chips, one under another; nothing when all is calm. */
+.sidebar-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin-top: var(--space-4);
+}
+
+.sidebar-status:not(:has(.status-chip)) {
+  display: none;
+}
+
+.sidebar .status-chip {
+  min-height: 2.5rem;
+  text-align: left;
+}
+
+/* Home and the lenses, at the bottom where a thumb finds them. */
+.sidebar-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-top: auto;
+  padding-top: var(--space-4);
+}
+
+.sidebar-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 3rem;
+  padding: 0 var(--space-4);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: var(--text-m);
+  text-align: left;
+  transition: background var(--fast) var(--ease), transform var(--fast) var(--ease);
+}
+
+.sidebar-tab:active {
+  transform: scale(0.97);
+}
+
+.sidebar-tab[aria-current="page"] {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.sidebar-foot {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+/* Settings open upwards from the bottom left of the sidebar, inside it. */
+.sidebar-foot {
+  position: relative;
+}
+
+.sidebar-foot .menu-root {
+  position: static;
+}
+
+.sidebar .menu {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+  max-width: 100%;
 }
 
 /* ---- Navigation (ROADMAP.md, "Navigation") ---- */
@@ -594,20 +768,21 @@ button {
   display: flex;
   flex: 1;
   align-items: baseline;
-  gap: var(--space-3);
+  gap: var(--space-2);
   min-width: 0;
 }
 
-/* An S card is 2 cells wide: name and temperature only. */
-.narrow .room-humidity {
+/* An S card leaves out the arrow (the whole band still opens the room), so its name has the room. */
+.narrow .room-title > svg {
   display: none;
 }
 
+/* Small enough that an S card, 2 cells wide, shows the name, temperature and humidity; a long name is cut first. */
 .room-title .room-name {
   max-width: 100%;
   overflow: hidden;
   color: var(--text);
-  font-size: var(--text-l);
+  font-size: 1.125rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   text-overflow: ellipsis;
@@ -616,8 +791,9 @@ button {
 
 .room-title .room-climate {
   flex: 1;
+  gap: var(--space-2);
   margin: 0;
-  font-size: var(--text-s);
+  font-size: var(--text-xs);
   white-space: nowrap;
 }
 
@@ -830,13 +1006,13 @@ button {
 /* The message bar (ui/ToastHost.svelte): above everything, at the bottom; a phone's dock stays visible under it. */
 .toast {
   position: fixed;
-  left: 50%;
+  left: calc(50% + var(--sidebar) / 2); /* over the screen, beside the sidebar */
   bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
   z-index: 90;
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  max-width: calc(100% - 2 * var(--space-4));
+  max-width: calc(100% - var(--sidebar) - 2 * var(--space-4));
   min-height: var(--touch);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
   border-radius: 999px;
@@ -1452,6 +1628,139 @@ a.btn {
 /* The edit bar starts at the very top, so no strip of background shows above it. */
 .screen.editing {
   padding-top: 0;
+  padding-bottom: calc(var(--touch) + 2 * var(--space-5) + env(safe-area-inset-bottom, 0px));
+}
+
+/*
+ * Home's edit mode: a bar at the bottom with the selected room's size, "Own row" and "Hide", or a hint. Always in
+ * the same place; above a phone's dock, like a message.
+ */
+.edit-dock {
+  position: fixed;
+  left: calc(50% + var(--sidebar) / 2);
+  bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2) var(--space-3);
+  width: max-content;
+  max-width: calc(100% - var(--sidebar) - 2 * var(--space-4));
+  min-height: var(--touch);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
+  border-radius: 1.75rem;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 12px 30px rgb(0 0 0 / 0.45);
+  transform: translateX(-50%);
+}
+
+.edit-dock-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 14rem;
+  min-height: 2.75rem;
+  margin-left: calc(-1 * var(--space-3));
+  padding: 0 var(--space-3);
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.edit-dock-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-dock-name svg {
+  flex: none;
+  color: var(--text-dim);
+}
+
+.edit-dock-name:active {
+  background: var(--surface-3);
+}
+
+.edit-dock-input {
+  width: 12rem;
+  min-height: 2.75rem;
+  margin-left: calc(-1 * var(--space-3));
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: 999px;
+  outline: 2px solid var(--cool);
+  background: var(--surface-3);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+}
+
+.edit-dock-hint {
+  padding-right: var(--space-3);
+  color: var(--text-dim);
+  font-size: var(--text-s);
+}
+
+.edit-dock-sizes {
+  display: grid;
+  grid-auto-columns: minmax(2.75rem, auto);
+  grid-auto-flow: column;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+
+.edit-dock-sizes button {
+  min-height: 2.5rem;
+  padding: 0 var(--space-3);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+
+.edit-dock-sizes button[aria-checked="true"] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.edit-dock-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  padding: 0 var(--space-3);
+  border-radius: 999px;
+  font-size: var(--text-s);
+  font-weight: 500;
+}
+
+.edit-dock-action:active,
+.edit-dock-close:active {
+  background: var(--surface-3);
+}
+
+.edit-dock-close {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--text-dim);
+}
+
+@media (max-width: 600px) {
+  .edit-dock {
+    bottom: calc(var(--touch) + 2 * var(--space-1) + var(--space-4) + env(safe-area-inset-bottom, 0px));
+    padding-left: var(--space-3);
+  }
+
+  .screen.editing.docked {
+    padding-bottom: calc(2 * var(--touch) + 4 * var(--space-5) + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Replaces the header, sticks to the top. Opaque, so nothing shows through while scrolling. Above the cards' size
@@ -1535,19 +1844,33 @@ a.btn {
   position: relative;
 }
 
-/* Over a card being edited: its controls dimmed, an outline, the size chip and the drag handle. */
+/*
+ * Over a card in edit mode. Until it's selected, nothing shows: the card looks as it does on Home, and a tap
+ * anywhere selects it. Selected, an outline and its controls as slots to edit.
+ */
 .card-edit {
   position: absolute;
   inset: 0;
   border-radius: var(--radius-l);
-  background: rgb(14 16 19 / 0.55);
-  box-shadow: inset 0 0 0 2px var(--cool);
   cursor: grab;
+  user-select: none; /* a mouse moves a little before the drag starts */
+  -webkit-user-select: none;
+}
+
+.card-edit.selected {
+  z-index: 1;
+  box-shadow: 0 0 0 2px var(--cool);
+}
+
+.card-pick {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-l);
 }
 
 /*
- * In the title band, level with the title: the drag handle, hide, "+" and the size chip, on the right.
- * Above the other cards; the one with an open menu above every other band (they share one stacking level).
+ * The title band: the drag handle, and where the controls menu opens, on the right. Above the other cards; the
+ * one with an open menu above every other band (they share one stacking level).
  */
 .card-edit-bar {
   position: absolute;
@@ -1579,131 +1902,11 @@ a.btn {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 5.2rem; /* the grip just left of the size chip */
+  padding-right: var(--space-4);
   border-radius: var(--radius-l) var(--radius-l) 0 0;
   color: var(--text-dim);
   cursor: grab;
   touch-action: none;
-}
-
-.card-menu {
-  min-width: 15rem;
-}
-
-.menu-sep {
-  height: 1px;
-  margin: var(--space-2) 0;
-  background: var(--line-strong);
-}
-
-/* Round buttons as small as the size chip, with a bigger tap target than they look. */
-.edit-btn {
-  position: relative;
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 1.8rem;
-  height: 1.8rem;
-  border-radius: 50%;
-  background: var(--surface-3);
-  box-shadow: inset 0 0 0 1px var(--line-strong);
-  color: var(--text);
-  transition: transform var(--fast) var(--ease);
-}
-
-.edit-btn::before {
-  content: "";
-  position: absolute;
-  inset: -0.5rem -0.2rem;
-}
-
-.edit-btn:active {
-  transform: scale(0.92);
-}
-
-.edit-btn[aria-expanded="true"] {
-  background: var(--text);
-  color: var(--bg);
-}
-
-.size-chip {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.1rem;
-  height: 1.8rem;
-  padding: 0 0.4rem 0 0.7rem;
-  border-radius: 999px;
-  background: var(--surface-3); /* opaque: nothing of the card shows through */
-  box-shadow: inset 0 0 0 1px var(--line-strong);
-  color: var(--text);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  transition: background var(--fast) var(--ease), transform var(--fast) var(--ease);
-}
-
-/* A bigger tap target than it looks. */
-.size-chip::before {
-  content: "";
-  position: absolute;
-  inset: -0.6rem -0.4rem;
-}
-
-.size-chip[aria-expanded="true"] {
-  background: var(--text);
-  color: var(--bg);
-}
-
-.size-chip:active {
-  transform: scale(0.95);
-}
-
-
-.size-option {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  min-height: 2.75rem;
-  padding: 0 var(--space-2);
-  border-radius: var(--radius-s);
-  color: var(--text);
-  font-size: var(--text-s);
-  text-align: left;
-}
-
-.size-option:active,
-.size-option[aria-checked="true"] {
-  background: var(--surface-3);
-}
-
-/* A miniature of the card's shape, to scale. */
-.size-glyph-box {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 2.4rem;
-}
-
-.size-glyph {
-  border-radius: 0.2rem;
-  box-shadow: inset 0 0 0 1.5px var(--text-dim);
-}
-
-.size-option[aria-checked="true"] .size-glyph {
-  background: var(--cool);
-  box-shadow: none;
-}
-
-.size-name {
-  flex: 1;
-  font-weight: 500;
-}
-
-.size-cells {
-  color: var(--text-dim);
-  font-size: var(--text-xs);
 }
 
 .size-check {
@@ -1711,8 +1914,6 @@ a.btn {
   width: 1rem;
   color: var(--cool);
 }
-
-/* Touch drags the card only here, so the rest of the card scrolls the page. */
 
 /* The controls menu: what the room has, ticked when it's on the card; or what to swap a control for. */
 .slot-menu {

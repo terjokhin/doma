@@ -15,7 +15,7 @@
   import { GAP, grid } from "../layout/grid.svelte";
   import GridItem from "../layout/GridItem.svelte";
   import { editor } from "../layout/layoutEditor.svelte";
-  import { homeLayout } from "../layout/layoutStore.svelte";
+  import { homeLayout, roomName } from "../layout/layoutStore.svelte";
   import { sectionHeight, type Size } from "../layout/pack";
   import {
     arrangeSections,
@@ -418,7 +418,7 @@
   <main class="screen" class:editing>
     {#if editing}
       <EditBar
-        title={t("roomEdit.title", { room: area.name })}
+        title={t("roomEdit.title", { room: roomName(area) })}
         hint={t("roomEdit.hint")}
         onReset={() => editor.resetRoom(areaId)}
       >
@@ -436,7 +436,7 @@
         <button class="round-btn" aria-label={t("room.back")} onclick={back}>
           <Icon path={mdiChevronLeft} size={28} />
         </button>
-        <h1>{area.name}</h1>
+        <h1>{roomName(area)}</h1>
         <div class="room-climate">
           {#if temperature}<span>{formatTemperature(temperature)}</span>{/if}
           {#if humidity}<span>{formatHumidity(humidity)}</span>{/if}

@@ -1,3 +1,4 @@
+import type { AreaEntry } from "../ha/types";
 import { isLensId, LENS_IDS, type LensId } from "../model/lenses";
 import { parseRoomLayout, type RoomLayout } from "./roomTemplate";
 
@@ -39,29 +40,31 @@ export interface HomeLayout {
   /** Rooms without a card on Home, by area ID. Their screens are still reached from the lenses. */
   hidden?: string[];
   /**
+   * Names given to rooms in Doma, by area ID, shown everywhere in place of HA's area name. HA's areas aren't
+   * renamed: no admin login, and the area name still strips the room from entity names ("Kitchen Spots" → "Spots").
+   */
+  roomNames?: Record<string, string>;
+  /**
    * Home's rows of room cards, by area ID, in order (`layout/rows.ts`): a room on its own, or a stack of rooms side
-   * by side. With floors, each floor shows the rows of its rooms. Rooms they don't list get rows of their own after
-   * the rest, filled as the screen allows. Unset: rows filled in the order of `order`.
+   * by side. Rooms they don't list get a row per floor after the rest. Unset: a row per floor.
    */
   rows?: string[][];
-  /** Home's rows when it doesn't group by floor: like `rows`, which keeps its own. */
+  /**
+   * From when Home could group its cards by floor (until 2026-10-07): `floors: false` meant it didn't, and its rows
+   * were `flatRows`. Only read, for the rows that were on screen; the first save keeps them as `rows`.
+   */
+  floors?: false;
   flatRows?: string[][];
   /**
    * The order of the room cards on Home, by area ID, from before rows were kept (until 2026-10-07). Only read: it
-   * seeds the rows until they're set. Unset: the order of `grids`, else HA's.
+   * orders each floor's first row until the rows are set. Unset: the order of `grids`, else HA's.
    */
   order?: string[];
-  /** Whether Home groups its cards by floor. Unset: it does. Only `false` is stored. */
-  floors?: false;
-  /** Like `order`, when Home doesn't group by floor. */
-  flatOrder?: string[];
   /**
    * Card positions by column count ("12", "4", …), then by area ID, from when cards were placed freely (before
    * 2026-10-06). Only read: an arrangement made then seeds the order until the order is set.
    */
   grids?: Record<string, Record<string, Position>>;
-  /** Like `grids`, for Home's one grid. */
-  flatGrids?: Record<string, Record<string, Position>>;
   /**
    * A room card's own controls, in order, by area ID: entity IDs, or "lights" for all the room's lights
    * (`model/roomCard.ts`). Unlisted rooms: the generated controls.
@@ -75,11 +78,14 @@ export interface HomeLayout {
 
 export const EMPTY_LAYOUT: HomeLayout = { version: 1 };
 
-/** Whether Home groups its cards by floor in this layout. */
-export const byFloor = (layout: HomeLayout) => layout.floors !== false;
+/** Home's rows of cards in this layout (the ones on screen in a layout from before 2026-10-07); undefined while never set. */
+export const rowsOf = (layout: HomeLayout) => (layout.floors === false ? layout.flatRows : layout.rows);
 
-/** The rows of cards Home uses in this layout, grouped by floor or not; undefined while they were never set. */
-export const rowsOf = (layout: HomeLayout) => (byFloor(layout) ? layout.rows : layout.flatRows);
+/** The longest name a room can be given. */
+export const ROOM_NAME_MAX = 40;
+
+/** A room's name in this layout: the one given in Doma, else HA's. */
+export const roomNameOf = (layout: HomeLayout, area: AreaEntry): string => layout.roomNames?.[area.area_id] ?? area.name;
 
 /** The rooms hidden from Home in this layout. */
 export const hiddenOf = (layout: HomeLayout): readonly string[] => layout.hidden ?? [];
@@ -150,11 +156,16 @@ export function parseLayout(value: unknown): HomeLayout {
   if (Array.isArray(value.hidden)) {
     layout.hidden = [...new Set(value.hidden.filter((id): id is string => typeof id === "string"))];
   }
+  if (isObject(value.roomNames)) {
+    const names: Record<string, string> = {};
+    for (const [areaId, name] of Object.entries(value.roomNames)) {
+      if (typeof name === "string" && name.trim()) names[areaId] = name.trim().slice(0, ROOM_NAME_MAX);
+    }
+    layout.roomNames = names;
+  }
   const grids = parseGrids(value.grids);
   if (grids) layout.grids = grids;
   if (value.floors === false) layout.floors = false;
-  const flatGrids = parseGrids(value.flatGrids);
-  if (flatGrids) layout.flatGrids = flatGrids;
   if (isObject(value.cards)) {
     layout.cards = {};
     for (const [areaId, slots] of Object.entries(value.cards)) {
@@ -170,9 +181,8 @@ export function parseLayout(value: unknown): HomeLayout {
       .map((row) => (Array.isArray(row) ? row : []).filter((id): id is string => typeof id === "string" && !seen.has(id) && !!seen.add(id)))
       .filter((row) => row.length > 0);
   }
-  for (const key of ["order", "flatOrder"] as const) {
-    const ids = value[key];
-    if (Array.isArray(ids)) layout[key] = [...new Set(ids.filter((id): id is string => typeof id === "string"))];
+  if (Array.isArray(value.order)) {
+    layout.order = [...new Set(value.order.filter((id): id is string => typeof id === "string"))];
   }
   if (Array.isArray(value.tabs)) {
     layout.tabs = [...new Set(value.tabs.filter((id): id is LensId => typeof id === "string" && isLensId(id)))];

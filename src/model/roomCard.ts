@@ -11,7 +11,7 @@ import type { Room } from "./home";
 export const CARD_CELLS: Record<CardSize, Size> = {
   xs: { w: 2, h: 2.5 },
   m: { w: 4, h: 2.5 },
-  // Half the Fire HD's row in landscape: two side by side, or one next to an M and an S.
+  // Next to an S, the Fire HD's row beside the sidebar (8 columns); half a 12-column row.
   wide: { w: 6, h: 2.5 },
   // The whole row, however wide the screen (`fitCard` narrows it).
   full: { w: 64, h: 2.5 },
@@ -24,11 +24,12 @@ export const TITLE_CELLS = 0.5;
 export const cardRows = (size: Size) => Math.ceil(size.h - TITLE_CELLS);
 
 /**
- * The size a card shows, at most `max`: its width, and only as tall as its tiles need; `spare` rows more where the
- * size allows (edit mode, so there's room to add one). A card without tiles is just its title.
+ * The size a card shows, at most `max`: its width, and only as tall as its tiles need, with `spare` free cells
+ * where the size allows (edit mode, for the "+" that adds one). A card without tiles is just its title.
  */
 export function shownSize(max: Size, items: CardItem[], spare = 0): Size {
-  const rows = Math.min(cardRows(max), denseRows(items.map((i) => i.size), max.w) + spare);
+  const cells = items.map((i) => i.size).concat(Array.from({ length: spare }, () => ({ w: 1, h: 1 })));
+  const rows = Math.min(cardRows(max), denseRows(cells, max.w));
   return { w: max.w, h: TITLE_CELLS + rows };
 }
 

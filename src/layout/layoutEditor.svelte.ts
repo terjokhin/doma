@@ -1,5 +1,6 @@
 import type { LensId } from "../model/lenses";
-import { byFloor, DEFAULT_CARD_SIZE, EMPTY_LAYOUT, type CardSize, type HomeLayout } from "./homeLayout";
+import type { AreaEntry } from "../ha/types";
+import { DEFAULT_CARD_SIZE, EMPTY_LAYOUT, ROOM_NAME_MAX, type CardSize, type HomeLayout } from "./homeLayout";
 import { homeLayout, saveLayout } from "./layoutStore.svelte";
 import { DEFAULT_SECTIONS, roomSections, withRoom, withTemplate, type SectionTemplate } from "./roomTemplate";
 
@@ -46,17 +47,11 @@ export const editor = {
   reset() {
     if (draft) draft = draft.room ? { ...EMPTY_LAYOUT, room: draft.room } : EMPTY_LAYOUT;
   },
-  /** Home's rows of room cards, grouped by floor or not, whichever Home shows; the same on every screen width. */
+  /** Home's rows of room cards; the same on every screen width. (A layout's old floor-grouping fields go.) */
   setRows(rows: readonly string[][]) {
     if (!draft) return;
-    const copy = rows.map((r) => [...r]);
-    draft = byFloor(draft) ? { ...draft, rows: copy } : { ...draft, flatRows: copy };
-  },
-  /** Whether Home groups its cards by floor. Each way keeps its own rows. */
-  setByFloor(on: boolean) {
-    if (!draft) return;
-    const { floors: _, ...rest } = draft;
-    draft = on ? rest : { ...rest, floors: false };
+    const { floors: _, flatRows: __, ...rest } = draft;
+    draft = { ...rest, rows: rows.map((r) => [...r]) };
   },
   /** A room card's size. The default size isn't stored. */
   setSize(areaId: string, size: CardSize) {
@@ -64,6 +59,14 @@ export const editor = {
     const { [areaId]: _, ...sizes } = draft.sizes ?? {};
     if (size !== DEFAULT_CARD_SIZE) sizes[areaId] = size;
     draft = { ...draft, sizes };
+  },
+  /** A room's name in Doma; empty, or HA's own name, goes back to HA's. */
+  setRoomName(area: AreaEntry, name: string) {
+    if (!draft) return;
+    const given = name.trim().slice(0, ROOM_NAME_MAX);
+    const { [area.area_id]: _, ...roomNames } = draft.roomNames ?? {};
+    if (given && given !== area.name) roomNames[area.area_id] = given;
+    draft = { ...draft, roomNames };
   },
   /** Hide a room's card from Home, or show it again. */
   setRoomHidden(areaId: string, hidden: boolean) {

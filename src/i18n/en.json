@@ -84,7 +84,7 @@
   "edit": {
     "open": "Edit layout",
     "title": "Arrange the home screen",
-    "hint": "Drag a card by its title: onto another card or the empty end of a row to put it in that row, onto \"+ New row\" between rows for a row of its own. ⋯ sets its size, takes it out of its row, adds a control or hides the room. On a card, × removes a control; drag one to move it, tap it to swap it.",
+    "hint": "Drag a room by its name: onto another room to put them side by side, onto \"+ New row\" for a row of its own.",
     "done": "Done",
     "cancel": "Cancel",
     "reset": "Reset",
@@ -97,7 +97,6 @@
       "wide": "L",
       "full": "Full"
     },
-    "byFloor": "Group by floor",
     "tabs": "Tabs",
     "tabsHint": "Which tabs to show, in order",
     "moveUp": "Move {{name}} up",
@@ -114,13 +113,15 @@
     "hiddenRooms": "Hidden rooms",
     "hiddenRoomsHint": "Tap a room to show its card again",
     "showRoom": "Show {{name}}",
-    "wholeRow": "a row of its own",
-    "cardMenu": "{{name}}: size {{size}}, more",
     "size": "Size",
-    "addControlItem": "Add a control",
-    "hideRoomItem": "Hide room",
     "newRow": "New row",
-    "ownRowItem": "Own row"
+    "ownRowItem": "Own row",
+    "pick": "Change {{name}}",
+    "hideItem": "Hide",
+    "closeRoom": "Done with {{name}}",
+    "dockHint": "Tap a room to change its size, row or controls.",
+    "rename": "Rename {{name}}",
+    "roomName": "Room name"
   },
   "views": {
     "home": "Home"

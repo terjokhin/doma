@@ -12,6 +12,7 @@
   import { home, justLoggedOut, setBackend } from "./ha/store.svelte";
   import { useBackend } from "./ha/subscriptions.svelte";
   import { noteScreenKept } from "./debug/stats";
+  import { grid } from "./layout/grid.svelte";
   import { tabsOf } from "./layout/homeLayout";
   import { homeLayout, useLayoutBackend } from "./layout/layoutStore.svelte";
   import { t } from "./i18n/index.svelte";
@@ -23,6 +24,7 @@
   import SetupScreen from "./screens/SetupScreen.svelte";
   import { presetHaUrl } from "./config";
   import SheetHost from "./ui/SheetHost.svelte";
+  import Sidebar from "./ui/Sidebar.svelte";
   import ToastHost from "./ui/ToastHost.svelte";
 
   type Boot = { phase: "loading" } | { phase: "setup"; error?: string } | { phase: "ready" };
@@ -117,6 +119,7 @@
 {:else if boot.phase === "setup"}
   <SetupScreen defaultUrl={presetHaUrl() ?? lastUrl()} error={boot.error} onConnect={start} />
 {:else}
+  {#if grid.sidebar}<Sidebar />{/if}
   <div class="screens">
     {#each kept as s (s)}
       <div class="screen-layer" class:hidden={s !== screen} inert={s !== screen}>

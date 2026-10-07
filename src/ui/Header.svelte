@@ -1,53 +1,27 @@
 <script lang="ts">
   import { mdiViewDashboardEditOutline } from "@mdi/js";
-  import { home } from "../ha/store.svelte";
-  import { watchEntities } from "../ha/subscriptions.svelte";
-  import { exists, language, t } from "../i18n/index.svelte";
+  import { t } from "../i18n/index.svelte";
   import { editor } from "../layout/layoutEditor.svelte";
-  import { weatherEntityId } from "../model/model.svelte";
-  import { formatNumber } from "./format";
+  import { clock, formatDate, formatTime, greetingKey } from "./clock.svelte";
   import Icon from "./Icon.svelte";
-  import { entityIcon } from "./icons";
   import SettingsMenu from "./SettingsMenu.svelte";
+  import Weather from "./Weather.svelte";
 
-  /** Big clock, date and outside weather (its temperature, and the sky in words): readable from across the room. */
-
-  let now = $state(new Date());
-  $effect(() => {
-    const id = setInterval(() => (now = new Date()), 10_000);
-    return () => clearInterval(id);
-  });
-
-  function greetingKey(hour: number) {
-    if (hour < 5) return "home.greeting_night";
-    if (hour < 12) return "home.greeting_morning";
-    if (hour < 18) return "home.greeting_afternoon";
-    if (hour < 23) return "home.greeting_evening";
-    return "home.greeting_night";
-  }
-
-  const timeFormat = $derived(new Intl.DateTimeFormat(language(), { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }));
-  const dateFormat = $derived(new Intl.DateTimeFormat(language(), { weekday: "long", day: "numeric", month: "long" }));
-  const weatherId = $derived(weatherEntityId());
-  watchEntities(() => [weatherId]);
-  const weather = $derived(home.entity(weatherId));
+  /**
+   * Big clock, date and outside weather (its temperature, and the sky in words): readable from across the room.
+   * On wide screens the sidebar (ui/Sidebar.svelte) shows them instead.
+   */
 </script>
 
 <header class="header">
   <div>
-    <div class="clock">{timeFormat.format(now)}</div>
+    <div class="clock">{formatTime(clock.now)}</div>
     <div class="header-sub">
-      {t(greetingKey(now.getHours()))} · {dateFormat.format(now)}
+      {t(greetingKey(clock.now.getHours()))} · {formatDate(clock.now)}
     </div>
   </div>
   <div class="header-side">
-    {#if weather && weather.attributes.temperature != null}
-      <div class="weather">
-        <Icon path={entityIcon(weather)} size={32} />
-        <strong>{formatNumber(weather.attributes.temperature)}°</strong>
-        {#if exists(`weather.${weather.state}`)}<span class="weather-text">{t(`weather.${weather.state}`)}</span>{/if}
-      </div>
-    {/if}
+    <Weather />
     <button class="round-btn" aria-label={t("edit.open")} onclick={() => editor.start("/")}>
       <Icon path={mdiViewDashboardEditOutline} />
     </button>

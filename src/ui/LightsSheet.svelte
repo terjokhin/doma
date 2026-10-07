@@ -3,6 +3,7 @@
   import { home } from "../ha/store.svelte";
   import { watchEntities } from "../ha/subscriptions.svelte";
   import { t } from "../i18n/index.svelte";
+  import { roomName } from "../layout/layoutStore.svelte";
   import { entityName, type Room } from "../model/home";
   import BrightnessBar from "./BrightnessBar.svelte";
   import { formatState, isUnavailable } from "./format";
@@ -32,12 +33,12 @@
   tint="tint-light"
   active={on > 0}
   {name}
-  sub="{room.area.name} · {on ? t('home.lightsOn', { count: on }) : t('state.off')}"
+  sub="{roomName(room.area)} · {on ? t('home.lightsOn', { count: on }) : t('state.off')}"
   chipLabel={on ? t("tile.turnOff", { name }) : t("tile.turnOn", { name })}
   pending={isPending(key)}
-  onChip={() => send(key, room.lights, `${room.area.name}: ${name}`, () => switchAll(room.lights, on > 0))}
+  onChip={() => send(key, room.lights, `${roomName(room.area)}: ${name}`, () => switchAll(room.lights, on > 0))}
   areaId={room.area.area_id}
-  roomName={room.area.name}
+  roomName={roomName(room.area)}
 >
   {#each lights as { s, light, name: lightName } (s.entity_id)}
     <div class="sheet-light tint-light" class:on={light.on}>

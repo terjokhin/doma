@@ -12,22 +12,33 @@ export const GAP = 0.1;
 export const PAD = 0.25;
 /** A section is this many cells wide. */
 export const SECTION_WIDTH = 4;
+/**
+ * From this screen width there's a sidebar (ui/Sidebar.svelte) this wide, and the grid is what's left: on the Fire
+ * HD in landscape, 8 columns of about 106 px. A tablet in portrait and phones keep the header and the tab band.
+ */
+const SIDEBAR_FROM = 1100;
+const SIDEBAR_WIDTH = 300;
 
 interface Grid {
   cols: number;
   cell: number;
+  /** The sidebar's width in CSS px; 0 without one. */
+  sidebar: number;
 }
 
 function measure(): Grid {
   // clientWidth leaves out a classic scrollbar; `scrollbar-gutter: stable` keeps it from changing.
-  const width = document.documentElement.clientWidth;
+  const screen = document.documentElement.clientWidth;
+  const sidebar = screen >= SIDEBAR_FROM ? SIDEBAR_WIDTH : 0;
+  const width = screen - sidebar;
   const cols = Math.max(SECTION_WIDTH, SECTION_WIDTH * Math.floor(width / (SECTION_WIDTH * CELL_TARGET)));
   const cell = width / (cols + (cols - 1) * GAP + 2 * PAD);
-  return { cols, cell };
+  return { cols, cell, sidebar };
 }
 
-function apply({ cols, cell }: Grid) {
+function apply({ cols, cell, sidebar }: Grid) {
   const root = document.documentElement.style;
+  root.setProperty("--sidebar", `${sidebar}px`);
   root.setProperty("--cols", String(cols));
   root.setProperty("--cell", `${cell}px`);
   root.setProperty("--gap", `${cell * GAP}px`);
@@ -44,7 +55,7 @@ window.addEventListener("resize", () => {
   requestAnimationFrame(() => {
     pending = false;
     const next = measure();
-    if (next.cols === current.cols && Math.abs(next.cell - current.cell) < 0.01) return;
+    if (next.cols === current.cols && next.sidebar === current.sidebar && Math.abs(next.cell - current.cell) < 0.01) return;
     apply(next);
     current = next;
   });
@@ -59,7 +70,11 @@ export const grid = {
   get cell() {
     return current.cell;
   },
-  /** Sections side by side: 1 on a phone, 2 on a portrait tablet, 3 on a landscape tablet. */
+  /** Whether the screen has the sidebar, in place of the header and the tab band. */
+  get sidebar() {
+    return current.sidebar > 0;
+  },
+  /** Sections side by side: 1 on a phone, 2 on a portrait tablet or a landscape one with the sidebar. */
   get sectionColumns() {
     return current.cols / SECTION_WIDTH;
   },

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { mdiCog, mdiLogout } from "@mdi/js";
+  import { mdiCog, mdiTranslate, mdiLogout } from "@mdi/js";
   import { logout } from "../ha/store.svelte";
   import { LANGUAGES, language, setLanguage, t, type Language } from "../i18n/index.svelte";
   import Icon from "./Icon.svelte";
@@ -27,17 +27,16 @@
     <Icon path={mdiCog} />
   </button>
   {#if open}
-    <div class="menu" role="menu">
-      <div class="menu-label">{t("settings.language")}</div>
-      <div class="menu-row">
+    <!-- Small: the language as a switch, and logging out under it. -->
+    <div class="menu settings-menu" role="menu">
+      <div class="settings-language" role="radiogroup" aria-label={t("settings.language")}>
+        <Icon path={mdiTranslate} size={18} />
         {#each languages as l (l)}
-          <button class="chip" aria-pressed={language() === l} onclick={() => setLanguage(l)}>
-            {LANGUAGES[l]}
-          </button>
+          <button role="radio" aria-checked={language() === l} onclick={() => setLanguage(l)}>{LANGUAGES[l]}</button>
         {/each}
       </div>
-      <button class="menu-item" role="menuitem" onclick={() => void logout()}>
-        <Icon path={mdiLogout} />
+      <button class="settings-logout" role="menuitem" onclick={() => void logout()}>
+        <Icon path={mdiLogout} size={20} />
         {inDemo ? t("settings.exitDemo") : t("settings.logout")}
       </button>
     </div>

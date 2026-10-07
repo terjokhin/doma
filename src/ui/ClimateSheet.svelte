@@ -4,6 +4,7 @@
   import { watchEntities } from "../ha/subscriptions.svelte";
   import type { AreaEntry } from "../ha/types";
   import { t } from "../i18n/index.svelte";
+  import { roomName } from "../layout/layoutStore.svelte";
   import { entityName } from "../model/home";
   import { climateOf, setMode, stepTarget, togglePower } from "./climate";
   import { formatNumber, formatState, isUnavailable } from "./format";
@@ -34,13 +35,13 @@
     tint={tintOf(s)}
     active={isActive(s)}
     {name}
-    sub="{area.name} · {t(`hvac.${s.state}`, { defaultValue: formatState(s).value })}"
+    sub="{roomName(area)} · {t(`hvac.${s.state}`, { defaultValue: formatState(s).value })}"
     chipLabel={c.off ? t("climate.turnOn") : t("climate.turnOff")}
     chipDisabled={isUnavailable(s) || !c.canTogglePower}
     pending={isPending(entityId)}
     onChip={power}
     areaId={area.area_id}
-    roomName={area.name}
+    roomName={roomName(area)}
   >
     {#if c.target !== undefined}
       <div class="sheet-temp">

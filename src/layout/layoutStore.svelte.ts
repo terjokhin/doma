@@ -1,5 +1,6 @@
 import type { Backend } from "../ha/store.svelte";
-import { EMPTY_LAYOUT, parseLayout, type HomeLayout } from "./homeLayout";
+import type { AreaEntry } from "../ha/types";
+import { EMPTY_LAYOUT, parseLayout, roomNameOf, type HomeLayout } from "./homeLayout";
 
 /**
  * The logged-in user's home layout, kept in sync with HA: it's read through a subscription, so a change saved on
@@ -12,6 +13,9 @@ let stop: (() => void) | undefined;
 
 /** The current home layout. Reactive. */
 export const homeLayout = () => current;
+
+/** A room's name, as given in Doma or else HA's. Reactive. */
+export const roomName = (area: AreaEntry) => roomNameOf(current, area);
 
 /**
  * Follow the stored layout through this backend. Resolves once the first value arrived (so the home screen

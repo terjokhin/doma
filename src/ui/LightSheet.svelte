@@ -3,6 +3,7 @@
   import { watchEntities } from "../ha/subscriptions.svelte";
   import type { AreaEntry } from "../ha/types";
   import { t } from "../i18n/index.svelte";
+  import { roomName } from "../layout/layoutStore.svelte";
   import { entityName } from "../model/home";
   import BrightnessBar from "./BrightnessBar.svelte";
   import { formatState, formatTime, isUnavailable } from "./format";
@@ -39,13 +40,13 @@
     tint={tintOf(s)}
     active={light.on}
     {name}
-    sub="{area.name} · {formatState(s).value}"
+    sub="{roomName(area)} · {formatState(s).value}"
     chipLabel={light.on ? t("tile.turnOff", { name }) : t("tile.turnOn", { name })}
     chipDisabled={isUnavailable(s)}
     pending={isPending(entityId)}
     onChip={flip}
     areaId={area.area_id}
-    roomName={area.name}
+    roomName={roomName(area)}
   >
     {#if light.dimmable}
       <div>

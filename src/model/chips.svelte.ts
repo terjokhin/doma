@@ -1,3 +1,4 @@
+import { roomName } from "../layout/layoutStore.svelte";
 import { allRooms, LENS_IDS, LENSES, type Chip, type LensId } from "./lenses";
 import { homeModel } from "./model.svelte";
 
@@ -7,7 +8,7 @@ import { homeModel } from "./model.svelte";
  * recomputed the Devices chip once per kept screen.
  */
 function chipOf(lens: LensId) {
-  const chip = $derived(LENSES[lens].chip(allRooms(homeModel())));
+  const chip = $derived(LENSES[lens].chip(allRooms(homeModel()), (room) => roomName(room.area)));
   return () => chip;
 }
 

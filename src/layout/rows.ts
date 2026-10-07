@@ -37,22 +37,6 @@ export function flow(cards: { id: string; w: number; h: number }[], cols: number
   return boxes;
 }
 
-/** Cards in order, cut into rows as they fill a grid `cols` wide: the rows of a home that never set them. */
-export function fillRows(cards: { id: string; w: number }[], cols: number): string[][] {
-  const rows: string[][] = [];
-  let x = cols;
-  for (const card of cards) {
-    const w = Math.min(card.w, cols);
-    if (x + w > cols) {
-      rows.push([]);
-      x = 0;
-    }
-    rows[rows.length - 1].push(card.id);
-    x += w;
-  }
-  return rows;
-}
-
 /** Where a dragged card goes: next to another card, at the end of a row, or into a new row before or after one. */
 export type Drop =
   | { kind: "card"; id: string }

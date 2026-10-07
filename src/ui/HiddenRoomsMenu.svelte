@@ -1,7 +1,7 @@
 <script lang="ts">
   import { mdiEyeOffOutline, mdiEyeOutline } from "@mdi/js";
   import { t } from "../i18n/index.svelte";
-  import { hiddenOf } from "../layout/homeLayout";
+  import { hiddenOf, roomNameOf } from "../layout/homeLayout";
   import { editor } from "../layout/layoutEditor.svelte";
   import { allRooms } from "../model/lenses";
   import { homeModel } from "../model/model.svelte";
@@ -54,11 +54,11 @@
             <button
               class="tab-check"
               role="menuitem"
-              aria-label={t("edit.showRoom", { name: room.area.name })}
+              aria-label={t("edit.showRoom", { name: roomNameOf(editor.layout, room.area) })}
               onclick={() => show(room.area.area_id)}
             >
               <Icon path={mdiEyeOutline} size={20} />
-              <span class="tab-name">{room.area.name}</span>
+              <span class="tab-name">{roomNameOf(editor.layout, room.area)}</span>
             </button>
           </div>
         {/each}

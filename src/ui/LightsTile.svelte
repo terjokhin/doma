@@ -3,6 +3,7 @@
   import { home } from "../ha/store.svelte";
   import { watchEntities } from "../ha/subscriptions.svelte";
   import { t } from "../i18n/index.svelte";
+  import { roomName } from "../layout/layoutStore.svelte";
   import type { Room } from "../model/home";
   import { switchAll } from "./light";
   import { isPending, send } from "./pending.svelte";
@@ -27,6 +28,6 @@
   pending={isPending(key)}
   chipLabel={on ? t("tile.turnOff", { name }) : t("tile.turnOn", { name })}
   bodyLabel={t("tile.more", { name })}
-  onChip={() => send(key, room.lights, `${room.area.name}: ${name}`, () => switchAll(room.lights, on > 0))}
+  onChip={() => send(key, room.lights, `${roomName(room.area)}: ${name}`, () => switchAll(room.lights, on > 0))}
   onBody={() => sheet.open({ kind: "lights", room })}
 />

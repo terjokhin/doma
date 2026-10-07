@@ -33,7 +33,7 @@ interface Lens {
   /** The entities its chip reads, so the screens that show chips subscribe to them. */
   watched(room: Room): string[];
   /** The chip's message, from live states, or undefined when there's nothing to say. */
-  chip(rooms: Room[]): Omit<Chip, "lens"> | undefined;
+  chip(rooms: Room[], roomName: (room: Room) => string): Omit<Chip, "lens"> | undefined;
 }
 
 const state = (id: string) => home.entity(id);
@@ -113,7 +113,7 @@ export const LENSES: Record<LensId, Lens> = {
   security: {
     items: (room) => sensors(room.safety),
     watched: (room) => room.safety,
-    chip(rooms) {
+    chip(rooms, roomName) {
       const found = (classes: Set<string>, active: (s: HassEntity) => boolean) =>
         rooms.flatMap((room) =>
           room.safety
@@ -124,7 +124,7 @@ export const LENSES: Record<LensId, Lens> = {
       const alarms = found(ALARM_CLASSES, (s) => s.state === "on");
       if (alarms.length === 1) {
         const [{ room, cls }] = alarms;
-        return { text: t(`lens.chips.alarm.${cls}`, { room: room.area.name }), tone: "alert" };
+        return { text: t(`lens.chips.alarm.${cls}`, { room: roomName(room) }), tone: "alert" };
       }
       if (alarms.length) return { text: t("lens.chips.alarms", { count: alarms.length }), tone: "alert" };
       const open = found(OPEN_CLASSES, (s) => s.state === "on");
@@ -132,7 +132,7 @@ export const LENSES: Record<LensId, Lens> = {
       const parts = [];
       if (open.length === 1) {
         const [{ room, cls }] = open;
-        parts.push(t(`lens.chips.open.${cls === "window" ? "window" : cls === "door" ? "door" : "other"}`, { room: room.area.name }));
+        parts.push(t(`lens.chips.open.${cls === "window" ? "window" : cls === "door" ? "door" : "other"}`, { room: roomName(room) }));
       } else if (open.length) parts.push(t("lens.chips.openCount", { count: open.length }));
       if (unlocked) parts.push(t("lens.chips.unlocked", { count: unlocked }));
       return parts.length ? { text: parts.join(" · "), tone: "warn" } : undefined;

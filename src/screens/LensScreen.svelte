@@ -4,8 +4,9 @@
   import { watchEntities } from "../ha/subscriptions.svelte";
   import { t } from "../i18n/index.svelte";
   import GridItem from "../layout/GridItem.svelte";
+  import { grid } from "../layout/grid.svelte";
   import { tabsOf } from "../layout/homeLayout";
-  import { homeLayout } from "../layout/layoutStore.svelte";
+  import { homeLayout, roomName } from "../layout/layoutStore.svelte";
   import { sectionHeight } from "../layout/pack";
   import Section from "../layout/Section.svelte";
   import SectionColumns from "../layout/SectionColumns.svelte";
@@ -56,7 +57,7 @@
 {#snippet section(s: LensSection)}
   {#snippet head()}
     <button class="section-link" onclick={() => navigate(`/room/${s.room.area.area_id}`)}>
-      <h2>{s.room.area.name}</h2>
+      <h2>{roomName(s.room.area)}</h2>
       <Icon path={mdiChevronRight} size={18} />
     </button>
     {#if lens === "lights" && s.room.lights.length > 1}
@@ -84,7 +85,7 @@
 {/snippet}
 
 <main class="screen" class:docked={docked()}>
-  <NavBand current={lens} tabs={tabsOf(homeLayout())} />
+  {#if !grid.sidebar}<NavBand current={lens} tabs={tabsOf(homeLayout())} />{/if}
   <header class="lens-header">
     <h1>{t(`lens.names.${lens}`)}</h1>
     <span class="lens-summary {summary?.tone ?? ''}">{summary?.text ?? t(`lens.calm.${lens}`)}</span>
