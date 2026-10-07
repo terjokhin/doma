@@ -14,7 +14,7 @@ export interface RoomCardView {
   size: Size;
   /** Its own controls, in order; undefined when it shows the generated ones. */
   slots?: string[];
-  /** Where it sits on its floor's grid: `x` in columns, `y` in rows of half a cell (see layout/rows.ts). */
+  /** Where it sits on Home's grid: `x` in columns, `y` in rows of a quarter cell (see layout/rows.ts). */
   x: number;
   y: number;
   /** Whether other cards share its row: a stack. */
@@ -26,9 +26,9 @@ export interface RoomCardView {
 export interface HomeGrid {
   /** In reading order. */
   rooms: RoomCardView[];
-  /** Its rows: `y` and `h` in rows of half a cell, `first` the area ID that names the row. */
+  /** Its rows: `y` and `h` in rows of a quarter cell, `first` the area ID that names the row. */
   rows: { first: string; y: number; h: number }[];
-  /** In edit mode, the gaps before, between and after its rows, half a cell tall: a card dropped there gets a row. */
+  /** In edit mode, the gaps before, between and after its rows, half a cell tall (`BAND_ROWS`): a card dropped there gets a row. */
   bands: { y: number; drop: Drop }[];
 }
 
@@ -56,8 +56,14 @@ function cardItems(room: Room, size: Size, slots: string[] | undefined): CardIte
   return cached.items;
 }
 
-/** Grid rows a card spans: its height in cells, in rows of half a cell. */
-export const gridRows = (size: Size) => size.h * 2;
+/**
+ * Grid rows a card spans: its height in cells, in rows of a quarter cell (four of them and the gaps between make a
+ * cell). A title band is two, a row of tiles three (model/roomCard.ts).
+ */
+export const gridRows = (size: Size) => Math.round(size.h * 4);
+
+/** In edit mode, the band between rows where a card gets a row of its own: half a cell, in grid rows. */
+export const BAND_ROWS = 2;
 
 /** Rooms in `order`; those it doesn't list keep their order, after the rest. */
 function inOrder(rooms: Room[], order: readonly string[]): Room[] {
@@ -127,7 +133,7 @@ export function homeView(
 ): HomeGrid {
   const hidden = new Set(hiddenOf(layout));
   const here = new Map(allRoomsOf(model).filter((r) => !hidden.has(r.area.area_id)).map((r) => [r.area.area_id, r]));
-  const band = editing ? 1 : 0;
+  const band = editing ? BAND_ROWS : 0;
   const rooms: RoomCardView[] = [];
   const rows: HomeGrid["rows"] = [];
   let y = band;

@@ -3,7 +3,7 @@
  * by side, each at its own width; the rows are kept in the home layout, one under another. A stack wider than the
  * screen wraps inside itself, and the next row still starts below it. Like ha-fusion's horizontal stacks, but with
  * the rooms' own widths. Pure arithmetic, nothing is measured. Positions are in grid units: `x` in columns, `y` in
- * rows of half a cell.
+ * rows of a quarter cell.
  */
 
 export interface Box {

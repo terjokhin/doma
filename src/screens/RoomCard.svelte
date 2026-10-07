@@ -15,7 +15,7 @@
 
   /**
    * A room on the home screen: a card of `size` cells (LAYOUTS.md, "Room cards"): a title band that opens the
-   * room, then a row of its controls per cell below it (see roomCardItems): its own list, or the generated one.
+   * room, then up to three rows of its controls below it (see roomCardItems): its own list, or the generated one.
    * While `editing`, the card's own controls don't react (the edit overlay is ui/CardEditor.svelte).
    */
   let {
@@ -32,7 +32,7 @@
   const open = () => navigate(`/room/${room.area.area_id}`);
 </script>
 
-<section class="room-card" class:short={size.h < 2} class:narrow={size.w < 4} style:--card-w={size.w} style:--card-rows={cardRows(size)}>
+<section class="room-card" class:narrow={size.w < 4} style:--card-w={size.w} style:--card-rows={cardRows(size)}>
   <button class="room-title" onclick={open} inert={editing}>
     <span class="room-label">
       <span class="room-name">{name}</span>
@@ -51,8 +51,10 @@
         {:else if item.kind !== "more"}
           <EntityTile entityId={item.id} area={room.area} />
         {:else}
-          <button class="mini more" aria-label={t("home.more", { count: item.count })} onclick={open}>
-            +{item.count}
+          <button class="card-more" onclick={open}>
+            <span class="tile-chip">+{item.count}</span>
+            <span class="card-tile-name">{t("home.more", { count: item.count })}</span>
+            <Icon path={mdiChevronRight} size={22} />
           </button>
         {/if}
       </GridItem>

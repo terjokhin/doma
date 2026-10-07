@@ -8,7 +8,7 @@
   import { editor } from "../layout/layoutEditor.svelte";
   import { homeLayout } from "../layout/layoutStore.svelte";
   import { dropCard, ownRow, type Drop } from "../layout/rows";
-  import { gridRows, homeRows, homeView, type RoomCardView } from "../model/homeView";
+  import { BAND_ROWS, gridRows, homeRows, homeView, type RoomCardView } from "../model/homeView";
   import { homeModel } from "../model/model.svelte";
   import CardEditor from "../ui/CardEditor.svelte";
   import EditBar from "../ui/EditBar.svelte";
@@ -59,7 +59,7 @@
   }
 
   /**
-   * Where a card dragged with its middle at (`x`, `y`) goes, in columns and rows of half a cell: next to the card
+   * Where a card dragged with its middle at (`x`, `y`) goes, in columns and rows of a quarter cell: next to the card
    * under it, into a new row in the band under it, or at the end of the row whose free space it's over. Nothing
    * while it's over its own place.
    */
@@ -67,7 +67,7 @@
     const inside = (r: RoomCardView) => x >= r.x && x < r.x + r.size.w && y >= r.y && y < r.y + gridRows(r.size);
     const under = view.rooms.find(inside);
     if (under) return under.room.area.area_id === id ? undefined : { kind: "card", id: under.room.area.area_id };
-    const band = view.bands.find((b) => y >= b.y && y < b.y + 1);
+    const band = view.bands.find((b) => y >= b.y && y < b.y + BAND_ROWS);
     if (band) return band.drop;
     const row = view.rows.find((r) => y >= r.y && y < r.y + r.h);
     return row && { kind: "end", row: row.first };
@@ -87,7 +87,7 @@
     if (!el || !floorEl) return;
     const id = card.room.area.area_id;
     const pitchX = grid.cell * (1 + GAP); // a column and a gap
-    const pitchY = pitchX / 2; // a row of half a cell and a gap
+    const pitchY = pitchX / 4; // a row of a quarter cell and a gap
     // The drop it last made: after a card moves, what was under the pointer may move into its old place, and
     // dropping there again would swap the two back and forth.
     let last: string | undefined;
@@ -151,7 +151,7 @@
             class="row-band"
             class:shown={dragging}
             class:over={dragging?.band === bandKey(band.drop)}
-            style:grid-row="{band.y + 1} / span 1"
+            style:grid-row="{band.y + 1} / span {BAND_ROWS}"
           >
             <Icon path={mdiPlus} size={18} />{t("edit.newRow")}
           </div>

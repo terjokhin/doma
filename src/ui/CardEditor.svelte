@@ -15,6 +15,7 @@
   import { editor } from "../layout/layoutEditor.svelte";
   import { GAP, grid } from "../layout/grid.svelte";
   import { densePlaces, type Size } from "../layout/pack";
+  import { SIZES } from "../layout/sizes";
   import { entityName, type Room } from "../model/home";
   import {
     cardRows,
@@ -312,12 +313,12 @@
       </div>
     {/each}
     {#if more?.kind === "more"}
-      <button class="slot-more" aria-label={t("edit.addControl", { name })} onclick={() => openMenu(null)}>
+      <button class="slot-more" style:grid-column="span {Math.min(SIZES.more.w, size.w)}" aria-label={t("edit.addControl", { name })} onclick={() => openMenu(null)}>
         +{more.count}
       </button>
     {/if}
     {#if free}
-      <button class="slot-free" aria-label={t("edit.addControl", { name })} onclick={() => openMenu(null)}>
+      <button class="slot-free" style:grid-column="span {Math.min(SIZES.tile.w, size.w)}" aria-label={t("edit.addControl", { name })} onclick={() => openMenu(null)}>
         <Icon path={mdiPlus} size={20} />
       </button>
     {/if}

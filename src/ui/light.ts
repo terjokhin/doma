@@ -41,3 +41,9 @@ export const toggle = (s: HassEntity) => callService(domainOf(s.entity_id), "tog
 /** All of `ids` off when any is on, else all on. */
 export const switchAll = (ids: string[], anyOn: boolean) =>
   ids.length ? callService("homeassistant", anyOn ? "turn_off" : "turn_on", {}, { entity_id: ids }) : undefined;
+
+/** Set a light's brightness in %; 0 switches it off. Resolves when HA has the command. */
+export const setLevel = (s: HassEntity, percent: number) =>
+  percent > 0
+    ? callService("light", "turn_on", { brightness_pct: percent }, { entity_id: s.entity_id })
+    : callService("light", "turn_off", {}, { entity_id: s.entity_id });

@@ -3,34 +3,42 @@ import { denseRows, type Size } from "../layout/pack";
 import { SIZES } from "../layout/sizes";
 import type { Room } from "./home";
 
-/**
- * Each room card size in cells at its largest (LAYOUTS.md, "Room cards"): a size is a width; every card has a title
- * band of half a cell over up to two rows of tiles, and is only as tall as its tiles (`shownSize`). Heights come in
- * half cells: the floor grid has half-cell rows.
- */
-export const CARD_CELLS: Record<CardSize, Size> = {
-  xs: { w: 2, h: 2.5 },
-  m: { w: 4, h: 2.5 },
-  // Next to an S, the Fire HD's row beside the sidebar (8 columns); half a 12-column row.
-  wide: { w: 6, h: 2.5 },
-  // The whole row, however wide the screen (`fitCard` narrows it).
-  full: { w: 64, h: 2.5 },
-};
-
 /** The title band, in cells: the same on every card. */
 export const TITLE_CELLS = 0.5;
 
-/** Rows of tiles on a card of `size`: one per cell below the title band. */
-export const cardRows = (size: Size) => Math.ceil(size.h - TITLE_CELLS);
+/**
+ * A row of tiles, in cells: three quarters of a cell and its gap, so a tile is three of Home's quarter-cell rows
+ * and the two gaps between them tall (LAYOUTS.md, "The floor grid").
+ */
+export const ROW_CELLS = 0.75;
+
+/** The most rows of tiles a card has. */
+const MAX_ROWS = 3;
+
+/**
+ * Each room card size in cells at its largest (LAYOUTS.md, "Room cards"): a size is a width; every card has a title
+ * band of half a cell over up to three rows of tiles, and is only as tall as its tiles (`shownSize`).
+ */
+export const CARD_CELLS: Record<CardSize, Size> = {
+  xs: { w: 2, h: TITLE_CELLS + MAX_ROWS * ROW_CELLS },
+  m: { w: 4, h: TITLE_CELLS + MAX_ROWS * ROW_CELLS },
+  // Next to an S, the Fire HD's row beside the sidebar (8 columns); half a 12-column row.
+  wide: { w: 6, h: TITLE_CELLS + MAX_ROWS * ROW_CELLS },
+  // The whole row, however wide the screen (`fitCard` narrows it).
+  full: { w: 64, h: TITLE_CELLS + MAX_ROWS * ROW_CELLS },
+};
+
+/** Rows of tiles on a card of `size`. Item sizes on a card are in columns and these rows. */
+export const cardRows = (size: Size) => Math.round((size.h - TITLE_CELLS) / ROW_CELLS);
 
 /**
  * The size a card shows, at most `max`: its width, and only as tall as its tiles need, with `spare` free cells
  * where the size allows (edit mode, for the "+" that adds one). A card without tiles is just its title.
  */
 export function shownSize(max: Size, items: CardItem[], spare = 0): Size {
-  const cells = items.map((i) => i.size).concat(Array.from({ length: spare }, () => ({ w: 1, h: 1 })));
+  const cells = items.map((i) => i.size).concat(Array.from({ length: spare }, () => SIZES.tile));
   const rows = Math.min(cardRows(max), denseRows(cells, max.w));
-  return { w: max.w, h: TITLE_CELLS + rows };
+  return { w: max.w, h: TITLE_CELLS + rows * ROW_CELLS };
 }
 
 /** A card's size on a screen `cols` cells wide: never wider than the screen. */

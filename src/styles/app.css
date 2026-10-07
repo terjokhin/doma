@@ -723,20 +723,21 @@ button {
 }
 
 /*
- * A floor's room cards: one grid as wide as the page, each card at the position layout/rows.ts gives it. Rows
- * are half a cell (two of them and the gap between make one cell), so an S card can be half as tall as an M.
+ * Home's room cards: one grid as wide as the page, each card at the position layout/rows.ts gives it. Rows are a
+ * quarter of a cell (four of them and the gaps between make one cell): a card's title band is two of them, and each
+ * row of its tiles three (model/roomCard.ts).
  */
 .floor-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols), var(--cell));
-  grid-auto-rows: calc((var(--cell) - var(--gap)) / 2);
+  grid-auto-rows: calc((var(--cell) - 3 * var(--gap)) / 4);
   gap: var(--gap);
 }
 
 /*
- * A room card fills its grid item (w × h cells), with no box of its own: the title band, half a cell, over a grid of
- * --card-w × --card-rows tiles, a cell tall. The gap that's left over goes between the title and the tiles, and the
- * tiles are inset by a gap at each side, so rooms side by side are three gaps apart and their tiles one.
+ * A room card fills its grid item, with no box of its own: the title band, half a cell, over --card-rows rows of
+ * slim tiles, each three quarters of a cell and its gap. The gap that's left over goes between the title and the
+ * tiles, and the tiles are inset by a gap at each side, so rooms side by side are three gaps apart and their tiles one.
  */
 .room-card {
   contain: content;
@@ -806,21 +807,12 @@ button {
 .room-grid {
   display: grid;
   flex: none;
-  height: calc(var(--card-rows) * (var(--cell) + var(--gap)));
+  height: calc(var(--card-rows) * 0.75 * (var(--cell) + var(--gap)));
   grid-template-columns: repeat(var(--card-w), 1fr);
   grid-template-rows: repeat(var(--card-rows), 1fr);
   grid-auto-flow: row dense;
   gap: var(--gap);
   padding: var(--gap) var(--gap) 0;
-}
-
-/* Controls on a card are a shade lighter than the card. */
-.room-card .mini {
-  background-color: var(--card-control);
-}
-
-.room-card .mini-icon {
-  background: var(--card-control-icon);
 }
 
 .room-climate {
@@ -838,25 +830,7 @@ button {
   font-size: var(--text-m);
 }
 
-/* 1×1 controls on room cards. */
-.mini {
-  contain: content;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: var(--space-3);
-  border-radius: var(--radius-m);
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line);
-  text-align: left;
-  transition: background var(--slow) var(--ease), transform var(--fast) var(--ease);
-}
-
-.mini:active {
-  transform: scale(0.96);
-}
-
+/* A control's icon and name in edit mode (ui/CardEditor.svelte). */
 .mini-icon {
   display: grid;
   place-items: center;
@@ -878,29 +852,41 @@ button {
   line-height: 1.2;
 }
 
-.mini.more {
-  align-items: center;
-  justify-content: center;
-  color: var(--text-dim);
-  font-size: var(--text-l);
-}
-
-.mini.unavailable {
-  opacity: 0.45;
-}
-
 /*
- * Tiles on room cards (ui/Tile.svelte): 1×1, split. The chip at the top left switches; the rest opens the pop-up.
- * While on, only the chip takes a colour and the name brightens; the tile keeps its own. The colours come from a
- * tint class (ui/tint.ts), written out as pairs since Chrome 108 has no color-mix().
+ * Tiles on room cards (ui/Tile.svelte): slim and long, split. The chip at the left switches; the rest opens the
+ * pop-up. While on, only the chip takes a colour and the name brightens; a dimmable light's tile fills from the left
+ * to its brightness, a layer scaled with a transform under the text (the tile's paint containment makes it a
+ * stacking context, so z-index -1 stays inside it). The colours come from a tint class (ui/tint.ts), written out as
+ * pairs since Chrome 108 has no color-mix().
  */
 .card-tile {
   contain: content;
   position: relative;
   display: flex;
+  align-items: center;
   border-radius: var(--radius-m);
   background: var(--card-control);
   box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.card-tile-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--tint-soft);
+  transform-origin: 0 50%;
+  transition: transform var(--slow) var(--ease);
+  pointer-events: none;
+}
+
+/* While a finger dims it, the fill follows at once, on its own layer. Room screens' tiles fill the same way. */
+.tile > .card-tile-fill {
+  border-radius: inherit;
+}
+
+.dimming > .card-tile-fill {
+  transition: none;
+  will-change: transform;
 }
 
 .tint-light { --tint: var(--warm); --tint-soft: var(--warm-soft); }
@@ -911,26 +897,35 @@ button {
 .tint-neutral { --tint: var(--text); --tint-soft: var(--neutral-soft); }
 .tint-scene { --tint: var(--scene); --tint-soft: var(--scene-soft); }
 
+/* Room for the chip at the left: its width and the space either side of it. */
 .card-tile-body {
   display: flex;
   flex: 1;
-  flex-direction: column;
-  justify-content: flex-end;
+  align-self: stretch;
+  align-items: center;
+  gap: var(--space-2);
   min-width: 0;
-  padding: var(--space-3);
+  padding: 0 var(--space-4) 0 4.4rem;
   border-radius: inherit;
   text-align: left;
-  transition: transform var(--fast) var(--ease);
 }
 
-.card-tile-body:active {
-  transform: scale(0.97);
+/* A dimmable light: a sideways drag dims it (ui/dim.svelte.ts), up and down still scrolls. */
+.card-tile-body.dims,
+.tile-body.dims {
+  touch-action: pan-y;
+}
+
+.card-tile-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .card-tile-name,
 .card-tile-state {
   overflow: hidden;
-  font-size: var(--text-xs);
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -938,8 +933,49 @@ button {
 
 .card-tile-name {
   color: var(--text-dim);
+  font-size: 0.875rem;
   font-weight: 600;
   transition: color var(--slow) var(--ease);
+}
+
+.card-tile-state {
+  font-size: var(--text-xs);
+}
+
+/* A thermostat's target, in its tint while it runs. */
+.card-tile-value {
+  flex: none;
+  color: var(--text-faint);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.card-tile.on .card-tile-value {
+  color: var(--tint);
+}
+
+/* "+N": the rest of the room's controls, a tile that opens the room. */
+.card-more {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: 0 var(--space-3) 0 0.95rem;
+  border-radius: var(--radius-m);
+  background: var(--card-control);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--text-faint);
+  text-align: left;
+}
+
+.card-more .tile-chip {
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+
+.card-more .card-tile-name {
+  flex: 1;
 }
 
 .card-tile-state {
@@ -977,8 +1013,8 @@ button {
 
 .card-tile > .tile-chip {
   position: absolute;
-  top: 0.45rem;
-  left: 0.45rem;
+  top: calc(50% - 1.25rem);
+  left: 0.95rem;
 }
 
 .on > .tile-chip,
@@ -1055,47 +1091,6 @@ button {
     opacity: 0;
     transform: translate(-50%, 8px);
   }
-}
-
-/* A level in a tile's corner: brightness, or a thermostat's target. */
-.ring {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 2.1rem;
-  height: 2.1rem;
-}
-
-.ring svg {
-  position: absolute;
-  inset: 0;
-  overflow: visible;
-}
-
-.ring circle {
-  fill: none;
-  stroke-width: 2;
-}
-
-.ring-track {
-  stroke: var(--line-strong);
-}
-
-.ring-arc {
-  stroke: var(--text-dim);
-  stroke-linecap: round;
-  transform: rotate(-90deg);
-  transform-origin: 50% 50%;
-}
-
-.ring-label {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--text-dim);
-  font-size: 0.6rem;
-  font-weight: 600;
 }
 
 /*
@@ -1987,7 +1982,7 @@ a.btn {
   bottom: 0;
   left: 0;
   display: grid;
-  height: calc(var(--card-rows) * (var(--cell) + var(--gap)));
+  height: calc(var(--card-rows) * 0.75 * (var(--cell) + var(--gap)));
   grid-template-columns: repeat(var(--card-w), 1fr);
   grid-template-rows: repeat(var(--card-rows), 1fr);
   grid-auto-flow: row dense;
@@ -1999,11 +1994,10 @@ a.btn {
 .slot-edit {
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
   min-width: 0;
-  padding: var(--space-3);
+  padding: 0 2.6rem 0 0.95rem;
   border-radius: var(--radius-m);
   background: var(--card-control);
   box-shadow: inset 0 0 0 1px var(--line-strong);
@@ -2024,11 +2018,11 @@ a.btn {
   cursor: grabbing;
 }
 
-/* Inside the slot's top right corner, where the ring is on the card: nothing reaches past the tile. */
+/* Inside the slot at the right: nothing reaches past the tile. */
 .slot-remove {
   position: absolute;
-  top: 0.3rem;
-  right: 0.3rem;
+  top: calc(50% - 0.75rem);
+  right: 0.6rem;
   display: grid;
   place-items: center;
   width: 1.5rem;
