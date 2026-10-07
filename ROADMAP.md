@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-06: Phase 6, Home, is well under way; next is a round on the Fire HD.*
+*Updated 2026-10-07: Phase 6, Home, is well under way and was checked on the Fire HD; next is trying rows and stacks.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -31,18 +31,18 @@ Where the app is going, in order, and how each step is checked. The README cover
     135 ms, rooms about 60 ms (budget 100). Live updates cost a little more for it (step 6);
   - start-up JS went from 40.7 to 45.5 KB gzipped.
 
-- **Phase 5, room screens**: the **room template** (checked on a laptop; the Fire HD check goes with Phase 6's):
+- **Phase 5, room screens**: the **room template** (checked on the Fire HD with Phase 6, 2026-10-07):
   a Scenes section; sections dragged by their title into the column you want, renamed, widened and hidden, for
   every room or only this one; tiles hidden on one room's screen. Start-up JS 50.7 KB gzipped.
 
-- **Phase 6 so far** (2026-10-05/06, checked on a laptop only), from the "calm cards" design inspired by
+- **Phase 6 so far** (2026-10-05/06, checked on the Fire HD 2026-10-07), from the "calm cards" design inspired by
   hass-config:
   - **tiles**: every control on a card is a 1 × 1 split tile: the icon switches, the rest opens a **pop-up**
     (a light's brightness and colour, a room's lights, climate target, modes and fan, a big switch for the rest).
     Only the icon is tinted when on; the tile keeps its colour. Room screens and lenses split theirs the same way;
   - **feedback**: a spinner while HA hasn't answered, a message with "Try again" when it doesn't or refuses, Undo
     after a scene;
-  - **cards**: no box, only as tall as their tiles (up to two rows); sizes are widths only (XS, M, Wide, Full);
+  - **cards**: no box, only as tall as their tiles (up to two rows); sizes are widths only (XS, M, Wide, Full; S, M, L, Full since 2026-10-07);
     cards go in **rows** in an order, so titles line up (replaced free placement, like HA's sections view);
   - **editing Home**: each card's controls in place (add, remove, move, swap), hide rooms, Home with or without
     floor grouping (each keeps its own order); drag a card by its title, one ⋯ menu per card;
@@ -50,13 +50,14 @@ Where the app is going, in order, and how each step is checked. The README cover
   Start-up JS 61.9 KB gzipped.
 
 **Now: Phase 6, Home: run the house from one screen.** Next, in order:
-1. **A round on the Fire HD** with `?debug`: tiles, opening a pop-up, the spinner, live updates with the new tiles,
-   against the budgets. (The room template from Phase 5 was never measured there either.)
-2. **"Start a new row"** in a card's ⋯ menu: that room always begins a row, leaving the rest of the row before it
-   empty, like ending a horizontal stack in ha-fusion. Today rows fill themselves, so space can't be left empty.
-3. **A calmer edit mode** with a design pass (see Later): only the selected card shows its tools.
-4. Tile names are cut short ("Ceiling li…"): maybe drop the On / Off line on lights, so names get two lines.
-5. Then the rest of [Phase 6](#6-home-run-the-house-from-one-screen): merge rooms; blinds, media and locks as tiles
+1. **Rows and stacks** (built 2026-10-07, to try on the tablet): Home's rows are kept in the layout; each is a room
+   on its own or a stack of rooms side by side at their own sizes, like ha-fusion's horizontal stacks. Dragging a
+   card onto another puts them side by side; onto "+ New row" between rows, or "Own row" in its menu, gives it a
+   row of its own; in edit mode each row is framed. A stack wider
+   than the screen wraps inside itself (other ways are noted in [LAYOUTS.md](LAYOUTS.md), "The floor grid").
+2. **A calmer edit mode** with a design pass (see Later): only the selected card shows its tools.
+3. Tile names are cut short ("Ceiling li…"): maybe drop the On / Off line on lights, so names get two lines.
+4. Then the rest of [Phase 6](#6-home-run-the-house-from-one-screen): merge rooms; blinds, media and locks as tiles
    with pop-ups; readings and alert badges in card titles; a house-wide section; rooms without tiles folded into one
    line of names.
 
@@ -377,8 +378,12 @@ or for one room only.
    badges (window open, motion, leak); for every card or one.
 7. **A house-wide section on Home**: house scenes, all lights off, weather. Fixed contents for now; the full
    builder is Phase 7.
-8. **Check on the Fire HD**, with the room template from Phase 5: richer cards subscribe Home, which stays built,
-   to more entities. Updates and screen changes against the budgets and against today's numbers.
+8. ✅ **Check on the Fire HD** (2026-10-07, with the room template from Phase 5), against a real home: one
+   entity update took at most 12.9 ms of script (usually 1–5 ms), going back to a kept screen 44–48 ms, building
+   a room screen 78 ms, a first visit to a tab up to 183 ms (as before, see "Waiting until later"). Opening a
+   pop-up gives single frames of 150–330 ms: a pop-up that shows entities Home doesn't changes the subscription,
+   and HA sends every state again (the store skips the ones it has, so the script stays cheap); the rest is
+   painting the sheet. It felt fine, so it stays as it is. Lenses and edit mode weren't measured in this round.
 
 ### 7. Custom views
 Per HA user, built from [free sections](#free-sections): any devices in any section, from any room, each section

@@ -85,7 +85,7 @@ Every element has a size in cells, `w × h`. Starting set:
 | Light button (room card) | 1 × 1 |
 | Compact climate (room card) | 2 × 1 |
 | "+N" button (room card) | 1 × 1 |
-| Room card | 2, 4, 8 or a whole row wide; half a cell of title plus up to two rows of tiles (see "Room cards") |
+| Room card | 2, 4, 6 or a whole row wide; half a cell of title plus up to two rows of tiles (see "Room cards") |
 | Header (clock, date, weather) | full width × 1.5 |
 | Navigation band (tabs, status chips) | full width, one or two rows of chips |
 
@@ -131,21 +131,24 @@ with three lights takes one row whatever its size; what doesn't fit in two rows 
 
 | Size | Width, in cells | Tiles, at most |
 |---|---|---|
-| XS | 2 | 4 |
+| S | 2 | 4 |
 | **M** (default) | 4 | 8 |
-| Wide | 8 | 16 |
+| L | 6 | 12 |
 | Full | the whole row | 2 rows of it |
 
-XS lets small rooms (a bathroom, a hallway) sit four in a row on the Fire HD, where M rooms sit two. (S and L were
-once a one-row and a three-row M; in rows they only left space under their neighbours, and they now read as M.)
+On the Fire HD in landscape (12 columns) a stack holds six S rooms, three M, two L, or an S, an M and an L. In
+portrait (8 columns) an L and an S fill a row. A Full room with fewer tiles than the row has columns is a one-liner.
+In the layout they're stored under their earlier names, `xs`, `m`, `wide` and `full`: until 2026-10-07 they were
+XS, M, Wide (8 cells) and Full, so a Wide room is now L. (Before 2026-10-06, `s` and `l` were a one-row and a
+three-row M; in rows they only left space under their neighbours, and they read as M.)
 
 A card has **no box of its own**: a title band half a cell tall, then its rows of tiles, each a cell tall, with the
 gap that's left between the title and the tiles. The tiles are inset by a gap at each side, so two rooms side by
 side are three gaps apart and the tiles within a room one. A card covers its cells and the gaps between them:
 `w × c + (w − 1) × g` wide; heights come in half cells. A card is never wider than the screen: on a 4-column phone
-a Wide card is 4 cells wide (and shows 4 tiles per row). Tiles are a step lighter than the page (`--card-control`).
+an L card is 4 cells wide (and shows 4 tiles per row). Tiles are a step lighter than the page (`--card-control`).
 
-The title band shows the room's name, temperature and humidity (on an XS card, which is 2 cells wide, only the
+The title band shows the room's name, temperature and humidity (on an S card, which is 2 cells wide, only the
 name and temperature), and an arrow; tapping it opens the room. Below the band, the room's controls. Until a card
 is edited they're generated:
 
@@ -190,17 +193,29 @@ Each floor's cards fill one CSS grid as wide as the page: `cols` columns of `--c
 `2h` rows, at an explicit position: `x` in columns, `y` in rows of half a cell.
 
 Positions come from a small placement step (`layout/rows.ts`), pure arithmetic on the sizes, so nothing is
-measured. **Cards go in rows**, in the layout's order: left to right, and a new row when the next card doesn't
-fit; each row starts below the tallest card of the row above. So the titles of the rooms in a row always line up,
-and a room keeps its place in the order on every screen width (a phone just has fewer per row). The cost is some
-space under a shorter card. HA's sections view does the same, for the same reasons ("Z-grid": masonry moved cards
-between columns over a pixel and lost people's memory of where things are); ha-fusion lists rooms one under
-another and puts them side by side only in rows you make. A room that should have its row to itself is **Full**.
+measured. **Cards go in rows that you make**, one under another: a row is a room on its own or a **stack** of
+rooms side by side, each at its own size, and what a stack doesn't fill stays empty. Each row starts below the
+tallest card of the row above, so the titles of the rooms in a row always line up. A **Full** room has its row to
+itself. Like ha-fusion's horizontal stacks, except that there the sections of a stack share its width equally;
+HA's sections view keeps rows for the same reasons ("Z-grid": masonry moved cards between columns over a pixel and
+lost people's memory of where things are).
+
+The rows are the same on every screen width. A stack wider than the screen **wraps inside itself**: its cards
+continue on a line below, in order, and the next row still starts below the whole stack. So a stack of three M
+rooms is one line on a landscape tablet (12 columns), two and one in portrait (8) and three lines on a phone (4).
+(Other ways were weighed on 2026-10-07: rows kept per screen width, stacks coming apart on narrow screens as in
+ha-fusion, cards shrinking to fit, stacks scrolling sideways. Wrapping is the one being tried first.)
+
+A home that never set its rows gets them filled: its rooms in order, as many to a row as fit on 12 columns, the
+same on every screen, so it looks as it did when rows filled themselves. Rooms the rows don't list (a new room in
+HA) get rows of their own after the rest, filled the same way.
 
 (Until 2026-10-06 cards were placed freely and floated up, a masonry; titles of rooms in different columns
-ended up at different heights. A stored arrangement from then still gives the order until one is set.)
+ended up at different heights. Until 2026-10-07 rows filled themselves in an order, so space couldn't be left
+empty. A stored arrangement or order from then still fills the rows until they're set.)
 
-A card is as tall as its tiles (see "Room cards"); its width comes from its size.
+A card is as tall as its tiles (see "Room cards"); its width comes from its size. In edit mode the rows are half
+a cell apart, for the bands a card is dropped on to get a row of its own (see "Edit mode").
 
 
 ## Packing sections
@@ -320,8 +335,8 @@ These rules target Chrome 108 (see the README):
 ## Layout model
 
 The layout stores **only the user's changes** on top of the layout generated from HA's floors and areas, never a
-full copy, so new rooms still appear by themselves. It holds **card sizes**, **card positions per column
-count** (in grid units, never pixels), whether Home **groups cards by floor**, the **tabs** and the **room
+full copy, so new rooms still appear by themselves. It holds **card sizes**, Home's **rows of cards**, whether
+Home **groups cards by floor**, the **tabs** and the **room
 template**. Rooms, areas and floors themselves are HA's and
 aren't changed here.
 (`layout/homeLayout.ts`)
@@ -330,9 +345,7 @@ aren't changed here.
 {
   "version": 1,
   "sizes": { "kitchen": "wide", "hallway": "xs" },
-  "grids": {
-    "12": { "garden": { "x": 0, "y": 0 }, "hallway": { "x": 0, "y": 3 }, "kitchen": { "x": 4, "y": 0 } }
-  },
+  "rows": [["living_room"], ["kitchen", "hallway", "bathroom"], ["bedroom", "office"]],
   "hidden": ["garage"],
   "cards": { "kitchen": ["lights", "climate.kitchen", "scene.kitchen_dinner"] },
   "tabs": ["lights", "devices", "climate"],
@@ -354,18 +367,19 @@ aren't changed here.
 
 - **`sizes`**: each card's size, `xs`, `s`, `m`, `l`, `wide` or `full` (the whole row); unlisted rooms are `m`.
   The same on every screen.
-- **`order`**: the order of the room cards, by area ID; they're laid out in rows in this order, each on its floor
-  (the area's floor in HA). Rooms it doesn't list follow in HA's order, so a new room appears at the end of its
-  floor. The same on every screen width.
-- **`grids.<cols>`**, **`flatGrids.<cols>`**: card positions from when cards were placed freely, per column count;
-  only read, to give the order until `order` / `flatOrder` is set.
+- **`rows`**: Home's rows, in order, each a list of area IDs: one room, or a stack. Each floor shows the rows of
+  its rooms (the area's floor in HA; a row whose rooms are on two floors shows on each with that floor's rooms).
+  Rooms it doesn't list get rows of their own after the rest. The same on every screen width.
+- **`order`**, **`flatOrder`**: the order of the cards from when rows filled themselves (until 2026-10-07), and
+  **`grids.<cols>`**, **`flatGrids.<cols>`**: card positions from when cards were placed freely; only read, to
+  fill the rows until they're set.
 - **`hidden`**: the rooms hidden from Home, by area ID.
 - **`cards`**: a card's own list of controls, by area ID: entity IDs, or `lights` for the all-lights button.
   Unlisted rooms show the generated controls. Like `hide`, it names entity IDs, since it picks single devices.
 - **`floors`**: `false` when Home doesn't group its cards by floor: every card is then on one grid, with no floor
   headings. Unset means grouped.
-- **`flatOrder`**: the order on that one grid, like `order`. Each way keeps its own, so switching back and forth
-  loses nothing; one not set yet starts with the floors in order, each in its own order.
+- **`flatRows`**: the rows on that one grid, like `rows`. Each way keeps its own, so switching back and forth
+  loses nothing; one not set yet starts with the floors in order.
 - **`tabs`**: the tabs after Home, in order: `lights`, `climate`, `security`, `devices`. Unset means all four in
   that order; `[]` means Home alone. Home is always the first tab. A lens that isn't a tab is still reached from
   its status chip.
@@ -400,21 +414,33 @@ The **edit button** next to the settings gear turns the home screen into an edit
 - Controls on the cards don't react (`inert`); each card shows an outline, and its **title band is the drag
   handle** (a grip shows it on cards 4 cells wide or more). At the band's right, one **chip with the card's size**
   opens its menu: every size, each with a miniature of its shape and a check on the current one; **Add a
-  control**; and **Hide room**. A tap outside or Escape closes it. The default size isn't stored. Nothing of the
-  editor reaches past the card, so even an XS room keeps its name readable.
-- **Drag a card** to another place in the order on its floor: by its title band on touch (only the band has
-  `touch-action: none`, so swiping anywhere else on a card still scrolls the page), from anywhere on the card with
-  a mouse. Only the dragged card moves, with `transform`. When its middle is over another card, it takes that
-  card's place in the order and the rows re-flow (`moveTo`); a faint outline shows where it will land. Near the
-  top or bottom edge the page scrolls by itself.
+  control**; **Own row** (in a stack: it leaves the stack for a row of its own, where it was, at its size); and
+  **Hide room**. A tap outside or Escape closes it. The default size isn't stored. Nothing of the
+  editor reaches past the card, so even an S room keeps its name readable.
+- **Drag a card** to another place on its floor: by its title band on touch (only the band has `touch-action:
+  none`, so swiping anywhere else on a card still scrolls the page), from anywhere on the card with a mouse. Only
+  the dragged card moves, with `transform`, and what happens depends on what its middle is over (`dropCard`):
+  - **another card**: it goes next to it, into that card's row (before it when coming from below, else after it),
+    and the rows re-flow at once; in its own row it takes that card's place. A Full card shares its row with no
+    other, so dropping on one, or dragging a Full card onto a stack, makes a new row before or after;
+  - **the free space at the end of a row**: it goes last in that row;
+  - **"+ New row"**, a band before, between or after the rows (half a cell tall, a dashed outline that shows
+    while dragging and fills in under the card): letting go there gives it a row of its own. Only on letting go,
+    since a card on its way to another crosses bands, and each would re-flow everything under the finger.
+
+  A faint outline shows where it will land; a row it leaves empty goes. Near the top or bottom edge the page
+  scrolls by itself. Each row has a faint dashed frame in edit mode, its empty end too, so a stack reads as one
+  and the free space to drop into is seen. (The band was first a thin line, shown only while dragging; on the
+  tablet it wasn't clear that it was the way to a new row.)
 - **The card's controls** are slots in edit mode, laid out as they'll be shown: drag one to move it (it takes the
   place of the control under its middle), tap it to swap it for another, × (in its top right corner) removes it; each free cell shows a "+".
   "+" and "+N" open a menu of what the room has (all lights, its lights, climate, switches, scenes), ticked when
   it's on the card, with **Back to automatic** once the card has its own list. The first change gives the card
   its own list, starting from what it showed.
-- **Hide a room** from its card's menu: the rows close up; it comes back at the end of its floor. **Hidden rooms** in the bar lists them; tap one to show its card again. A hidden room's screen is
+- **Hide a room** from its card's menu: its row closes up; shown again, it comes back in its row. **Hidden rooms** in the bar lists them; tap one to show its card again. A hidden room's screen is
   still reached from the lenses, and its devices still count in the status chips.
-- A new size keeps the card's place in the order; the rows re-flow around it.
+- A new size keeps the card in its row, which wraps if it no longer fits; **Full** takes it out of its stack into a
+  row of its own, where it was (the cards before and after it stay in rows of their own).
 - A bar replaces the header and sticks to the top (on a tablet without its hint, the title cut short, so the buttons
   stay on one row): **Hidden rooms** (once a room is hidden), **Group by floor** (a checkbox; unticked, every card shares one
   grid and there are no floor headings), **Tabs** (a menu: tick the lenses to show as tabs, order them

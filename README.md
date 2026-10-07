@@ -140,16 +140,18 @@ templates, custom views): [ROADMAP.md](ROADMAP.md#views-and-navigation).
 ## Layouts
 
 The home screen shows each floor as a heading and each room as a card: its name, temperature and humidity, and
-its controls (lights, climate), with "+N" for what doesn't fit. A card's size is its width: XS, M (the default), Wide or the
-whole row; it's as tall as its tiles, up to two rows. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
+its controls (lights, climate), with "+N" for what doesn't fit. Rooms go in rows: a room on its own, or a stack of
+rooms side by side. A card's size is its width: S, M (the default), L or the whole row; it's as tall as its tiles,
+up to two rows. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
 the screen and reflows on rotation; the rules are in [LAYOUTS.md](LAYOUTS.md).
 
-The layout is generated from your HA floors and areas, and a **home layout** adjusts it: where each room card sits
-and its size. It only stores those changes, so new rooms still appear by themselves. Each HA user has
+The layout is generated from your HA floors and areas, and a **home layout** adjusts it: Home's rows of room
+cards and their sizes. It only stores those changes, so new rooms still appear by themselves. Each HA user has
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `doma.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
-tap the **edit button** next to the settings gear: drag a card by its title to change the order (cards go in rows,
-so titles line up), pick its width (XS, M, Wide or the whole row) from the chip on the card, set what the card shows (**+** adds a control, × removes
+tap the **edit button** next to the settings gear: drag a card by its title onto another card to stack them side by
+side, or onto **+ New row** between rows for a row of its own (**Own row** in its ⋯ menu does that too), pick its
+width (S, M, L or the whole row) from the chip on the card, set what the card shows (**+** adds a control, × removes
 one, drag one to move it, tap one to swap it; lights, switches, climate, scenes and an all-lights button), hide
 rooms from the card's ⋯ menu (**Hidden rooms** brings them back), untick **Group by floor** to put every card on one grid
 without floor headings, pick and order the tabs under **Tabs**, then **Done**.
