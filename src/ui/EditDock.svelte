@@ -1,35 +1,46 @@
 <script lang="ts">
-  import { mdiClose, mdiEyeOffOutline, mdiPencilOutline, mdiTableRowPlusAfter } from "@mdi/js";
+  import { mdiClose, mdiEyeOffOutline, mdiEyeOutline, mdiPencilOutline, mdiTableRowPlusAfter } from "@mdi/js";
   import { tick } from "svelte";
   import { t } from "../i18n/index.svelte";
   import { CARD_SIZES, ROOM_NAME_MAX, type CardSize } from "../layout/homeLayout";
   import Icon from "./Icon.svelte";
 
   /**
-   * In Home's edit mode, a bar at the bottom of the screen (LAYOUTS.md, "Edit mode"): for the selected room, its
-   * name (tap it to rename the room in Doma), size, "Own row" (in a stack) and "Hide"; with none selected, a hint. Always in the same place, whichever room
-   * is selected, and big enough to hit on a wall tablet. The card itself keeps its controls' × and "+".
+   * In a board's edit mode, a bar at the bottom of the screen (LAYOUTS.md, "Edit mode"): for the selected card (a room
+   * on Home, a section on a room screen), its name (tap it to rename it in Doma), size, "Own row" (in a stack) and
+   * "Hide" ("Show" for a hidden section); with none selected, a hint. Always in the same place, whichever card is
+   * selected, and big enough to hit on a wall tablet. A room card itself keeps its controls' × and "+".
    */
   let {
     name,
     haName,
+    nameLabel,
+    hint,
     size,
+    hidden = false,
     onRename,
     onSize,
     onOwnRow,
     onHide,
     onClose,
   }: {
-    /** The selected room's name; undefined with none selected. */
+    /** The selected card's name; undefined with none selected. */
     name?: string;
-    /** Its name in HA, which an empty name goes back to. */
+    /** The name it has when it isn't given one (HA's, or the section's own), which an empty name goes back to. */
     haName?: string;
+    /** What the name field is called, for a screen reader. */
+    nameLabel?: string;
+    /** Shown with nothing selected. */
+    hint?: string;
     size?: CardSize;
+    /** The card is hidden (a section, shown in edit mode only): "Hide" shows it again instead. */
+    hidden?: boolean;
     onRename: (name: string) => void;
     onSize: (size: CardSize) => void;
     /** Take it out of its stack; undefined when it has a row of its own. */
     onOwnRow?: () => void;
-    onHide: () => void;
+    /** Hide it, or show it again when `hidden`; no "Hide" without it. */
+    onHide?: () => void;
     onClose: () => void;
   } = $props();
 
@@ -72,7 +83,7 @@
         value={name}
         placeholder={haName}
         maxlength={ROOM_NAME_MAX}
-        aria-label={t("edit.roomName")}
+        aria-label={nameLabel ?? t("edit.roomName")}
         onkeydown={key}
         onblur={() => finish(true)}
       />
@@ -91,13 +102,15 @@
         <Icon path={mdiTableRowPlusAfter} size={20} />{t("edit.ownRowItem")}
       </button>
     {/if}
-    <button class="edit-dock-action" onclick={onHide}>
-      <Icon path={mdiEyeOffOutline} size={20} />{t("edit.hideItem")}
-    </button>
+    {#if onHide}
+      <button class="edit-dock-action" onclick={onHide}>
+        <Icon path={hidden ? mdiEyeOutline : mdiEyeOffOutline} size={20} />{t(hidden ? "edit.showItem" : "edit.hideItem")}
+      </button>
+    {/if}
     <button class="edit-dock-close" aria-label={t("edit.closeRoom", { name })} onclick={onClose}>
       <Icon path={mdiClose} size={22} />
     </button>
   {:else}
-    <span class="edit-dock-hint">{t("edit.dockHint")}</span>
+    <span class="edit-dock-hint">{hint ?? t("edit.dockHint")}</span>
   {/if}
 </div>

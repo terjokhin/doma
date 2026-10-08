@@ -4,7 +4,6 @@
     mdiCheckboxBlankOutline,
     mdiCheckboxMarked,
     mdiClose,
-    mdiDragHorizontalVariant,
     mdiLightbulbGroupOutline,
     mdiPlus,
   } from "@mdi/js";
@@ -25,16 +24,16 @@
     type CardItem,
     type Control,
   } from "../model/roomCard";
+  import CardFrame from "./CardFrame.svelte";
   import Icon from "./Icon.svelte";
   import { entityIcon } from "./icons";
 
   /**
-   * Edit mode over a room card (LAYOUTS.md, "Edit mode"). Every card's title band is its drag handle, and a tap
-   * anywhere on a card selects it; its size, row and hiding are in the bar at the bottom (ui/EditDock.svelte). Only
-   * the selected card shows its slots: each one is dragged to move it, tapped to swap it for another and has a ×
-   * that removes it; one "+" adds a control. The first change gives the card its own list, starting from what it
-   * showed. It sits in the card's grid cell, outside the card, so the menus aren't clipped by the card's `contain`.
-   * A mouse can drag the card from anywhere but the slots; touch uses the title band, so the rest still scrolls.
+   * Edit mode over a room card on Home (LAYOUTS.md, "Edit mode"): selecting and dragging it is ui/CardFrame.svelte,
+   * its size, row and hiding are in the dock at the bottom (ui/EditDock.svelte). Only the selected card shows its
+   * slots: each one is dragged to move it, tapped to swap it for another and has a × that removes it; one "+" adds a
+   * control. The first change gives the card its own list, starting from what it showed. It sits in the card's grid
+   * cell, outside the card, so the menus aren't clipped by the card's `contain`.
    */
   let {
     size,
@@ -72,7 +71,7 @@
   let menu = $state<"slots" | null>(null);
   /** The slot the controls menu swaps; null: the menu adds and removes. */
   let swapping = $state<string | null>(null);
-  let root: HTMLDivElement;
+  let anchor = $state<HTMLDivElement>();
   let slotGrid = $state<HTMLDivElement>(); // only while selected
 
   // A card that's no longer selected closes its menu.
@@ -83,7 +82,7 @@
   $effect(() => {
     if (!menu) return;
     const close = (e: PointerEvent) => {
-      if (!root.querySelector(`[data-menu="${menu}"]`)?.contains(e.target as Node)) menu = null;
+      if (!anchor?.contains(e.target as Node)) menu = null;
     };
     const escape = (e: KeyboardEvent) => e.key === "Escape" && (menu = null);
     document.addEventListener("pointerdown", close);
@@ -93,38 +92,6 @@
       document.removeEventListener("keydown", escape);
     };
   });
-
-  /**
-   * Drag the card once the pointer has moved a little, so a tap still selects it: dragging takes the card out of
-   * hit-testing, and the tap's click would miss it.
-   */
-  function press(e: PointerEvent) {
-    if (e.button !== 0) return;
-    const pointer = e.pointerId;
-    const stop = () => {
-      removeEventListener("pointermove", move);
-      removeEventListener("pointerup", stop);
-      removeEventListener("pointercancel", stop);
-    };
-    const move = (ev: PointerEvent) => {
-      if (ev.pointerId !== pointer || Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) < 8) return;
-      stop();
-      menu = null;
-      onDrag(e);
-    };
-    addEventListener("pointermove", move);
-    addEventListener("pointerup", stop);
-    addEventListener("pointercancel", stop);
-  }
-
-  // A mouse drags the card from anywhere but its slots and buttons; touch only by the title band (see above).
-  function pointerDown(e: PointerEvent) {
-    if (e.pointerType === "mouse" && !(e.target as Element).closest("button:not(.card-pick, .card-drag), .slot-menu, .slot-edit")) press(e);
-  }
-
-  function select() {
-    if (!selected) onSelect();
-  }
 
   // Controls not on the card aren't watched: their state comes from the one loaded at start.
   const stateOf = (id: string) => home.entity(id) ?? home.catalog[id];
@@ -231,97 +198,87 @@
   }
 </script>
 
-<div
-  class="card-edit"
-  class:selected
-  role="presentation"
-  style:--card-rows={cardRows(size)}
-  style:--card-w={size.w}
-  onpointerdown={pointerDown}
-  bind:this={root}
->
-  {#if !selected}
-    <button class="card-pick" aria-label={t("edit.pick", { name })} onclick={select}></button>
-  {/if}
-  <div class="card-edit-bar" class:open={menu}>
-    <!-- The title band is the drag handle (touch drags only here, so the rest of the card scrolls the page). -->
-    <button
-      class="card-drag"
-      aria-label={t("edit.move", { name })}
-      onpointerdown={(e) => e.pointerType !== "mouse" && press(e)}
-      onclick={select}
-    >
-      <!-- On a narrow card the grip would cover the name: the whole band still drags. -->
-      {#if selected && size.w >= 4}<Icon path={mdiDragHorizontalVariant} size={18} />{/if}
-    </button>
-    <div class="menu-anchor" data-menu="slots">
-      {#if menu === "slots"}
-        {@const choices = slotChoices(room)}
-        <div class="slot-menu" role="menu">
-          <div class="menu-label">
-            {swapping ? t("edit.replaceControl", { name: label(swapping) }) : t("edit.controlsOf", { name })}
-          </div>
-          {#each choices as id (id)}
-            {@const on = list.includes(id)}
-            <button
-              class="slot-option"
-              role={swapping ? "menuitemradio" : "menuitemcheckbox"}
-              aria-checked={swapping ? id === swapping : on}
-              onclick={() => pick(id)}
-            >
-              {#if !swapping}
-                <Icon path={on ? mdiCheckboxMarked : mdiCheckboxBlankOutline} size={20} />
-              {/if}
-              <Icon path={icon(id)} size={20} />
-              <span class="slot-option-name">{label(id)}</span>
-              {#if on && !shown.some((i) => i.id === id)}
-                <span class="slot-option-note">{t("edit.doesntFit")}</span>
-              {/if}
-              {#if swapping && id === swapping}
-                <span class="size-check"><Icon path={mdiCheck} size={16} /></span>
-              {/if}
-            </button>
-          {:else}
-            <p class="slot-option-note">{t("edit.noControls")}</p>
-          {/each}
-          {#if slots}
-            <button class="slot-option automatic" onclick={automatic}>{t("edit.automatic")}</button>
-          {/if}
+{#snippet slotsMenu()}
+  <div class="menu-anchor" data-menu="slots" bind:this={anchor}>
+    {#if menu === "slots"}
+      {@const choices = slotChoices(room)}
+      <div class="slot-menu" role="menu">
+        <div class="menu-label">
+          {swapping ? t("edit.replaceControl", { name: label(swapping) }) : t("edit.controlsOf", { name })}
         </div>
+        {#each choices as id (id)}
+          {@const on = list.includes(id)}
+          <button
+            class="slot-option"
+            role={swapping ? "menuitemradio" : "menuitemcheckbox"}
+            aria-checked={swapping ? id === swapping : on}
+            onclick={() => pick(id)}
+          >
+            {#if !swapping}
+              <Icon path={on ? mdiCheckboxMarked : mdiCheckboxBlankOutline} size={20} />
+            {/if}
+            <Icon path={icon(id)} size={20} />
+            <span class="slot-option-name">{label(id)}</span>
+            {#if on && !shown.some((i) => i.id === id)}
+              <span class="slot-option-note">{t("edit.doesntFit")}</span>
+            {/if}
+            {#if swapping && id === swapping}
+              <span class="size-check"><Icon path={mdiCheck} size={16} /></span>
+            {/if}
+          </button>
+        {:else}
+          <p class="slot-option-note">{t("edit.noControls")}</p>
+        {/each}
+        {#if slots}
+          <button class="slot-option automatic" onclick={automatic}>{t("edit.automatic")}</button>
+        {/if}
+      </div>
+    {/if}
+  </div>
+{/snippet}
+
+<CardFrame
+  {name}
+  {size}
+  {selected}
+  barOpen={!!menu}
+  {onSelect}
+  onDrag={(e) => {
+    menu = null;
+    onDrag(e);
+  }}
+  bar={slotsMenu}
+>
+  {#if selected}
+    <div class="slot-grid" bind:this={slotGrid}>
+      {#each shown as item (item.id)}
+        <div
+          class="slot-edit"
+          role="button"
+          tabindex="0"
+          aria-label={t("edit.replaceControl", { name: label(item.id) })}
+          style:grid-column="span {Math.min(item.size.w, size.w)}"
+          style:grid-row="span {item.size.h}"
+          onpointerdown={(e) => slotDown(e, item.id)}
+          onkeydown={(e) => (e.key === "Enter" || e.key === " ") && openMenu(item.id)}
+        >
+          <span class="mini-icon"><Icon path={icon(item.id)} size={20} /></span>
+          <span class="mini-name">{label(item.id)}</span>
+          <button class="slot-remove" aria-label={t("edit.removeControl", { name: label(item.id) })} onclick={() => remove(item.id)}>
+            <Icon path={mdiClose} size={14} />
+          </button>
+        </div>
+      {/each}
+      {#if more?.kind === "more"}
+        <button class="slot-more" style:grid-column="span {Math.min(SIZES.more.w, size.w)}" aria-label={t("edit.addControl", { name })} onclick={() => openMenu(null)}>
+          +{more.count}
+        </button>
+      {/if}
+      {#if free}
+        <button class="slot-free" style:grid-column="span {Math.min(SIZES.tile.w, size.w)}" aria-label={t("edit.addControl", { name })} onclick={() => openMenu(null)}>
+          <Icon path={mdiPlus} size={20} />
+        </button>
       {/if}
     </div>
-  </div>
-
-  {#if selected}
-  <div class="slot-grid" bind:this={slotGrid}>
-    {#each shown as item (item.id)}
-      <div
-        class="slot-edit"
-        role="button"
-        tabindex="0"
-        aria-label={t("edit.replaceControl", { name: label(item.id) })}
-        style:grid-column="span {Math.min(item.size.w, size.w)}"
-        style:grid-row="span {item.size.h}"
-        onpointerdown={(e) => slotDown(e, item.id)}
-        onkeydown={(e) => (e.key === "Enter" || e.key === " ") && openMenu(item.id)}
-      >
-        <span class="mini-icon"><Icon path={icon(item.id)} size={20} /></span>
-        <span class="mini-name">{label(item.id)}</span>
-        <button class="slot-remove" aria-label={t("edit.removeControl", { name: label(item.id) })} onclick={() => remove(item.id)}>
-          <Icon path={mdiClose} size={14} />
-        </button>
-      </div>
-    {/each}
-    {#if more?.kind === "more"}
-      <button class="slot-more" style:grid-column="span {Math.min(SIZES.more.w, size.w)}" aria-label={t("edit.addControl", { name })} onclick={() => openMenu(null)}>
-        +{more.count}
-      </button>
-    {/if}
-    {#if free}
-      <button class="slot-free" style:grid-column="span {Math.min(SIZES.tile.w, size.w)}" aria-label={t("edit.addControl", { name })} onclick={() => openMenu(null)}>
-        <Icon path={mdiPlus} size={20} />
-      </button>
-    {/if}
-  </div>
   {/if}
-</div>
+</CardFrame>

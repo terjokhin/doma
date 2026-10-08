@@ -3,7 +3,7 @@
   import { watchEntities } from "../ha/subscriptions.svelte";
   import type { AreaEntry } from "../ha/types";
   import { t } from "../i18n/index.svelte";
-  import { domainOf, entityName } from "../model/home";
+  import { ALARM_CLASSES, deviceClass, domainOf, entityName } from "../model/home";
   import { climateOf, togglePower } from "./climate";
   import { formatNumber, formatState, isUnavailable } from "./format";
   import { entityIcon, modeIcon } from "./icons";
@@ -15,10 +15,11 @@
   import { isActive, tintOf } from "./tint";
 
   /**
-   * One entity as a tile on a room card: lights, switches and fans switch from the chip, and a dimmable light dims
-   * by dragging across the tile; a climate device's chip is its power, and its target is at the right while it runs
-   * (− and + are in its pop-up); a scene runs from anywhere on the tile. The rest of the tile opens the entity's
-   * pop-up.
+   * One entity as a slim tile (ui/Tile.svelte), on any board: lights, switches and fans switch from the chip, and a
+   * dimmable light dims by dragging across the tile; a climate device's chip is its power, and its target is at the
+   * right while it runs (− and + are in its pop-up); a scene runs from anywhere on the tile. The rest of the tile opens
+   * the entity's pop-up. Anything else (a sensor, a door, a lock, a media player) is a reading: its state, lit while
+   * it needs a look (open, detected, unlocked, playing).
    */
   let { entityId, area }: { entityId: string; area: AreaEntry } = $props();
 
@@ -29,8 +30,22 @@
   const open = () => sheet.open({ kind: "entity", entityId, area });
   const run = () => void runScene(entityId, name);
 
+  /** Domains a tile switches; the rest, apart from climate and scenes, are readings. */
+  const SWITCHES = new Set(["light", "switch", "fan", "input_boolean"]);
+
+  /** A reading's value with its unit: "403 ppm", but "48 %" and "21.5 °C" read better close up. */
+  function reading(state: NonNullable<typeof s>) {
+    const { value, unit } = formatState(state);
+    return unit ? `${value}${unit === "%" || unit.startsWith("°") ? "" : " "}${unit}` : value;
+  }
+
   const view = $derived.by(() => {
     if (!s) return undefined;
+    if (domain !== "climate" && domain !== "scene" && !SWITCHES.has(domain)) {
+      const active = domain === "media_player" ? s.state === "playing" : s.state === "on" || s.state === "unlocked" || s.state === "open";
+      const tint = ALARM_CLASSES.has(deviceClass(s)) ? "tint-alert" : domain === "media_player" ? "tint-device" : "tint-light";
+      return { icon: entityIcon(s), state: reading(s), active, tint, reading: true, unavailable: isUnavailable(s) };
+    }
     if (domain === "scene") {
       return { icon: entityIcon(s), state: t("home.scene"), active: false, tint: "tint-scene", unavailable: s.state === "unavailable" };
     }
@@ -76,7 +91,9 @@
   }
 </script>
 
-{#if s && view}
+{#if s && view && "reading" in view}
+  <Tile icon={view.icon} {name} state={view.state} active={view.active} tint={view.tint} unavailable={view.unavailable} />
+{:else if s && view}
   <Tile
     icon={view.icon}
     {name}

@@ -3,10 +3,11 @@
   import { home } from "../ha/store.svelte";
   import { watchEntities } from "../ha/subscriptions.svelte";
   import { t } from "../i18n/index.svelte";
+  import BoardCard from "../layout/BoardCard.svelte";
   import GridItem from "../layout/GridItem.svelte";
   import type { Size } from "../layout/pack";
   import type { Room } from "../model/home";
-  import { cardRows, type CardItem } from "../model/roomCard";
+  import type { CardItem } from "../model/roomCard";
   import { navigate } from "../router.svelte";
   import EntityTile from "../ui/EntityTile.svelte";
   import LightsTile from "../ui/LightsTile.svelte";
@@ -32,32 +33,25 @@
   const open = () => navigate(`/room/${room.area.area_id}`);
 </script>
 
-<section class="room-card" class:narrow={size.w < 4} style:--card-w={size.w} style:--card-rows={cardRows(size)}>
-  <button class="room-title" onclick={open} inert={editing}>
-    <span class="room-label">
-      <span class="room-name">{name}</span>
-      <span class="room-climate">
-        {#if temperature}<span>{formatTemperature(temperature)}</span>{/if}
-        {#if humidity}<span class="room-humidity">{formatHumidity(humidity)}</span>{/if}
-      </span>
-    </span>
-    {#if !editing}<Icon path={mdiChevronRight} size={22} />{/if}
-  </button>
-  <div class="room-grid" inert={editing}>
-    {#each items as item (item.kind === "more" ? "+more" : item.id)}
-      <GridItem size={item.size}>
-        {#if item.kind === "lights"}
-          <LightsTile {room} />
-        {:else if item.kind !== "more"}
-          <EntityTile entityId={item.id} area={room.area} />
-        {:else}
-          <button class="card-more" onclick={open}>
-            <span class="tile-chip">+{item.count}</span>
-            <span class="card-tile-name">{t("home.more", { count: item.count })}</span>
-            <Icon path={mdiChevronRight} size={22} />
-          </button>
-        {/if}
-      </GridItem>
-    {/each}
-  </div>
-</section>
+{#snippet climate()}
+  {#if temperature}<span>{formatTemperature(temperature)}</span>{/if}
+  {#if humidity}<span class="room-humidity">{formatHumidity(humidity)}</span>{/if}
+{/snippet}
+
+<BoardCard {size} {name} onOpen={open} extra={climate} inert={editing}>
+  {#each items as item (item.kind === "more" ? "+more" : item.id)}
+    <GridItem size={item.size}>
+      {#if item.kind === "lights"}
+        <LightsTile {room} />
+      {:else if item.kind !== "more"}
+        <EntityTile entityId={item.id} area={room.area} />
+      {:else}
+        <button class="card-more" onclick={open}>
+          <span class="tile-chip">+{item.count}</span>
+          <span class="card-tile-name">{t("home.more", { count: item.count })}</span>
+          <Icon path={mdiChevronRight} size={22} />
+        </button>
+      {/if}
+    </GridItem>
+  {/each}
+</BoardCard>

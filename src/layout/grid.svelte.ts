@@ -10,7 +10,7 @@ const CELL_TARGET = 100;
 export const GAP = 0.1;
 /** Page padding left and right, in cells. */
 export const PAD = 0.25;
-/** A section is this many cells wide. */
+/** The column count is a multiple of this: an M card (and the phone's whole width) is this many cells. */
 export const SECTION_WIDTH = 4;
 /**
  * From this screen width there's a sidebar (ui/Sidebar.svelte) this wide, and the grid is what's left: on the Fire
@@ -45,8 +45,9 @@ function apply({ cols, cell, sidebar }: Grid) {
   root.setProperty("--pad", `${cell * PAD}px`);
 }
 
-let current = $state(measure());
-apply(current); // before the first render, so nothing jumps
+const initial = measure();
+apply(initial); // before the first render, so nothing jumps
+let current = $state(initial);
 
 let pending = false;
 window.addEventListener("resize", () => {
@@ -73,9 +74,5 @@ export const grid = {
   /** Whether the screen has the sidebar, in place of the header and the tab band. */
   get sidebar() {
     return current.sidebar > 0;
-  },
-  /** Sections side by side: 1 on a phone, 2 on a portrait tablet or a landscape one with the sidebar. */
-  get sectionColumns() {
-    return current.cols / SECTION_WIDTH;
   },
 };

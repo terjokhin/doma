@@ -6,9 +6,12 @@
   import type { RoomDevice } from "../model/home";
   import { batteryLow, deviceOffline } from "../model/lenses";
   import { formatNumber } from "./format";
-  import Icon from "./Icon.svelte";
+  import Tile from "./Tile.svelte";
 
-  /** A device in the Devices lens: its name, and whether it's offline or how full its battery is. */
+  /**
+   * A device in the Devices lens, as a slim tile (ui/Tile.svelte): its name, and whether it's offline or how full its
+   * battery is; lit while it needs a look.
+   */
   let { device }: { device: RoomDevice } = $props();
 
   watchEntities(() => [device.probe, device.battery]);
@@ -27,10 +30,4 @@
   );
 </script>
 
-<div class="tile device" class:warn={offline || low}>
-  <span class="tile-icon"><Icon path={icon} /></span>
-  <span class="tile-body">
-    <div class="tile-name">{device.name}</div>
-    <div class="tile-state">{value}</div>
-  </span>
-</div>
+<Tile {icon} name={device.name} state={value} active={offline || low} tint="tint-light" />

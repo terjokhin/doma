@@ -17,6 +17,8 @@
   --card: #1b1f25;
   --card-control: #252a32;
   --card-control-icon: #313741;
+  /* A card's tile while off: barely there, so what's on stands out. */
+  --card-control-off: rgb(255 255 255 / 0.035);
 
   --text: #eef1f5;
   --text-dim: #9aa3ae;

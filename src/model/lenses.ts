@@ -7,8 +7,8 @@ import { ALARM_CLASSES, deviceClass, domainOf, OPEN_CLASSES, type FloorGroup, ty
 
 /**
  * Lenses: one function across the whole house (ROADMAP.md, "Lenses"). Each lens picks what it shows from every
- * room, and says in a status chip whether anything needs a look. Lens screens group the picks like Home does:
- * floor headings, then a section per room (LAYOUTS.md, "Lens screens").
+ * room, and says in a status chip whether anything needs a look. A lens screen is Home filtered: the rooms that have
+ * something for it, as cards in Home's rows and sizes, each with what the lens picked (LAYOUTS.md, "Lens screens").
  */
 
 export const LENS_IDS = ["lights", "climate", "security", "devices"] as const;
@@ -62,8 +62,8 @@ function batteryLevel(device: RoomDevice) {
   return Number.isFinite(level) ? level : Infinity;
 }
 
-const toggles = (ids: string[]): LensItem[] => ids.map((id) => ({ kind: "toggle", id, size: SIZES.toggle }));
-const sensors = (ids: string[]): LensItem[] => ids.map((id) => ({ kind: "sensor", id, size: SIZES.sensor }));
+const toggles = (ids: string[]): LensItem[] => ids.map((id) => ({ kind: "toggle", id, size: SIZES.tile }));
+const sensors = (ids: string[]): LensItem[] => ids.map((id) => ({ kind: "sensor", id, size: SIZES.tile }));
 
 export const LENSES: Record<LensId, Lens> = {
   lights: {
@@ -77,7 +77,7 @@ export const LENSES: Record<LensId, Lens> = {
 
   climate: {
     items: (room) => [
-      ...room.climate.map((id): LensItem => ({ kind: "climate", id, size: SIZES.climate })),
+      ...room.climate.map((id): LensItem => ({ kind: "climate", id, size: SIZES.tile })),
       ...toggles(room.heating),
       // The room's own readings (HA's chosen sensors), not every thermometer in it: an air conditioner brings two.
       ...sensors(
@@ -146,7 +146,7 @@ export const LENSES: Record<LensId, Lens> = {
         .filter((d) => d.battery || deviceOffline(d))
         .map((d) => ({ d, offline: deviceOffline(d), level: batteryLevel(d) }))
         .sort((a, b) => Number(b.offline) - Number(a.offline) || a.level - b.level)
-        .map(({ d }): LensItem => ({ kind: "device", id: d.id, device: d, size: SIZES.sensor })),
+        .map(({ d }): LensItem => ({ kind: "device", id: d.id, device: d, size: SIZES.tile })),
     watched: (room) => room.devices.map((d) => d.probe),
     chip(rooms) {
       const all = rooms.flatMap((r) => r.devices);
@@ -166,24 +166,11 @@ export interface LensSection {
   items: LensItem[];
 }
 
-export interface LensFloor {
-  key: string;
-  /** undefined: rooms without a floor. */
-  name?: string;
-  sections: LensSection[];
-}
-
-/** A lens screen: per floor, a section for each room the lens has something for. Floors left empty are dropped. */
-export function lensView(model: FloorGroup[], lens: LensId): LensFloor[] {
-  return model
-    .map((group) => ({
-      key: group.floor?.floor_id ?? "_none",
-      name: group.floor?.name,
-      sections: group.rooms
-        .map((room) => ({ room, items: LENSES[lens].items(room) }))
-        .filter((s) => s.items.length > 0),
-    }))
-    .filter((f) => f.sections.length > 0);
+/** A lens screen: each room the lens has something for, with what it picked, in floor order. */
+export function lensView(model: FloorGroup[], lens: LensId): LensSection[] {
+  return allRooms(model)
+    .map((room) => ({ room, items: LENSES[lens].items(room) }))
+    .filter((s) => s.items.length > 0);
 }
 
 /**
@@ -191,23 +178,15 @@ export function lensView(model: FloorGroup[], lens: LensId): LensFloor[] {
  * states, so its view is rebuilt on every battery or availability update while it rarely changes; a screen keeps
  * the view it has when it's the same, and nothing on it re-renders.
  */
-export function sameLensView(a: LensFloor[], b: LensFloor[]) {
+export function sameLensView(a: LensSection[], b: LensSection[]) {
   return (
     a.length === b.length &&
-    a.every((floor, i) => {
-      const other = b[i];
+    a.every((section, i) => {
+      const o = b[i];
       return (
-        floor.key === other.key &&
-        floor.name === other.name &&
-        floor.sections.length === other.sections.length &&
-        floor.sections.every((section, j) => {
-          const o = other.sections[j];
-          return (
-            section.room === o.room &&
-            section.items.length === o.items.length &&
-            section.items.every((item, k) => item.id === o.items[k].id && item.kind === o.items[k].kind)
-          );
-        })
+        section.room === o.room &&
+        section.items.length === o.items.length &&
+        section.items.every((item, k) => item.id === o.items[k].id && item.kind === o.items[k].kind)
       );
     })
   );

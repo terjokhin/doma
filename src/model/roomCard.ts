@@ -41,6 +41,15 @@ export function shownSize(max: Size, items: CardItem[], spare = 0): Size {
   return { w: max.w, h: TITLE_CELLS + rows * ROW_CELLS };
 }
 
+/**
+ * A card `w` cells wide that shows all of its `count` tiles, however many rows they take: a room screen's section, a
+ * lens's room. Without tiles it's just its title.
+ */
+export function allTilesSize(w: number, count: number): Size {
+  const rows = denseRows(Array.from({ length: count }, () => SIZES.tile), w);
+  return { w, h: TITLE_CELLS + rows * ROW_CELLS };
+}
+
 /** A card's size on a screen `cols` cells wide: never wider than the screen. */
 export const fitCard = (size: Size, cols: number): Size => ({ w: Math.min(size.w, cols), h: size.h });
 

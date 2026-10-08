@@ -1,36 +1,27 @@
-import type { HomeLayout } from "./homeLayout";
-import { packSections, placeSections, type Packed } from "./pack";
+import { CARD_SIZES, DEFAULT_CARD_SIZE, type CardSize, type HomeLayout } from "./homeLayout";
 
 /**
- * The room template (LAYOUTS.md, "Room screens"): which sections a room screen shows, where, how wide and under what
- * name. Every room follows one template unless it has its own arrangement; each room can also hide entities from its
- * screen. Stored in the home layout as `room`, as changes only.
+ * The room template (LAYOUTS.md, "Room screens"): which sections a room screen shows, in which rows, at what size and
+ * under what name. A room screen is a board like Home (layout/board.ts) with its sections as the cards. Every room
+ * follows one template unless it has its own arrangement; each room can also hide entities from its screen. Stored in
+ * the home layout as `room`, as changes only.
  */
 
 /** A room screen's sections, in their default order. */
 export const ROOM_SECTIONS = ["scenes", "lights", "climate", "switches", "media", "sensors"] as const;
 export type RoomSectionId = (typeof ROOM_SECTIONS)[number];
 
-/** Where a section goes on one screen width: its column (the left one, when it's wider than one). */
-export interface Place {
-  id: RoomSectionId;
-  x: number;
-}
-
-/** A section's width in section columns, or the whole screen's. */
-export type SectionWidth = number | "full";
-
-/** Where a room's sections go, which are hidden, their widths and their names. */
+/** Where a room's sections go, which are hidden, their sizes and their names. */
 export interface SectionTemplate {
   /**
-   * For each number of section columns ("1" on a phone, "2" on a portrait tablet, "3" on a landscape one, "4" on a
-   * large screen), the sections in order, each with its column: placed in that order, each one goes right below the
-   * sections before it in the columns it spans. A width without its own follows the nearest one (`arrangeSections`).
+   * The sections in rows, like Home's rooms (layout/rows.ts): a section on its own, or a stack of sections side by
+   * side. Unset: one row of them all, which wraps on a narrow screen. (Until 2026-10-08 sections were placed in
+   * columns, per screen width, as `places` and `widths`; those aren't read any more.)
    */
-  places: Record<string, Place[]>;
+  rows?: RoomSectionId[][];
+  /** Unlisted: DEFAULT_CARD_SIZE. */
+  sizes: Partial<Record<RoomSectionId, CardSize>>;
   hidden: RoomSectionId[];
-  /** Unlisted: 1. The same on every screen width; a width that doesn't fit shrinks to the screen. */
-  widths: Partial<Record<RoomSectionId, SectionWidth>>;
   /** Names given to sections. Unlisted: the default name, in the screen's language. */
   names: Partial<Record<RoomSectionId, string>>;
 }
@@ -47,7 +38,7 @@ export interface RoomLayout extends Partial<SectionTemplate> {
   rooms?: Record<string, RoomOverride>;
 }
 
-export const DEFAULT_SECTIONS: SectionTemplate = { places: {}, hidden: [], widths: {}, names: {} };
+export const DEFAULT_SECTIONS: SectionTemplate = { sizes: {}, hidden: [], names: {} };
 
 /** The longest name a section can have. */
 export const NAME_LENGTH = 40;
@@ -55,86 +46,33 @@ export const NAME_LENGTH = 40;
 const isSectionId = (value: unknown): value is RoomSectionId =>
   (ROOM_SECTIONS as readonly unknown[]).includes(value);
 
-/** A section's width on a screen `count` section columns wide. */
-export function widthOf(t: SectionTemplate, id: RoomSectionId, count: number) {
-  const w = t.widths[id];
-  return w === "full" ? count : Math.min(w ?? 1, count);
-}
-
 /**
- * Every section once, in order: repeated sections are dropped, and a missing one (a section a later version added)
- * goes after the section that precedes it by default, in its column, or first.
+ * Every section in the template's rows, each once: the stored rows, then a section they don't list (one a later
+ * version added) at the end of the last row.
  */
-export function completePlaces(stored: readonly Place[]): Place[] {
-  const places: Place[] = [];
-  for (const p of stored) if (!places.some((q) => q.id === p.id)) places.push(p);
-  ROOM_SECTIONS.forEach((id, i) => {
-    if (places.some((p) => p.id === id)) return;
-    const before = ROOM_SECTIONS.slice(0, i).reverse().find((b) => places.some((p) => p.id === b));
-    const at = before ? places.findIndex((p) => p.id === before) : -1;
-    places.splice(at + 1, 0, { id, x: at >= 0 ? places[at].x : 0 });
-  });
-  return places;
+export function sectionRows(t: SectionTemplate): RoomSectionId[][] {
+  const seen = new Set<RoomSectionId>();
+  const rows = (t.rows ?? [])
+    .map((row) => row.filter((id) => !seen.has(id) && !!seen.add(id)))
+    .filter((row) => row.length > 0);
+  const rest = ROOM_SECTIONS.filter((id) => !seen.has(id));
+  if (!rest.length) return rows;
+  if (!rows.length) return [rest];
+  rows[rows.length - 1].push(...rest);
+  return rows;
 }
 
-/** Where `places` go on a screen `count` section columns wide. */
-export function placeAll(t: SectionTemplate, places: readonly Place[], count: number, heights: ReadonlyMap<RoomSectionId, number>): Packed {
-  return placeSections(places.map((p) => ({ x: p.x, w: widthOf(t, p.id, count), h: heights.get(p.id)! })), count);
-}
-
-/**
- * Where a room's sections go on a screen `count` section columns wide, in order. `heights` holds the sections the
- * room shows, with their heights in cells. A width that hasn't been arranged takes the reading order (top, then left)
- * of the nearest one that has (the smaller on a tie), or the default order, and packs it where each goes highest.
- */
-export function arrangeSections(t: SectionTemplate, count: number, heights: ReadonlyMap<RoomSectionId, number>): Place[] {
-  const shown = (places: Place[]) => places.filter((p) => heights.has(p.id));
-  const stored = t.places[count];
-  if (stored) return shown(completePlaces(stored));
-
-  let order = ROOM_SECTIONS.filter((id) => heights.has(id));
-  const counts = Object.keys(t.places).map(Number);
-  if (counts.length) {
-    const near = counts.reduce((a, b) => (Math.abs(b - count) < Math.abs(a - count) || (Math.abs(b - count) === Math.abs(a - count) && b < a) ? b : a));
-    const places = shown(completePlaces(t.places[near]));
-    const { slots } = placeAll(t, places, near, heights);
-    order = places
-      .map((p, i) => ({ id: p.id, slot: slots[i] }))
-      .sort((a, b) => a.slot.top - b.slot.top || a.slot.column - b.slot.column)
-      .map((p) => p.id);
-  }
-  const { slots } = packSections(order.map((id) => ({ w: widthOf(t, id, count), h: heights.get(id)! })), count);
-  return order.map((id, i) => ({ id, x: slots[i].column }));
-}
-
-/**
- * Close up the columns no section is in, moving the ones after them left: a room that has fewer sections than the
- * template arranges doesn't keep an empty column.
- */
-export function closeUp(t: SectionTemplate, places: readonly Place[], count: number): Place[] {
-  const used = new Array<boolean>(count).fill(false);
-  for (const p of places) used.fill(true, p.x, p.x + widthOf(t, p.id, count));
-  return places.map((p) => ({ id: p.id, x: p.x - used.slice(0, p.x).filter((u) => !u).length }));
-}
-
-/**
- * `all` (every section, `completePlaces`) with the sections this room shows in a new order and columns (`shown`):
- * they take the spots the shown ones had, in their new order, so the sections the room doesn't have keep theirs.
- */
-export function mergeShown(all: readonly Place[], shown: readonly Place[]): Place[] {
-  const ids = new Set(shown.map((p) => p.id));
-  let next = 0;
-  return all.map((p) => (ids.has(p.id) ? shown[next++] : p));
-}
+/** A section's size in this template. */
+export const sectionSize = (t: SectionTemplate, id: RoomSectionId): CardSize => t.sizes[id] ?? DEFAULT_CARD_SIZE;
 
 /** A room's sections in this layout, and whether they're its own rather than the template's. */
 export function roomSections(layout: HomeLayout, areaId: string): SectionTemplate & { own: boolean } {
   const own = layout.room?.rooms?.[areaId]?.own;
   const room = layout.room;
   const t = own ?? {
-    places: room?.places ?? {},
+    rows: room?.rows,
+    sizes: room?.sizes ?? {},
     hidden: room?.hidden ?? [],
-    widths: room?.widths ?? {},
     names: room?.names ?? {},
   };
   return { ...t, own: !!own };
@@ -152,38 +90,16 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 const sectionList = (value: unknown): RoomSectionId[] =>
   Array.isArray(value) ? [...new Set(value.filter(isSectionId))] : [];
 
-const isCount = (key: string) => /^[1-9]\d*$/.test(key);
-
-function placesOf(value: Record<string, unknown>): Record<string, Place[]> {
-  const out: Record<string, Place[]> = {};
-  if (isObject(value.places)) {
-    for (const [count, places] of Object.entries(value.places)) {
-      if (!isCount(count) || !Array.isArray(places)) continue;
-      const list = places.filter(
-        (p): p is Place => isObject(p) && isSectionId(p.id) && Number.isInteger(p.x) && (p.x as number) >= 0,
-      );
-      if (list.length) out[count] = list.map((p) => ({ id: p.id, x: p.x }));
-    }
-  } else if (isObject(value.columns)) {
-    // The first arrangements stored sections by column: their rows taken in turn place every section the same way.
-    for (const [count, columns] of Object.entries(value.columns)) {
-      if (!isCount(count) || !Array.isArray(columns)) continue;
-      const lists = columns.map(sectionList);
-      const list: Place[] = [];
-      for (let row = 0; row < Math.max(0, ...lists.map((l) => l.length)); row++) {
-        lists.forEach((l, x) => l[row] && list.push({ id: l[row], x }));
-      }
-      if (list.length) out[count] = list;
-    }
-  }
-  return out;
+function rowsOf(value: unknown): RoomSectionId[][] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.map(sectionList).filter((row) => row.length > 0);
 }
 
-function widthsOf(value: unknown): SectionTemplate["widths"] {
-  const out: SectionTemplate["widths"] = {};
+function sizesOf(value: unknown): SectionTemplate["sizes"] {
+  const out: SectionTemplate["sizes"] = {};
   if (!isObject(value)) return out;
-  for (const [id, w] of Object.entries(value)) {
-    if (isSectionId(id) && (w === "full" || (Number.isInteger(w) && (w as number) > 1))) out[id] = w as SectionWidth;
+  for (const [id, size] of Object.entries(value)) {
+    if (isSectionId(id) && (CARD_SIZES as readonly unknown[]).includes(size)) out[id] = size as CardSize;
   }
   return out;
 }
@@ -198,15 +114,18 @@ function namesOf(value: unknown): SectionTemplate["names"] {
 }
 
 function sectionsOf(value: Record<string, unknown>): SectionTemplate {
-  return { places: placesOf(value), hidden: sectionList(value.hidden), widths: widthsOf(value.widths), names: namesOf(value.names) };
+  const t: SectionTemplate = { sizes: sizesOf(value.sizes), hidden: sectionList(value.hidden), names: namesOf(value.names) };
+  const rows = rowsOf(value.rows);
+  if (rows) t.rows = rows;
+  return t;
 }
 
 /** The fields of `t` that differ from the default. */
 function changes(t: SectionTemplate): Partial<SectionTemplate> {
   const out: Partial<SectionTemplate> = {};
-  if (Object.keys(t.places).length) out.places = t.places;
+  if (t.rows) out.rows = t.rows;
+  if (Object.keys(t.sizes).length) out.sizes = t.sizes;
   if (t.hidden.length) out.hidden = t.hidden;
-  if (Object.keys(t.widths).length) out.widths = t.widths;
   if (Object.keys(t.names).length) out.names = t.names;
   return out;
 }

@@ -118,6 +118,7 @@
     "newRow": "New row",
     "ownRowItem": "Own row",
     "pick": "Change {{name}}",
+    "showItem": "Show",
     "hideItem": "Hide",
     "closeRoom": "Done with {{name}}",
     "dockHint": "Tap a room to change its size, row or controls.",
@@ -182,15 +183,19 @@
   "roomEdit": {
     "open": "Edit room",
     "title": "Arrange {{room}}",
-    "hint": "Drag a title to move its section, tap it to rename. Drag the grip on the right to widen. Tap a tile to hide it here.",
+    "hint": "Drag a section by its title: onto another section to put them side by side, onto \"+ New row\" for a row of its own. Tap a tile to hide it here.",
     "scope": "Sections apply to",
     "allRooms": "All rooms",
     "thisRoom": "Only this room",
     "hide": "Hide {{name}}",
     "show": "Show {{name}}",
-    "move": "{{name}}: tap to rename, drag or use the arrow keys to move",
-    "rename": "Name of {{name}}",
-    "resize": "Width of {{name}}: drag, or Shift and the left or right arrow"
+    "dockHint": "Tap a section's title to change its name, size or row.",
+    "sectionName": "Section name"
+  },
+  "lensEdit": {
+    "title": "Arrange {{lens}}",
+    "hint": "Rooms here are in Home's rows and sizes: what you change here changes Home too. Drag a room by its name.",
+    "dockHint": "Tap a room to change its name, size or row."
   },
   "hvacMode": {
     "off": "Off",

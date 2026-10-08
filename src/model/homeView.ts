@@ -1,50 +1,29 @@
 import { hiddenOf, nearestGrid, roomNameOf, rowsOf, sizeOf, slotsOf, type CardSize, type HomeLayout, type Position } from "../layout/homeLayout";
 import type { Size } from "../layout/pack";
-import { flow, type Drop } from "../layout/rows";
+import { boardView, sameSize, type Board, type BoardItem, type Placed } from "../layout/board";
 import type { FloorGroup, Room } from "./home";
 import { CARD_CELLS, fitCard, roomCardItems, shownSize, type CardItem } from "./roomCard";
 
-export interface RoomCardView {
+/** A room's card on Home. */
+export interface RoomCard extends BoardItem {
   room: Room;
   /** Its name: given in Doma, else HA's. */
   name: string;
   /** The card's size as the layout names it. */
   sizeName: CardSize;
-  /** The card's size in cells, fitted to the screen and to its tiles. */
-  size: Size;
   /** Its own controls, in order; undefined when it shows the generated ones. */
   slots?: string[];
-  /** Where it sits on Home's grid: `x` in columns, `y` in rows of a quarter cell (see layout/rows.ts). */
-  x: number;
-  y: number;
-  /** Whether other cards share its row: a stack. */
-  stacked: boolean;
   items: CardItem[];
 }
 
-/** Home's one grid of room cards. */
-export interface HomeGrid {
-  /** In reading order. */
-  rooms: RoomCardView[];
-  /** Its rows: `y` and `h` in rows of a quarter cell, `first` the area ID that names the row. */
-  rows: { first: string; y: number; h: number }[];
-  /** In edit mode, the gaps before, between and after its rows, half a cell tall (`BAND_ROWS`): a card dropped there gets a row. */
-  bands: { y: number; drop: Drop }[];
-}
+export type RoomCardView = Placed<RoomCard>;
 
 /*
- * A card's size and controls only change with its size, not with its position. Reusing the same objects while
- * cards move (each step of a drag re-places every card) means no card re-renders for a move. Keyed by the room
- * object, which is new whenever the model is rebuilt, so the cache never goes stale.
+ * A card's size and controls only change with its size, not with its position: the same size object (`sameSize`)
+ * and the same list of controls while cards move (each step of a drag re-places every card) mean no card re-renders
+ * for a move.
  */
-const sizeCache = new Map<string, Size>();
-function cached(size: Size): Size {
-  const key = `${size.w}/${size.h}`;
-  let known = sizeCache.get(key);
-  if (!known) sizeCache.set(key, (known = size));
-  return known;
-}
-const fittedSize = (name: CardSize, cols: number) => cached(fitCard(CARD_CELLS[name], cols));
+const fittedSize = (name: CardSize, cols: number) => sameSize(fitCard(CARD_CELLS[name], cols));
 
 // A card's own list is a new array only when that card's list changes, so it can be compared by identity.
 const itemCache = new WeakMap<Room, Map<Size, { slots?: string[]; items: CardItem[] }>>();
@@ -55,15 +34,6 @@ function cardItems(room: Room, size: Size, slots: string[] | undefined): CardIte
   if (!cached || cached.slots !== slots) bySize.set(size, (cached = { slots, items: roomCardItems(room, size, slots) }));
   return cached.items;
 }
-
-/**
- * Grid rows a card spans: its height in cells, in rows of a quarter cell (four of them and the gaps between make a
- * cell). A title band is two, a row of tiles three (model/roomCard.ts).
- */
-export const gridRows = (size: Size) => Math.round(size.h * 4);
-
-/** In edit mode, the band between rows where a card gets a row of its own: half a cell, in grid rows. */
-export const BAND_ROWS = 2;
 
 /** Rooms in `order`; those it doesn't list keep their order, after the rest. */
 function inOrder(rooms: Room[], order: readonly string[]): Room[] {
@@ -117,12 +87,11 @@ export function homeRows(model: FloorGroup[], layout: HomeLayout, floors = floor
 }
 
 /**
- * The home screen on a screen `cols` cells wide: the generated model with the home layout applied, one grid of room
- * cards. Each card has the layout's size, fitted to the screen and only as tall as its tiles (in edit mode, the
- * `selected` card with a free cell more where the size allows, to add one). Cards go in the layout's rows
- * (`homeRows`), one under another; a row wider than the screen wraps inside itself. In edit mode the rows are half a
- * cell apart, with a band there to drop a card into a new row. Hidden rooms have no card. (Until 2026-10-07 Home
- * could group its cards by floor, under a heading each.)
+ * The home screen on a screen `cols` cells wide: the generated model with the home layout applied, a board of room
+ * cards (layout/board.ts). Each card has the layout's size, fitted to the screen and only as tall as its tiles (in
+ * edit mode, the `selected` card with a free cell more where the size allows, to add one), in the layout's rows
+ * (`homeRows`). Hidden rooms have no card. (Until 2026-10-07 Home could group its cards by floor, under a heading
+ * each.)
  */
 export function homeView(
   model: FloorGroup[],
@@ -130,42 +99,20 @@ export function homeView(
   cols: number,
   editing = false,
   selected: string | null = null,
-): HomeGrid {
+): Board<RoomCard> {
   const hidden = new Set(hiddenOf(layout));
-  const here = new Map(allRoomsOf(model).filter((r) => !hidden.has(r.area.area_id)).map((r) => [r.area.area_id, r]));
-  const band = editing ? BAND_ROWS : 0;
-  const rooms: RoomCardView[] = [];
-  const rows: HomeGrid["rows"] = [];
-  let y = band;
-  for (const ids of homeRows(model, layout)) {
-    const cards = ids.flatMap((id) => {
-      const room = here.get(id);
-      if (!room) return [];
-      const sizeName = sizeOf(layout, id);
-      const slots = slotsOf(layout, id);
-      const max = fittedSize(sizeName, cols);
-      const items = cardItems(room, max, slots);
-      const size = cached(shownSize(max, items, editing && id === selected ? 1 : 0));
-      return [{ room, name: roomNameOf(layout, room.area), sizeName, size, slots, items }];
-    });
-    if (!cards.length) continue;
-    const boxes = flow(
-      cards.map((c) => ({ id: c.room.area.area_id, w: c.size.w, h: gridRows(c.size) })),
-      cols,
-    );
-    boxes.forEach((b, i) => rooms.push({ ...cards[i], x: b.x, y: y + b.y, stacked: cards.length > 1 }));
-    const h = Math.max(...boxes.map((b) => b.y + b.h));
-    rows.push({ first: boxes[0].id, y, h });
-    y += h + band;
+  const cards = new Map<string, RoomCard>();
+  for (const room of allRoomsOf(model)) {
+    const id = room.area.area_id;
+    if (hidden.has(id)) continue;
+    const sizeName = sizeOf(layout, id);
+    const slots = slotsOf(layout, id);
+    const max = fittedSize(sizeName, cols);
+    const items = cardItems(room, max, slots);
+    const size = sameSize(shownSize(max, items, editing && id === selected ? 1 : 0));
+    cards.set(id, { id, room, name: roomNameOf(layout, room.area), sizeName, size, slots, items });
   }
-  const bands: HomeGrid["bands"] = !editing
-    ? []
-    : rows.map((row, i) => ({ y: i === 0 ? 0 : rows[i - 1].y + rows[i - 1].h, drop: { kind: "before" as const, row: row.first } }));
-  if (editing && rows.length) {
-    const last = rows[rows.length - 1];
-    bands.push({ y: last.y + last.h, drop: { kind: "after", row: last.first } });
-  }
-  return { rooms, rows, bands };
+  return boardView(homeRows(model, layout), cards, cols, editing);
 }
 
 const allRoomsOf = (model: FloorGroup[]) => model.flatMap((g) => g.rooms);

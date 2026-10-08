@@ -18,8 +18,8 @@
   /**
    * On wide screens, a column at the left of every screen in place of the header and the tab band (ROADMAP.md,
    * "Navigation"): the clock, date and greeting, the weather, what's on (the lenses' status chips, each opening its
-   * lens), then Home and the lenses that are tabs, and at the bottom the edit button (on Home) and settings. It
-   * stays built while the screens change. While a screen is being edited it doesn't react, and its tabs follow
+   * lens), then Home and the lenses that are tabs, and at the bottom the edit button and settings: the same place on
+   * every screen, and the button edits the screen it's on. It stays built while the screens change. While a screen is being edited it doesn't react, and its tabs follow
    * Home's draft.
    */
   watchEntities(() => chipEntities(homeModel()));
@@ -49,11 +49,9 @@
     {/each}
   </nav>
   <div class="sidebar-foot">
-    {#if current === "home"}
-      <button class="round-btn" aria-label={t("edit.open")} onclick={() => editor.start("/")}>
-        <Icon path={mdiViewDashboardEditOutline} />
-      </button>
-    {/if}
+    <button class="round-btn" aria-label={t("edit.open")} onclick={() => editor.start(route())}>
+      <Icon path={mdiViewDashboardEditOutline} />
+    </button>
     <SettingsMenu />
   </div>
 </aside>
