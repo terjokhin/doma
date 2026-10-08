@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-07: v0.2.2 is out, with the redesigned device tile. The rest of the plan was dropped.*
+*Updated 2026-10-08: v0.2.3 is out: room screens and lenses are boards like Home. The rest of the plan was dropped.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -69,7 +69,22 @@ Where the app is going, in order, and how each step is checked. The README cover
   right. Tried and dropped the same day: a climate tile as wide as the card with − and + (option C): a whole row
   for one device, and empty while it's off. Start-up JS 65.4 KB gzipped.
 
-**Next:** nothing planned. A Fire HD round for the new tile (dragging to dim, update times with the fill) is due.
+- **One board everywhere** (2026-10-08, v0.2.3; tried on the laptop, not yet measured on the Fire HD):
+  - tiles that are off are only a faint shape with a bare icon, so a screen full of them stays light; tiles that are
+    on are lifted and outlined. Every tile covers two cells and the gap between them, whatever its card's size, so
+    tiles line up from one row of cards to the next, a gap apart everywhere (on S cards they had been a gap
+    narrower). Room titles lost their arrow;
+  - **room screens are boards** like Home: the sections are cards in rows, at S, M, L or Full, with all their
+    tiles as slim tiles (climate's − and + moved to its pop-up), arranged in the same edit mode as Home (tap a
+    title, the bar at the bottom, drag by the title). The old column arrangements aren't read, so every room starts
+    again from one row of its sections;
+  - **lenses are Home filtered**: the rooms in Home's rows and sizes, without floor headings, and editing a lens
+    arranges Home's rooms right there;
+  - the **edit button** is at the bottom left of the sidebar on every screen.
+  Start-up JS 62.2 KB gzipped (65.4 before: the old tiles and the section packer went).
+
+**Next:** nothing planned. A Fire HD round is due for the slim tile (dragging to dim, update times with the fill)
+and for room screens and lenses as boards.
 
 The rest of the plan was dropped on 2026-10-07: merging rooms; blinds, media and locks as tiles; readings and alert
 badges in card titles; a house-wide section on Home; custom views; the Organiser; layout history; an HA add-on;

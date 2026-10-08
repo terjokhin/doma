@@ -167,11 +167,11 @@ the version is written: `package.json` says `0.0.0-dev`, and the image build set
 
 ## Screens and navigation
 
-- **Home**: floors and their rooms, one card per room.
-- **Room** (`#/room/<area>`): everything in one room, grouped into Scenes, Lights, Climate, Switches, Media,
-  Sensors, in the order the room template says.
-- **Lenses** (`#/lens/lights`, `climate`, `security`, `devices`): one function across the house, a section per
-  room under floor headings. Lights: every light, with all on / off per room and for the house. Climate: air
+- **Home**: one card per room, in rows you arrange.
+- **Room** (`#/room/<area>`): everything in one room, as cards like Home's: Scenes, Lights, Climate, Switches,
+  Media, Sensors, in the rows and sizes the room template says.
+- **Lenses** (`#/lens/lights`, `climate`, `security`, `devices`): one function across the house: Home filtered,
+  the rooms in Home's rows and sizes, each showing what the lens picked. Lights: every light, with all on / off per room and for the house. Climate: air
   conditioners, heaters and thermostats, heating switches, each room's temperature, humidity and CO₂. Security:
   doors, windows, leak, smoke and gas sensors, locks. Devices: devices that are offline, and battery levels,
   lowest first.
@@ -196,26 +196,28 @@ The layout is generated from your HA floors and areas, and a **home layout** adj
 cards and their sizes. It only stores those changes, so new rooms still appear by themselves. Each HA user has
 their own, stored in Home Assistant itself (`frontend/set_user_data`, key `doma.layout`): any user can save
 theirs, no admin login needed, and every screen logged in as that user picks up a change at once. To change it,
-tap the **edit button** next to the settings gear: drag a card by its title onto another card to stack them side by
+tap the **edit button** (at the bottom left of the sidebar on every screen, or in the screen's header on a narrower
+one): drag a card by its title onto another card to stack them side by
 side, or onto **+ New row** between rows for a row of its own. Tap a room to select it: the bar at the bottom renames it (in Doma only; HA's
 area keeps its name), sets its width (S, M, L or the whole row), gives it its own row or hides it (**Hidden rooms** brings them back), and the
 card itself sets what it shows (**+** adds a control, × removes one, drag one to move it, tap one to swap it;
 lights, switches, climate, scenes and an all-lights button); pick and order the tabs under **Tabs**, then **Done**.
 At first each floor's rooms share a row; there are no floor headings.
 
-Room screens follow a **room template**, stored in the same layout. A room's edit button (in its header) lets you
-drag its sections by their titles into any column, rename them (tap the title), make them wider (the grip on
-their right side) and hide them, either for every room or for this room only, and
-hide single tiles on this room's screen by tapping them. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
+Room screens and lenses are arranged the same way. A room screen's cards are its sections, and follow a **room
+template** stored in the same layout: tap a section's title to rename, size or hide it, drag it by its title to
+stack it or give it a row, either for every room or for this room only, and hide single tiles on this room's
+screen by tapping them. A lens's cards are Home's rooms, so arranging them there arranges Home too. The format is in [LAYOUTS.md](LAYOUTS.md#layout-model).
 
 ## Architecture
 
-How the screen is divided into cells and sections, and how elements are sized: [LAYOUTS.md](LAYOUTS.md).
+How the screen is divided into cells, how boards of cards are laid out, and how elements are sized: [LAYOUTS.md](LAYOUTS.md).
 
 ```
 src/
   ha/         connection (OAuth + WebSocket, or a fixture), subscriptions and the store
   model/      HA registries → floors → rooms → lights / climate / sensors …; lenses
+  layout/     the cell grid, boards (cards in rows), the home layout and its editor
   ui/         tiles, header, sidebar, navigation band, icons, formatting
   screens/    Home, Room, Lens, Setup
   i18n/       en.json is the source; other languages translate it
