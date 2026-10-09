@@ -2,6 +2,7 @@
   "name": "doma",
   "private": true,
   "version": "0.0.0-dev",
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "description": "A modern, big-screen UI for Home Assistant, built for wall panels and kiosks.",
   "scripts": {
