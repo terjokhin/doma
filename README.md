@@ -6,9 +6,12 @@
 
 <p align="center">
   <a href="https://github.com/terjokhin/doma/releases/latest"><img src="https://img.shields.io/github/v/release/terjokhin/doma?sort=semver&label=latest" alt="Latest release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/terjokhin/doma" alt="License: GPL-3.0" /></a>
 </p>
 
 <p align="center"><b>A calm, fast home screen for Home Assistant</b><br />for the wall tablet, the kiosk and the laptop</p>
+
+<p align="center"><a href="https://terjokhin.github.io/doma/"><b>Try the live demo</b></a>: a made-up home in your browser, no Home Assistant needed</p>
 
 <p align="center">
   <img src="images/home.png" alt="Doma's home screen on a laptop: rooms as cards of slim tiles, each lamp with its own icon, a sidebar with the clock, weather, status chips and tabs" />
@@ -85,7 +88,7 @@ Open the app, enter your Home Assistant URL and log in on HA's own sign-in page.
 The app keeps HA's refresh token in the browser's local storage; it never sees your password.
 To skip the URL prompt, copy `.env.example` to `.env.local` and set `VITE_HA_URL`.
 
-**No Home Assistant at hand?** Open <http://localhost:5173/?fixture=demo>.
+**No Home Assistant at hand?** Open <http://localhost:5173/?fixture=demo>, or the [live demo](https://terjokhin.github.io/doma/).
 
 **Devices your home doesn't have?** `docker compose -f compose.demo-ha.yaml up -d` starts a Home Assistant with its
 demo integration at <http://localhost:8124>. Onboard it, make a long-lived token (Profile → Security) and put HA_URL
@@ -169,7 +172,10 @@ Releases: pushing a version tag (`git tag v0.3.0 && git push origin v0.3.0`) run
 which pushes the image as `ghcr.io/terjokhin/doma:<version>`, `:<major>.<minor>` and `:latest` (not for a
 pre-release such as `v0.3.0-rc.1`) and makes a GitHub release with notes on how to run it. The tag is the only place
 the version is written: `package.json` says `0.0.0-dev`, and the image build sets the tag's version into it
-(`--build-arg VERSION=…`), so the app shows it at the bottom of its settings.
+(`--build-arg VERSION=…`), so the app shows it at the bottom of its settings. The same tag runs
+`.github/workflows/demo.yml`, which builds the app on the made-up demo home (`VITE_FIXTURE=demo`, with no log-out in
+its settings) and publishes it as the [live demo](https://terjokhin.github.io/doma/) on GitHub Pages; it can also be
+run by hand from the Actions tab.
 
 ## Running on a wall tablet
 
@@ -294,3 +300,14 @@ src/
 
 Early. See [ROADMAP.md](ROADMAP.md) for where it stands, the target devices
 and the performance budgets.
+
+## License
+
+Copyright © 2026 Alexey Terekhin and contributors.
+
+Doma is free software: you can redistribute it and/or modify it under the terms of the
+[GNU General Public License](LICENSE) as published by the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version. In short: use it, change it and share it freely; a changed version you pass
+on stays open under the same license.
+
+It's distributed in the hope that it will be useful, but without any warranty; see the license for details.
