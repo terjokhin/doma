@@ -283,8 +283,19 @@ section whose entities are all hidden is left out too.
 then the bar at the bottom renames it (emptied, it goes back to its default name), sizes it, gives it its own row
 or hides it; drag a section by its title onto another to stack them, or onto "+ New row". The differences:
 
-- a section is selected by its **title** only, since its tiles have edit controls of their own: **tapping a tile**
-  hides it on this room's screen, or shows it again (hidden tiles stay in place, dimmed, with a crossed-out eye);
+- a section is selected by its **title** only, since its tiles are selected on their own: **tapping a tile**
+  selects it (a section and a tile aren't both selected), and the bar at the bottom has its name, **Hide** (hidden
+  on this room's screen only; hidden tiles stay in place, dimmed, with a crossed-out eye; **Show** brings one back)
+  and ×. For a **light, a thermostat or a switch** (a fan, a helper), the bar also has a row of icons, to say what it
+  is (`ICON_SETS` in `ui/icons.ts`): for lights, a bulb, ceiling lights, a chandelier, spots, sconces, floor, table
+  and desk lamps, an LED strip, string lights, outdoor lamps (20); for thermostats, an air conditioner, a heat pump,
+  a radiator, underfloor heating, a boiler, a fireplace (12); for switches, a socket, a kettle, a washing machine, a
+  TV, a router, a pump, an aquarium, a Christmas tree (28). The icon shows wherever the entity does: Home, room
+  screens, lenses, pop-ups. Without one given in Doma, it has the icon set on it in HA when Doma has that one
+  (`mdi:wall-sconce`), else its default: the bulb (outlined when off), the thermostat (showing the mode it runs in:
+  a flame, a snowflake), the power sign (a fan's fan, a heating switch's coil). Picking that one again forgets the
+  choice, so it follows HA again. The 60 icons add about 10 KB to start-up, so the sets stay small: HA's whole
+  icon set is about 3 MB;
 - a hidden section shows in edit mode as its title alone, struck through, and the bar's **Show** brings it back;
 - the bar at the top has **All rooms / Only this room**: whether this room follows the template (its changes then
   apply to every room that does) or has its own sections. Switching to "Only this room" starts from a copy of the
@@ -340,6 +351,7 @@ aren't changed here.
   "hidden": ["garage"],
   "cards": { "kitchen": ["lights", "climate.kitchen", "scene.kitchen_dinner"] },
   "tabs": ["lights", "devices", "climate"],
+  "icons": { "light.living_room_ceiling": "ceiling-light", "light.hallway_wall": "wall-sconce" },
   "room": {
     "rows": [["lights", "climate"], ["scenes"], ["switches", "media", "sensors"]],
     "sizes": { "scenes": "full", "sensors": "xs" },
@@ -369,6 +381,9 @@ aren't changed here.
   login is needed, and HA's area name still takes the room off entity names ("Kitchen Spots" shows as "Spots").
 - **`cards`**: a card's own list of controls, by area ID: entity IDs, or `lights` for the all-lights button.
   Unlisted rooms show the generated controls. Like `hide`, it names entity IDs, since it picks single devices.
+- **`icons`**: icons given to entities in a room's edit mode, by entity ID: names from Material Design Icons, as
+  HA's `mdi:` names without the prefix. Unlisted: HA's icon when Doma has it, else the default. A name Doma doesn't
+  have shows the default but is kept. Home's Reset keeps them: they say what a lamp is, not where it goes.
 - **`tabs`**: the tabs after Home, in order: `lights`, `climate`, `security`, `devices`. Unset means all four in
   that order; `[]` means Home alone. Home is always the first tab. A lens that isn't a tab is still reached from
   its status chip.
@@ -377,8 +392,8 @@ aren't changed here.
   `names` are the names given to sections; `hidden` the hidden sections. Section IDs are `scenes`, `lights`,
   `climate`, `switches`, `media` and `sensors`. Under `rooms`, by area ID: `own`, a room's own sections in the same
   shape, and `hide`, the entities hidden from its screen. (Until 2026-10-08 sections were stored by column as
-  `places.<n>` and `widths`, and before that as `columns.<n>`; none of them are read any more.) `hide` is
-  the one place a layout names entity IDs, since it's about one particular device; a renamed entity simply shows
+  `places.<n>` and `widths`, and before that as `columns.<n>`; none of them are read any more.) `hide`, like
+  `cards` and `icons`, names entity IDs, since it's about one particular device; a renamed entity simply shows
   again.
 
 Rooms are referenced by area ID, which stays the same when a room is renamed; a stale one is simply ignored. The
@@ -431,9 +446,10 @@ is saved until **Done**. Home, room screens and lenses are boards and edit the s
   and the free space to drop into is seen. (The band was first a thin line, shown only while dragging; on the
   tablet it wasn't clear that it was the way to a new row.)
 - **The card's controls** are slots in edit mode, laid out as they'll be shown: drag one to move it (it takes the
-  place of the control under its middle), tap it to swap it for another, × (in its top right corner) removes it;
+  place of the control under its middle), tap it to swap it for another (the menu of a light, a thermostat or a
+  switch starts with its icons, as on a room screen), × (in its top right corner) removes it;
   the first free place shows a "+", a tile wide (the selected card grows a row for it if its rows are full). "+" and "+N" open a menu of what the room has (all lights, its lights, climate, switches, scenes), ticked when
-  it's on the card, with **Back to automatic** once the card has its own list. The first change gives the card
+  it's on the card (on a card low on the screen, the menu opens upwards, clear of the bar at the bottom), with **Back to automatic** once the card has its own list. The first change gives the card
   its own list, starting from what it showed.
 - **Hide a room** from the bar: its row closes up; shown again, it comes back in its row. **Hidden rooms** in the bar lists them; tap one to show its card again. A hidden room's screen is
   still reached from the lenses, and its devices still count in the status chips.

@@ -4,7 +4,7 @@ Where the app is going, in order, and how each step is checked. The README cover
 
 ## Where we stand
 
-*Updated 2026-10-08: v0.2.3 is out: room screens and lenses are boards like Home. The rest of the plan was dropped.*
+*Updated 2026-10-09: v0.3.0 is out: icons for lights, thermostats and switches, and a laptop-sized grid. The rest of the plan was dropped.*
 
 **Done**
 - **Phase 0, device probe**: `probe.html` measured the target tablet (Fire HD 10, Fully Kiosk, Chrome 108).
@@ -83,8 +83,17 @@ Where the app is going, in order, and how each step is checked. The README cover
   - the **edit button** is at the bottom left of the sidebar on every screen.
   Start-up JS 62.2 KB gzipped (65.4 before: the old tiles and the section packer went).
 
-**Next:** nothing planned. A Fire HD round is due for the slim tile (dragging to dim, update times with the fill)
-and for room screens and lenses as boards.
+- **Icons and a laptop-sized grid** (2026-10-09, v0.3.0; tried on the laptop, not yet measured on the Fire HD):
+  - the column count is **rounded to the nearest** multiple of 4 instead of down, so cells stay about 75–110 px: a
+    laptop at 1440–1470 px had 8 columns of about 125 px. The Fire HD keeps its grid;
+  - **icons**: in edit mode a light, a thermostat or a switch can be given an icon that says what it is (20 for
+    lights: ceiling light, sconce, floor lamp, LED strip…; 12 for thermostats; 28 for switches), from a selected
+    tile's bar on a room screen or a control's menu on Home, and it shows everywhere; HA's own icon is the
+    starting point when Doma has it. Saved as `icons`. Start-up JS 72.4 KB gzipped (+10 KB);
+  - a **demo Home Assistant** (`compose.demo-ha.yaml`) to try devices a home doesn't have.
+
+**Next:** nothing planned. A Fire HD round is due for the slim tile (dragging to dim, update times with the fill),
+for room screens and lenses as boards, and for the icon pickers.
 
 The rest of the plan was dropped on 2026-10-07: merging rooms; blinds, media and locks as tiles; readings and alert
 badges in card titles; a house-wide section on Home; custom views; the Organiser; layout history; an HA add-on;
