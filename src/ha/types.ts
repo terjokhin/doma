@@ -40,6 +40,7 @@ export interface EntityEntry {
   ec?: number; // entity category index; any value means config/diagnostic
   hb?: boolean; // hidden
   hn?: boolean; // has_entity_name
+  ic?: string; // icon set on the entity in HA ("mdi:…")
   lb: string[]; // labels
 }
 

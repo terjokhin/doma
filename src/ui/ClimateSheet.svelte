@@ -31,7 +31,7 @@
 
 {#if s && c}
   <SheetFrame
-    icon={c.off ? entityIcon(s) : modeIcon(s.state)}
+    icon={entityIcon(s)}
     tint={tintOf(s)}
     active={isActive(s)}
     {name}

@@ -70,6 +70,12 @@ export interface HomeLayout {
    * (`model/roomCard.ts`). Unlisted rooms: the generated controls.
    */
   cards?: Record<string, string[]>;
+  /**
+   * Icons given to entities in Doma, by entity ID: names from `LIGHT_ICONS` (ui/icons.ts), HA's `mdi:` names without
+   * the prefix. Unlisted: HA's icon when Doma has it, else the default. Like hidden entities, these name entities:
+   * an icon says what one particular lamp is.
+   */
+  icons?: Record<string, string>;
   /** The tabs after Home, in order. Unset: every lens, in LENS_IDS order. */
   tabs?: LensId[];
   /** The room template, and what each room changes on top of it. */
@@ -104,6 +110,9 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 
 /** A card slot: an entity ID, or a word for a control of the room's own ("lights"). */
 const SLOT = /^[a-z_]+(\.[a-z0-9_]+)?$/;
+const ENTITY_ID = /^[a-z_]+\.[a-z0-9_]+$/;
+/** An icon's name in Material Design Icons. Names Doma doesn't have are kept: a later version may. */
+const ICON_NAME = /^[a-z0-9-]+$/;
 
 const isCoordinate = (value: unknown): value is number => Number.isInteger(value) && (value as number) >= 0;
 
@@ -183,6 +192,13 @@ export function parseLayout(value: unknown): HomeLayout {
   }
   if (Array.isArray(value.order)) {
     layout.order = [...new Set(value.order.filter((id): id is string => typeof id === "string"))];
+  }
+  if (isObject(value.icons)) {
+    const icons: Record<string, string> = {};
+    for (const [entityId, name] of Object.entries(value.icons)) {
+      if (ENTITY_ID.test(entityId) && typeof name === "string" && ICON_NAME.test(name)) icons[entityId] = name;
+    }
+    layout.icons = icons;
   }
   if (Array.isArray(value.tabs)) {
     layout.tabs = [...new Set(value.tabs.filter((id): id is LensId => typeof id === "string" && isLensId(id)))];

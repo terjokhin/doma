@@ -26,13 +26,14 @@
   } from "../model/roomCard";
   import CardFrame from "./CardFrame.svelte";
   import Icon from "./Icon.svelte";
-  import { entityIcon } from "./icons";
+  import IconPicker from "./IconPicker.svelte";
+  import { entityIcon, iconKind } from "./icons";
 
   /**
    * Edit mode over a room card on Home (LAYOUTS.md, "Edit mode"): selecting and dragging it is ui/CardFrame.svelte,
    * its size, row and hiding are in the dock at the bottom (ui/EditDock.svelte). Only the selected card shows its
-   * slots: each one is dragged to move it, tapped to swap it for another and has a × that removes it; one "+" adds a
-   * control. The first change gives the card its own list, starting from what it showed. It sits in the card's grid
+   * slots: each one is dragged to move it, tapped to swap it for another (a light's, a thermostat's or a switch's menu also has its icons) and has a
+   * × that removes it; one "+" adds a control. The first change gives the card its own list, starting from what it showed. It sits in the card's grid
    * cell, outside the card, so the menus aren't clipped by the card's `contain`.
    */
   let {
@@ -106,8 +107,19 @@
     return id === ROOM_LIGHTS || !s ? mdiLightbulbGroupOutline : entityIcon(s);
   }
 
+  /** Where the menu opens: under the title band, or over it when there's more room there; and how tall it can be. */
+  let place = $state<{ up: boolean; height: number }>({ up: false, height: 0 });
+
   function openMenu(swap: string | null) {
     swapping = swap;
+    // Between the edit bar at the top and the dock at the bottom, which stay over the page.
+    const top = document.querySelector(".edit-bar")?.getBoundingClientRect().bottom ?? 0;
+    const bottom = document.querySelector(".edit-dock")?.getBoundingClientRect().top ?? innerHeight;
+    const band = anchor?.getBoundingClientRect();
+    const below = band ? bottom - band.bottom : innerHeight;
+    const above = band ? band.top - top : 0;
+    const up = below < 320 && above > below;
+    place = { up, height: Math.max(160, Math.min(0.6 * innerHeight, (up ? above : below) - 16)) };
     menu = "slots";
   }
 
@@ -202,7 +214,14 @@
   <div class="menu-anchor" data-menu="slots" bind:this={anchor}>
     {#if menu === "slots"}
       {@const choices = slotChoices(room)}
-      <div class="slot-menu" role="menu">
+      {@const kind = swapping ? iconKind(swapping) : undefined}
+      {@const entity = swapping ? stateOf(swapping) : undefined}
+      <div class="slot-menu" class:up={place.up} style:max-height="{place.height}px" role="menu">
+        {#if kind && entity}
+          <!-- What it is: its icon, here and everywhere it shows. -->
+          <div class="menu-label">{t("edit.icon")}</div>
+          <IconPicker {entity} {kind} />
+        {/if}
         <div class="menu-label">
           {swapping ? t("edit.replaceControl", { name: label(swapping) }) : t("edit.controlsOf", { name })}
         </div>

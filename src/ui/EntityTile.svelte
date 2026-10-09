@@ -6,7 +6,7 @@
   import { ALARM_CLASSES, deviceClass, domainOf, entityName } from "../model/home";
   import { climateOf, togglePower } from "./climate";
   import { formatNumber, formatState, isUnavailable } from "./format";
-  import { entityIcon, modeIcon } from "./icons";
+  import { entityIcon } from "./icons";
   import { lightOf, setLevel, toggle } from "./light";
   import { isPending, send } from "./pending.svelte";
   import { runScene } from "./scene";
@@ -55,7 +55,7 @@
       const mode = t(`hvac.${s.state}`, { defaultValue: formatState(s).value });
       const current = s.attributes.current_temperature;
       return {
-        icon: c.off ? entityIcon(s) : modeIcon(s.state),
+        icon: entityIcon(s),
         // While it runs, the target is at the right; off, its own reading is beside "Off".
         state: !c.off || current == null || unavailable ? mode : `${mode} · ${formatNumber(current)}°`,
         active: isActive(s),

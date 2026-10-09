@@ -1573,6 +1573,56 @@ a.btn {
   background: var(--surface-3);
 }
 
+/* A tile's dock: its name, "Hide", ×, and for a light, a row of icons under them. */
+.edit-dock-title {
+  max-width: 14rem;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The icons a light can have (ui/IconPicker.svelte): in a tile's dock, and in a Home card's control menu. */
+.icon-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.edit-dock .icon-picker {
+  flex-basis: 100%;
+  justify-content: center;
+  margin-left: calc(-1 * var(--space-3));
+  padding-bottom: var(--space-1);
+}
+
+.slot-menu .icon-picker {
+  margin-bottom: var(--space-3);
+}
+
+.icon-picker button {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  color: var(--text-dim);
+}
+
+.icon-picker button:active {
+  background: var(--surface-3);
+}
+
+.icon-picker button[aria-checked="true"] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* A light's icons make the dock taller: room to scroll the last tiles above it. */
+.screen.editing.tall-dock {
+  padding-bottom: calc(4 * var(--touch) + 2 * var(--space-5) + env(safe-area-inset-bottom, 0px));
+}
+
 .edit-dock-close {
   display: grid;
   place-items: center;
@@ -1770,6 +1820,12 @@ a.btn {
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--line-strong), 0 18px 50px rgb(0 0 0 / 0.5);
   cursor: default;
+}
+
+/* Low on the screen, it opens upwards (ui/CardEditor.svelte), clear of the dock. */
+.slot-menu.up {
+  top: auto;
+  bottom: calc(100% + 0.4rem);
 }
 
 .slot-option {
@@ -1978,17 +2034,21 @@ a.btn {
   position: relative;
 }
 
-/* Over a tile in edit mode: the whole tile hides or shows it, with an eye at the right. */
+/* Over a tile in edit mode: a tap selects it, and its tools are in the dock. A hidden one is dimmed, with an eye. */
 .tile-edit {
   position: absolute;
   inset: 0;
   border-radius: var(--radius-s);
-  box-shadow: inset 0 0 0 2px var(--cool);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.tile-edit.selected {
+  z-index: 1;
+  box-shadow: 0 0 0 2px var(--cool);
 }
 
 .tile-edit.hidden {
   background: rgb(14 16 19 / 0.7);
-  box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 
 .tile-edit-badge {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { mdiChevronLeft, mdiEyeOffOutline, mdiEyeOutline, mdiViewDashboardEditOutline } from "@mdi/js";
+  import { mdiChevronLeft, mdiEyeOffOutline, mdiViewDashboardEditOutline } from "@mdi/js";
   import { onDestroy } from "svelte";
   import { callService, home } from "../ha/store.svelte";
   import { watchEntities } from "../ha/subscriptions.svelte";
@@ -34,6 +34,8 @@
   import EntityTile from "../ui/EntityTile.svelte";
   import { formatHumidity, formatTemperature } from "../ui/format";
   import Icon from "../ui/Icon.svelte";
+  import { iconKind } from "../ui/icons";
+  import TileDock from "../ui/TileDock.svelte";
 
   /**
    * A room's screen (LAYOUTS.md, "Room screens"): a board like Home (layout/Board.svelte), with the room's sections as
@@ -146,6 +148,32 @@
     save({ hidden: sections.hidden.includes(id) ? sections.hidden.filter((k) => k !== id) : [...sections.hidden, id] });
   }
 
+  /** The tile being changed, if any: its tools are in the dock instead of a section's. A section and a tile aren't
+   * both selected. */
+  let selectedTile = $state<string | null>(null);
+  const tile = $derived.by(() => {
+    if (!editing || !selectedTile) return undefined;
+    const id = selectedTile;
+    const s = home.catalog[id];
+    if (!s || ![...cards.values()].some((c) => c.ids.includes(id))) return undefined;
+    return { id, s, name: entityName(s, home.registry[id], room!.area), kind: iconKind(id) };
+  });
+
+  function pickTile(id: string) {
+    selected = null;
+    selectedTile = id;
+  }
+  $effect(() => {
+    if (selected) selectedTile = null;
+  });
+
+  /** A tap outside the tiles and the dock, or Escape, puts the tile down. */
+  function deselectTile(e: MouseEvent) {
+    if (!selectedTile) return;
+    const inside = e.composedPath().some((el) => el instanceof Element && el.matches(".tile-edit, .edit-dock, .edit-bar"));
+    if (!inside) selectedTile = null;
+  }
+
   function setOwn(own: boolean) {
     if (own !== sections.own) editor.setOwnSections(areaId, own);
   }
@@ -156,6 +184,8 @@
   });
 </script>
 
+<svelte:window onclick={deselectTile} onkeydown={(e) => e.key === "Escape" && (selectedTile = null)} />
+
 {#if !room}
   <div class="center">{t("app.connecting")}</div>
 {:else}
@@ -165,7 +195,7 @@
     <button class="chip" onclick={toggleAll}>{lightsOn ? t("room.allOff") : t("room.allOn")}</button>
   {/snippet}
 
-  <main class="screen" class:editing>
+  <main class="screen" class:editing class:tall-dock={tile?.kind}>
     {#if editing}
       <EditBar
         title={t("roomEdit.title", { room: roomName(area) })}
@@ -222,11 +252,12 @@
                 <button
                   class="tile-edit"
                   class:hidden
-                  aria-pressed={!hidden}
-                  aria-label={t(hidden ? "roomEdit.show" : "roomEdit.hide", { name })}
-                  onclick={() => editor.setEntityHidden(areaId, id, !hidden)}
+                  class:selected={tile?.id === id}
+                  aria-pressed={tile?.id === id}
+                  aria-label={t("roomEdit.pickTile", { name })}
+                  onclick={() => pickTile(id)}
                 >
-                  <span class="tile-edit-badge"><Icon path={hidden ? mdiEyeOffOutline : mdiEyeOutline} size={18} /></span>
+                  {#if hidden}<span class="tile-edit-badge"><Icon path={mdiEyeOffOutline} size={18} /></span>{/if}
                 </button>
               {/if}
             </GridItem>
@@ -245,7 +276,17 @@
       {/snippet}
     </Board>
 
-    {#if editing}
+    {#if tile}
+      {@const id = tile.id}
+      <TileDock
+        name={tile.name}
+        hidden={hide.has(id)}
+        entity={tile.s}
+        kind={tile.kind}
+        onHide={() => editor.setEntityHidden(areaId, id, !hide.has(id))}
+        onClose={() => (selectedTile = null)}
+      />
+    {:else if editing}
       {@const s = selectedCard}
       <EditDock
         name={s?.title}

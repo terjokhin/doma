@@ -43,9 +43,11 @@ export const editor = {
     draft = null;
     target = null;
   },
-  /** Home back to the generated layout, keeping the room template; saved on Done like any other change. */
+  /** Home back to the generated layout, keeping the room template and icons; saved on Done like any other change. */
   reset() {
-    if (draft) draft = draft.room ? { ...EMPTY_LAYOUT, room: draft.room } : EMPTY_LAYOUT;
+    if (!draft) return;
+    const { room, icons } = draft;
+    draft = { ...EMPTY_LAYOUT, ...(room && { room }), ...(icons && { icons }) };
   },
   /** Home's rows of room cards; the same on every screen width. (A layout's old floor-grouping fields go.) */
   setRows(rows: readonly string[][]) {
@@ -80,6 +82,13 @@ export const editor = {
     const { [areaId]: _, ...cards } = draft.cards ?? {};
     if (slots) cards[areaId] = slots;
     draft = { ...draft, cards };
+  },
+  /** An entity's icon, by name (ui/icons.ts), or undefined to go back to HA's or the default. */
+  setIcon(entityId: string, name: string | undefined) {
+    if (!draft) return;
+    const { [entityId]: _, ...icons } = draft.icons ?? {};
+    if (name) icons[entityId] = name;
+    draft = { ...draft, icons };
   },
   /** The tabs after Home, in order. */
   setTabs(tabs: LensId[]) {
