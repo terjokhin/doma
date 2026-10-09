@@ -30,8 +30,11 @@ the cell, so everything scales together.
 **Columns.** Aim for cells of about 100 CSS px and keep the count a multiple of 4, so 4-cell (M) cards fit exactly:
 
 ```
-cols = max(4, 4 × floor(W / 400))
+cols = max(4, 4 × round(W / 400))
 ```
+
+The nearest count, not the most that fit: rounding down let a window just short of the next step (a laptop at
+1440–1470 px) keep 8 columns of about 125 px. Rounded, cells stay about 75–110 px; the Fire HD keeps its 8 columns.
 
 `W` is the width beside the **sidebar**: on a screen 1100 px wide or more there's one, 300 px wide, at the left
 (see "Navigation band and sidebar"), and `W` is the rest.

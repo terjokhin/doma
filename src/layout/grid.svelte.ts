@@ -31,7 +31,8 @@ function measure(): Grid {
   const screen = document.documentElement.clientWidth;
   const sidebar = screen >= SIDEBAR_FROM ? SIDEBAR_WIDTH : 0;
   const width = screen - sidebar;
-  const cols = Math.max(SECTION_WIDTH, SECTION_WIDTH * Math.floor(width / (SECTION_WIDTH * CELL_TARGET)));
+  // The nearest count, not the most that fit: cells stay about 75–110 px, where rounding down let them grow to 130.
+  const cols = Math.max(SECTION_WIDTH, SECTION_WIDTH * Math.round(width / (SECTION_WIDTH * CELL_TARGET)));
   const cell = width / (cols + (cols - 1) * GAP + 2 * PAD);
   return { cols, cell, sidebar };
 }
