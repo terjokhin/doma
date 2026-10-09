@@ -1575,5 +1575,26 @@
    "ai": "bedroom",
    "lb": []
   }
- ]
+ ],
+ "layout": {
+  "version": 1,
+  "icons": {
+   "light.living_room_ceiling_light": "ceiling-light",
+   "light.living_room_floor_lamp": "floor-lamp",
+   "light.living_room_wall_sconce": "wall-sconce",
+   "light.kitchen_spot_lights": "light-recessed",
+   "light.kitchen_counter_light": "led-strip-variant",
+   "light.hallway_ceiling_light": "ceiling-light",
+   "light.garden_path_lights": "post-lamp",
+   "light.bedroom_ceiling_light": "chandelier",
+   "light.bedroom_bedside_light": "lamp",
+   "light.kids_room_ceiling_light": "ceiling-light",
+   "light.kids_room_night_light": "string-lights",
+   "light.office_desk_light": "desk-lamp",
+   "climate.living_room_ac": "air-conditioner",
+   "climate.bedroom_ac": "air-conditioner",
+   "climate.office_ac": "air-conditioner",
+   "switch.kitchen_coffee_machine": "coffee-maker"
+  }
+ }
 }
