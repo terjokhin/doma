@@ -1,0 +1,19 @@
+# A Home Assistant with its demo integration, for development: a made-up home to try Doma on.
+#
+#   docker compose -f compose.demo-ha.yaml up -d     # then http://localhost:8124, onboard, put devices into areas
+#   docker compose -f compose.demo-ha.yaml down -v   # stop it and forget everything (users, areas, history)
+#
+# HA keeps its state in the ha-demo volume; the configuration comes from docker/demo-ha.
+services:
+  ha-demo:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: doma-ha-demo
+    ports:
+      - "8124:8123"
+    volumes:
+      - ha-demo:/config
+      - ./docker/demo-ha/configuration.yaml:/config/configuration.yaml:ro
+    restart: unless-stopped
+
+volumes:
+  ha-demo:

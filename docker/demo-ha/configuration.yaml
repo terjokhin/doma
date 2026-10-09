@@ -1,0 +1,57 @@
+# Home Assistant's demo integration: a made-up home with lights, climate, fans, media players, locks, covers,
+# sensors and more, to see how Doma shows devices a real home doesn't have. Started by compose.demo-ha.yaml.
+default_config:
+demo:
+
+# Whatever country onboarding picked; "us_customary" shows °F instead.
+homeassistant:
+  unit_system: metric
+
+# The demo's media players and locks have no unique ID, so HA can't give them an area, and a room never shows them.
+# These wrap them in entities that have one; seed-areas.mjs puts them into rooms.
+media_player:
+  - platform: universal
+    name: Living Room TV
+    unique_id: doma_demo_living_room_tv
+    device_class: tv
+    children: [media_player.lounge_room]
+  - platform: universal
+    name: Living Room Speaker
+    unique_id: doma_demo_living_room_speaker
+    children: [media_player.living_room]
+  - platform: universal
+    name: Kitchen Speaker
+    unique_id: doma_demo_kitchen_speaker
+    children: [media_player.kitchen]
+  - platform: universal
+    name: Bedroom Speaker
+    unique_id: doma_demo_bedroom_speaker
+    children: [media_player.bedroom]
+  - platform: universal
+    name: Office Walkman
+    unique_id: doma_demo_office_walkman
+    children: [media_player.walkman]
+
+template:
+  - lock:
+      - name: Front Door Lock
+        unique_id: doma_demo_front_door_lock
+        state: "{{ states('lock.front_door') }}"
+        lock: { action: lock.lock, target: { entity_id: lock.front_door } }
+        unlock: { action: lock.unlock, target: { entity_id: lock.front_door } }
+      - name: Kitchen Back Door
+        unique_id: doma_demo_kitchen_back_door
+        state: "{{ states('lock.kitchen_door') }}"
+        lock: { action: lock.lock, target: { entity_id: lock.kitchen_door } }
+        unlock: { action: lock.unlock, target: { entity_id: lock.kitchen_door } }
+      - name: Garage Side Door
+        unique_id: doma_demo_garage_side_door
+        state: "{{ states('lock.poorly_installed_door') }}"
+        lock: { action: lock.lock, target: { entity_id: lock.poorly_installed_door } }
+        unlock: { action: lock.unlock, target: { entity_id: lock.poorly_installed_door } }
+      - name: Garden Gate
+        unique_id: doma_demo_garden_gate
+        state: "{{ states('lock.openable_lock') }}"
+        lock: { action: lock.lock, target: { entity_id: lock.openable_lock } }
+        unlock: { action: lock.unlock, target: { entity_id: lock.openable_lock } }
+        open: { action: lock.open, target: { entity_id: lock.openable_lock } }

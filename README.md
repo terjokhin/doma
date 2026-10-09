@@ -68,6 +68,13 @@ To skip the URL prompt, copy `.env.example` to `.env.local` and set `VITE_HA_URL
 
 **No Home Assistant at hand?** Open <http://localhost:5173/?fixture=demo>.
 
+**Devices your home doesn't have?** `docker compose -f compose.demo-ha.yaml up -d` starts a Home Assistant with its
+demo integration at <http://localhost:8124>. Onboard it, make a long-lived token (Profile → Security) and put HA_URL
+and HA_TOKEN into `.env.hademo`; `node --env-file=.env.hademo docker/demo-ha/seed-areas.mjs` puts its devices into
+floors and areas (Doma's rooms are areas). Then capture it:
+`node --env-file=.env.hademo scripts/capture-fixture.mjs local-hademo`, and open `?fixture=local-hademo`. `down -v`
+instead of `up -d` throws it all away.
+
 ## Browser support
 
 Chrome / Android WebView **108+**, Safari 16+, Firefox 115+. The oldest target is the WebView of
