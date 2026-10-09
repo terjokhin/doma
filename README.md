@@ -8,17 +8,36 @@
   <a href="https://github.com/terjokhin/doma/releases/latest"><img src="https://img.shields.io/github/v/release/terjokhin/doma?sort=semver&label=latest" alt="Latest release" /></a>
 </p>
 
-*Doma* is Russian for "at home". A modern, calm UI for [Home Assistant](https://www.home-assistant.io/), made for big screens:
-a laptop browser, a wall-mounted tablet, a kiosk display. It's a static web app that talks
-to Home Assistant directly over its WebSocket API. There's no server of its own.
+<p align="center"><b>A calm, fast home screen for Home Assistant</b><br />for the wall tablet, the kiosk and the laptop</p>
 
-- Builds itself from your HA **floors, areas and devices**: no dashboard YAML to maintain.
-- **Lenses** show one thing across the whole house (lights, climate, security, devices), and
-  **status chips** say when something needs a look: "3 lights on", "Door open · Hallway", "2 offline".
-- **Fast on old tablets**: about 65 KB of gzipped JavaScript, and it only subscribes to the
-  entities on screen. Each tile re-renders only when its own entity changes.
-- Touch-first: large tap targets, no hover-only controls.
-- English UI, with Russian included; translations live in `src/i18n/*.json`.
+<p align="center">
+  <img src="images/home.png" alt="Doma's home screen on a laptop: rooms as cards of slim tiles, each lamp with its own icon, a sidebar with the clock, weather, status chips and tabs" />
+</p>
+
+*Doma* is Russian for "at home". It's a static web app that talks to [Home Assistant](https://www.home-assistant.io/)
+directly over its WebSocket API: no server of its own, no custom integration, nothing to install in HA.
+
+## Why Doma
+
+- **It builds itself.** Point it at Home Assistant and your home is there: rooms from your areas, in floor order,
+  each with its lights, climate and switches. No dashboard YAML, no cards to configure, no entity IDs to copy.
+- **It stays right as your home changes.** Layouts are bound to meaning ("this room's lights"), not to entity IDs,
+  so a new device shows up in its room and a rename breaks nothing.
+- **You arrange it on the screen itself.** Tap the edit button and drag rooms into rows, size them, rename them,
+  hide what you don't need, pick what each card shows, and give every lamp, thermostat and switch an icon that says
+  what it is: a ceiling light, a sconce, a floor lamp, an air conditioner, a kettle. No admin login: each HA user
+  has their own layout, and every screen logged in as that user picks up a change at once.
+- **Fast on a 2017 tablet.** Built and measured on a Fire HD 10 with Chrome 108: about 72 KB of gzipped JavaScript, only
+  the entities on screen are subscribed to, one update re-renders one tile, and going back to a screen takes about
+  50 ms.
+- **Calm.** A tile that's off is a faint shape; what's on is lit. Dim a light by dragging across its tile. Status
+  chips speak only when something needs a look: "3 lights on", "Door open · Hallway", "2 offline".
+- **Lenses: the whole house, one question.** Lights, Climate, Security and Devices show every room filtered to one
+  thing, in the same arrangement as Home.
+- **Nothing to break.** No dependency on Home Assistant's frontend internals, so an HA update can't break it. One
+  small Docker image for amd64, arm64 and a Raspberry Pi.
+- **Touch-first**, with large tap targets and no hover-only controls. English and Russian; translations live in
+  `src/i18n/*.json`.
 
 ## Quick start
 
@@ -273,5 +292,5 @@ src/
 
 ## Status
 
-Early. See [ROADMAP.md](ROADMAP.md) for what's next (a redesign of the device tile), target devices and
-performance budgets.
+Early. See [ROADMAP.md](ROADMAP.md) for where it stands, the target devices
+and the performance budgets.
