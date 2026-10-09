@@ -20,6 +20,10 @@
 *Doma* is Russian for "at home". It's a static web app that talks to [Home Assistant](https://www.home-assistant.io/)
 directly over its WebSocket API: no server of its own, no custom integration, nothing to install in HA.
 
+> **Built with Claude Code.** Doma is written with [Claude Code](https://claude.com/claude-code), Anthropic's AI
+> coding assistant, directed by its author and tried on real hardware (a 2017 Fire HD 10). The commits
+> it wrote say so in their co-author line.
+
 ## Why Doma
 
 - **It builds itself.** Point it at Home Assistant and your home is there: rooms from your areas, in floor order,
