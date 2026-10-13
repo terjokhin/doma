@@ -55,7 +55,7 @@ Where the app is going, in order, and how each step is checked. The README cover
     and hiding are in a bar at the bottom, its controls' × and "+" on the card;
   - **a sidebar on wide screens** (2026-10-07): from 1100 px wide, the clock, date, greeting, weather, status chips
     and the tabs as a list sit in a column at the left of every screen, in place of the header and the tab band;
-    the Fire HD in landscape has 8 columns of about 106 px beside it ([LAYOUTS.md](LAYOUTS.md), "Navigation band
+    the Fire HD in landscape has 8 columns of about 111 px beside it (300 px wide at first, 260 since 2026-10-13) ([LAYOUTS.md](LAYOUTS.md), "Navigation band
     and sidebar");
   - **v0.1.0**, the first release (2026-10-07): a version tag publishes the Docker image for amd64, arm64 and
     arm/v7 and makes a GitHub release.
@@ -98,6 +98,12 @@ Where the app is going, in order, and how each step is checked. The README cover
   house's own, Routines and Automations sections in rooms; an icon set for them. **Routine cards** made on Home
   hold any routines and automations of the house. A selected card's open menu was covered by the title bands of the
   cards below it; it now goes above them. Start-up JS 80.0 KB gzipped.
+
+- **Row heights and a slimmer sidebar** (2026-10-13; tried on the laptop, not yet on the Fire HD): a row of Home
+  can be given a **height**, 1 to 4 rows of tiles, from the bar at the bottom; every card of the row is then that
+  tall, tiles or not, and the rest goes into "+N". Unset, a row is Auto, as before: each card as tall as its tiles,
+  up to three rows. Saved as `rowHeights`. The sidebar went from 300 to 260 px; cells aim for 104 px instead of
+  100, so the Fire HD keeps 8 columns (now about 111 px).
 
 **Next:** nothing planned. A Fire HD round is due for the slim tile (dragging to dim, update times with the fill),
 for room screens and lenses as boards, and for the icon pickers.

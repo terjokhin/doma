@@ -227,7 +227,7 @@ stay built once visited, so going back to one is quick even on a slow tablet. Th
 The home screen shows each room as a card: its name, temperature and humidity, and
 its controls (lights, climate), with "+N" for what doesn't fit. Rooms go in rows: a room on its own, or a stack of
 rooms side by side. A card's size is its width: S, M (the default), L or the whole row; it's as tall as its tiles,
-up to three rows of slim tiles, two cells wide, like Apple Home's. The icon switches a device, the rest of the tile
+up to three rows of slim tiles (or as tall as its row's height, 1 to 4 rows, when the row has one), two cells wide, like Apple Home's. The icon switches a device, the rest of the tile
 opens its controls, and dragging across a light's tile dims it. Tapping a card's title opens the room. Everything is placed on a grid of square cells that adapts to
 the screen and reflows on rotation; the rules are in [LAYOUTS.md](LAYOUTS.md).
 
@@ -238,7 +238,7 @@ theirs, no admin login needed, and every screen logged in as that user picks up 
 tap the **edit button** (at the bottom left of the sidebar on every screen, or in the screen's header on a narrower
 one): drag a card by its title onto another card to stack them side by
 side, or onto **+ New row** between rows for a row of its own. Tap a room to select it: the bar at the bottom renames it (in Doma only; HA's
-area keeps its name), sets its width (S, M, L or the whole row), gives it its own row or hides it (**Hidden rooms** brings them back), and the
+area keeps its name), sets its width (S, M, L or the whole row) and its row's height (Auto, or 1 to 4 rows of tiles for every card in the row), gives it its own row or hides it (**Hidden rooms** brings them back), and the
 card itself sets what it shows (**+** adds a control, × removes one, drag one to move it, tap one to swap it or
 give it an icon; lights, switches, climate, scenes, routines, automations and an all-lights button); pick and order the tabs under
 **Tabs**, then **Done**.

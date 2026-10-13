@@ -27,16 +27,17 @@ the cell, so everything scales together.
 | `g` | gap between cells | `0.1 × c` |
 | `p` | page padding, left and right | `0.25 × c` |
 
-**Columns.** Aim for cells of about 100 CSS px and keep the count a multiple of 4, so 4-cell (M) cards fit exactly:
+**Columns.** Aim for cells of about 104 CSS px and keep the count a multiple of 4, so 4-cell (M) cards fit exactly:
 
 ```
-cols = max(4, 4 × round(W / 400))
+cols = max(4, 4 × round(W / 416))
 ```
 
 The nearest count, not the most that fit: rounding down let a window just short of the next step (a laptop at
-1440–1470 px) keep 8 columns of about 125 px. Rounded, cells stay about 75–110 px; the Fire HD keeps its 8 columns.
+1440–1470 px) keep 8 columns of about 125 px. Rounded, cells stay about 75–111 px. The aim is a little over 100 so
+the Fire HD keeps its 8 columns beside the sidebar: at 100 its 1020 px would round up to 12 columns of 76 px.
 
-`W` is the width beside the **sidebar**: on a screen 1100 px wide or more there's one, 300 px wide, at the left
+`W` is the width beside the **sidebar**: on a screen 1100 px wide or more there's one, 260 px wide, at the left
 (see "Navigation band and sidebar"), and `W` is the rest.
 
 **Cell size.** Fill the width exactly:
@@ -52,9 +53,9 @@ Examples:
 |---|---|---|---|---|---|
 | Phone | 390 | 390 | 4 | 81 px | 1 |
 | Tablet portrait | 800 | 800 | 8 | 87 px | 2 |
-| Tablet landscape (Fire HD 10), with the sidebar | 1280 | 980 | 8 | 106 px | 2 |
-| Laptop, with the sidebar | 1440 | 1140 | 8 | 124 px | 2 |
-| 24″ panel, with the sidebar | 1920 | 1620 | 16 | 90 px | 4 |
+| Tablet landscape (Fire HD 10), with the sidebar | 1280 | 1020 | 8 | 111 px | 2 |
+| Laptop, with the sidebar | 1440 | 1180 | 12 | 87 px | 3 |
+| 24″ panel, with the sidebar | 1920 | 1660 | 16 | 92 px | 4 |
 
 (Until 2026-10-07 there was no sidebar, and the Fire HD in landscape had 12 columns of 94 px.)
 
@@ -119,14 +120,14 @@ widen one. Now they're boards like Home, so the same rows, sizes, tiles and edit
 
 ## Navigation band and sidebar
 
-On a screen **1100 px wide or more** (the Fire HD in landscape, a laptop) a **sidebar** 300 px wide sits at the
+On a screen **1100 px wide or more** (the Fire HD in landscape, a laptop) a **sidebar** 260 px wide sits at the
 left of every screen (`ui/Sidebar.svelte`), in place of the home header and the band: the clock, the date, a
 greeting, the weather, **what's on** (the status chips, one under another, each opening its lens; nothing when all
 is calm), then the **tabs** as a list (Home, then the user's lenses, in their order), and at the bottom the **edit
 button** and settings, which open upwards. The edit button is there on every screen, and edits the screen it's on
 (on narrower screens it's at the right of the screen's header). It's fixed, on its own layer, and stays built while the screens
 change; while a screen is being edited it doesn't react, and its tabs follow Home's draft. Messages and Home's
-edit bar are centred on the screen beside it. On the Fire HD it leaves 8 columns of about 106 px: tiles as big as
+edit bar are centred on the screen beside it. On the Fire HD it leaves 8 columns of about 111 px: tiles as big as
 before, a little bigger even, for 4 fewer columns. (It replaced the header and band on wide screens on 2026-10-07,
 after the calm-cards design; the band had been chosen over a side rail to keep 12 columns.)
 
@@ -141,10 +142,13 @@ Room screens have no tabs: they're one level down, with a back button.
 
 ## Room cards (home screen)
 
-Each room is a card in one of **four sizes**, and a size is only a **width**. Every card shows up to three rows of
-slim tiles, two cells wide each, and is only as tall as its tiles need (in edit mode, a tile more where there's
-room, to add one), so a room with two lights takes one row on an M card; what doesn't fit in three rows goes into
-"+N":
+Each room is a card in one of **four sizes**, and a size is only a **width**. The height belongs to its **row**
+(see "The floor grid"): a row is **Auto** unless given a height, and in an Auto row every card shows up to three
+rows of slim tiles, two cells wide each, and is only as tall as its tiles need (in edit mode, a tile more where
+there's room, to add one), so a room with two lights takes one row on an M card; what doesn't fit in three rows goes
+into "+N". A row given a **height of 1, 2, 3 or 4** rows of tiles makes every card in it that tall, with fewer
+tiles too, and what doesn't fit goes into "+N". On a narrow screen a stack wraps, and its cards on every line keep
+the row's height. The table is for an Auto row:
 
 | Size | Width, in cells | Tiles, at most |
 |---|---|---|
@@ -285,7 +289,7 @@ under a heading each, but rows you arrange yourself do that job better.
 ended up at different heights. Until 2026-10-07 rows filled themselves in an order, so space couldn't be left
 empty. A stored arrangement or order from then still fills the rows until they're set.)
 
-A card is as tall as its tiles (see "Room cards"); its width comes from its size. In edit mode the rows are half
+A card is as tall as its tiles, or as its row's height (see "Room cards"); its width comes from its size. In edit mode the rows are half
 a cell apart, for the bands a card is dropped on to get a row of its own (see "Edit mode").
 
 
@@ -386,6 +390,7 @@ aren't changed here.
   "version": 1,
   "sizes": { "kitchen": "wide", "hallway": "xs" },
   "rows": [["living_room"], ["kitchen", "hallway", "bathroom"], ["bedroom", "office"]],
+  "rowHeights": { "kitchen": 2, "hallway": 2, "bathroom": 2 },
   "hidden": ["garage"],
   "cards": { "kitchen": ["lights", "climate.kitchen", "scene.kitchen_dinner"] },
   "tabs": ["lights", "devices", "climate"],
@@ -409,6 +414,9 @@ aren't changed here.
 - **`rows`**: Home's rows, in order, each a list of area IDs: one room, or a stack. Rooms it doesn't list get a
   row per floor after the rest (the area's floor in HA), so a home that never set its rows starts with one row per
   floor. The same on every screen width.
+- **`rowHeights`**: the heights of Home's rows, in rows of tiles (1 to 4), kept by card ID since rows have no IDs:
+  every card of a row has the row's height, and a row reads it from the first of its cards that has one. Unlisted:
+  Auto. Lenses, which share Home's rows, show all their tiles and ignore it.
 - **`order`**: the order of the cards from when rows filled themselves (until 2026-10-07), and **`grids.<cols>`**:
   card positions from when cards were placed freely; only read, to order each floor's first row.
 - **`floors`** and **`flatRows`**: from when Home could group its cards by floor (until 2026-10-07; `floors: false`
@@ -461,8 +469,10 @@ is saved until **Done**. Home, room screens and lenses are boards and edit the s
 - Controls on the cards don't react (`inert`), and the cards look as they do on Home. **Tap a room to select it**:
   it gets an outline, its controls become slots to edit (below) with one "+", and the **bar at the bottom** of the
   screen (`ui/EditDock.svelte`) shows its **name** (tap it to rename the room: see `roomNames` below; emptied, it
-  goes back to HA's), its **size** (S, M, L, Full), **Own row** (in a stack: it leaves
-  the stack for a row of its own, where it was, at its size), **Hide** and × to put it down. With nothing
+  goes back to HA's), its **size** (S, M, L, Full), its **row's height** (Auto, 1, 2, 3, 4: it changes every card of
+  the row), **Own row** (in a stack: it leaves the stack for a row of its own, where it was, at its size and its
+  row's height), **Hide** and × to put it down. A card dragged into another row takes that row's height; into a row
+  of its own, it keeps the one it had. With nothing
   selected, the bar says what a tap does. The bar is always in the same place, whichever room is selected, with
   targets big enough for a wall tablet; nothing of the editor covers a card's name, even an S room's. A tap
   outside the rooms or Escape puts the room down. The default size isn't stored. (Until 2026-10-07 every card
