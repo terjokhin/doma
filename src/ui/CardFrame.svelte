@@ -72,6 +72,7 @@
 <div
   class="card-edit"
   class:selected
+  class:menu-open={barOpen}
   class:title-only={!pickAll}
   role="presentation"
   style:--card-rows={cardRows(size)}
