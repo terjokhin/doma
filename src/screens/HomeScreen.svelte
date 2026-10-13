@@ -51,7 +51,7 @@
     const before = rows();
     const next = dropCard(before, id, at, isFull);
     if (next === before) return false;
-    editor.setRows(next);
+    editor.setRows(next, id);
     return true;
   }
 </script>
@@ -95,6 +95,11 @@
       onRename={(name) => selectedCard && editor.setRoomName(selectedCard.room.area, name)}
       size={selectedCard?.sizeName}
       onSize={(size) => id && resize(id, size)}
+      rowHeight={selectedCard?.rowHeight}
+      onRowHeight={(height) => {
+        const row = id && rows().find((r) => r.includes(id));
+        if (row) editor.setRowHeight(row, height);
+      }}
       onOwnRow={id && selectedCard?.stacked ? () => editor.setRows(ownRow(rows(), id)) : undefined}
       onHide={id && !isRoutineCard(id) ? () => editor.setRoomHidden(id, true) : undefined}
       onRemove={id && isRoutineCard(id) ? () => editor.removeRoutineCard(id) : undefined}

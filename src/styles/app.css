@@ -1573,6 +1573,13 @@ a.btn {
   font-weight: 600;
 }
 
+.edit-dock-sizes-icon {
+  display: grid;
+  place-items: center;
+  padding: 0 0.1rem 0 var(--space-2);
+  color: var(--text-dim);
+}
+
 .edit-dock-sizes button[aria-checked="true"] {
   background: var(--text);
   color: var(--bg);

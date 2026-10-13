@@ -83,7 +83,7 @@
     const before = rows();
     const next = dropCard(before, id, at, isFull);
     if (next === before) return false;
-    editor.setRows(next);
+    editor.setRows(next, id);
     return true;
   }
 

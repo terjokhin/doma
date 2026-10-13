@@ -27,6 +27,14 @@ export type CardSize = (typeof CARD_SIZES)[number];
 /** A card's size when the layout doesn't say. */
 export const DEFAULT_CARD_SIZE: CardSize = "m";
 
+/**
+ * How many rows of tiles the cards of a row of Home show (LAYOUTS.md, "Room cards"): each card of the row is that
+ * tall, tiles or not, and what doesn't fit goes into "+N". A row without one is "auto": each card as tall as its
+ * tiles, up to three rows.
+ */
+export const ROW_HEIGHTS = [1, 2, 3, 4] as const;
+export type RowHeight = (typeof ROW_HEIGHTS)[number];
+
 /** Where a card sits on its floor's grid: `x` in columns, `y` in rows of half a cell, from the top left. */
 export interface Position {
   x: number;
@@ -49,6 +57,11 @@ export interface HomeLayout {
    * by side. Rooms they don't list get a row per floor after the rest. Unset: a row per floor.
    */
   rows?: string[][];
+  /**
+   * The heights of Home's rows, kept by card ID: every card of a row has the row's height (rows have no IDs of their
+   * own, and a card dropped into a row takes its height). Unlisted: auto.
+   */
+  rowHeights?: Record<string, RowHeight>;
   /**
    * From when Home could group its cards by floor (until 2026-10-07): `floors: false` meant it didn't, and its rows
    * were `flatRows`. Only read, for the rows that were on screen; the first save keeps them as `rows`.
@@ -117,6 +130,15 @@ export const newRoutineCardId = () => `_card_${Date.now().toString(36)}`;
 
 /** The tabs after Home in this layout. */
 export const tabsOf = (layout: HomeLayout): readonly LensId[] => layout.tabs ?? LENS_IDS;
+
+/** The height of a row of Home (card IDs) in this layout: the first of its cards that has one; undefined for auto. */
+export function rowHeightOf(layout: HomeLayout, row: readonly string[]): RowHeight | undefined {
+  for (const id of row) {
+    const height = layout.rowHeights?.[id];
+    if (height) return height;
+  }
+  return undefined;
+}
 
 /** A room card's size in this layout. */
 export const sizeOf = (layout: HomeLayout, areaId: string): CardSize => layout.sizes?.[areaId] ?? DEFAULT_CARD_SIZE;
@@ -205,6 +227,13 @@ export function parseLayout(value: unknown): HomeLayout {
     layout[key] = rows
       .map((row) => (Array.isArray(row) ? row : []).filter((id): id is string => typeof id === "string" && !seen.has(id) && !!seen.add(id)))
       .filter((row) => row.length > 0);
+  }
+  if (isObject(value.rowHeights)) {
+    const heights: Record<string, RowHeight> = {};
+    for (const [id, height] of Object.entries(value.rowHeights)) {
+      if ((ROW_HEIGHTS as readonly unknown[]).includes(height)) heights[id] = height as RowHeight;
+    }
+    layout.rowHeights = heights;
   }
   if (Array.isArray(value.order)) {
     layout.order = [...new Set(value.order.filter((id): id is string => typeof id === "string"))];

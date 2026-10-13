@@ -1,8 +1,20 @@
-import { hiddenOf, nearestGrid, roomNameOf, rowsOf, sizeOf, slotsOf, type CardSize, type HomeLayout, type Position } from "../layout/homeLayout";
+import {
+  hiddenOf,
+  nearestGrid,
+  roomNameOf,
+  rowHeightOf,
+  rowsOf,
+  sizeOf,
+  slotsOf,
+  type CardSize,
+  type HomeLayout,
+  type Position,
+  type RowHeight,
+} from "../layout/homeLayout";
 import type { Size } from "../layout/pack";
 import { boardView, sameSize, type Board, type BoardItem, type Placed } from "../layout/board";
 import { ROUTINES_ID, type FloorGroup, type Room } from "./home";
-import { CARD_CELLS, fitCard, roomCardItems, shownSize, type CardItem } from "./roomCard";
+import { CARD_CELLS, fitCard, roomCardItems, shownSize, withRows, type CardItem } from "./roomCard";
 import { withRoutineCards } from "./routineCards";
 
 /** A room's card on Home. */
@@ -12,6 +24,8 @@ export interface RoomCard extends BoardItem {
   name: string;
   /** The card's size as the layout names it. */
   sizeName: CardSize;
+  /** The height of its row; undefined for auto. */
+  rowHeight?: RowHeight;
   /** Its own controls, in order; undefined when it shows the generated ones. */
   slots?: string[];
   items: CardItem[];
@@ -92,9 +106,9 @@ export function homeRows(model: FloorGroup[], layout: HomeLayout, floors = floor
 
 /**
  * The home screen on a screen `cols` cells wide: the generated model with the home layout applied, a board of room
- * cards (layout/board.ts). Each card has the layout's size, fitted to the screen and only as tall as its tiles (in
- * edit mode, the `selected` card with a free cell more where the size allows, to add one), in the layout's rows
- * (`homeRows`). Hidden rooms have no card. (Until 2026-10-07 Home could group its cards by floor, under a heading
+ * cards (layout/board.ts). Each card has the layout's size, fitted to the screen, in the layout's rows (`homeRows`).
+ * In a row with a height it's that many rows of tiles tall; in an auto row, only as tall as its tiles (in edit mode,
+ * the `selected` card with a free cell more where the size allows, to add one). Hidden rooms have no card. (Until 2026-10-07 Home could group its cards by floor, under a heading
  * each.)
  */
 export function homeView(
@@ -105,18 +119,26 @@ export function homeView(
   selected: string | null = null,
 ): Board<RoomCard> {
   const hidden = new Set(hiddenOf(layout));
+  const rows = homeRows(model, layout);
+  const heights = new Map<string, RowHeight>();
+  for (const row of rows) {
+    const height = rowHeightOf(layout, row);
+    if (height) for (const id of row) heights.set(id, height);
+  }
   const cards = new Map<string, RoomCard>();
   for (const room of allRoomsOf(withRoutineCards(model, layout))) {
     const id = room.area.area_id;
     if (hidden.has(id)) continue;
     const sizeName = sizeOf(layout, id);
     const slots = slotsOf(layout, id);
-    const max = fittedSize(sizeName, cols);
+    const rowHeight = heights.get(id);
+    const fitted = fittedSize(sizeName, cols);
+    const max = rowHeight ? sameSize(withRows(fitted, rowHeight)) : fitted;
     const items = cardItems(room, max, slots);
-    const size = sameSize(shownSize(max, items, editing && id === selected ? 1 : 0));
-    cards.set(id, { id, room, name: roomNameOf(layout, room.area), sizeName, size, slots, items });
+    const size = rowHeight ? max : sameSize(shownSize(max, items, editing && id === selected ? 1 : 0));
+    cards.set(id, { id, room, name: roomNameOf(layout, room.area), sizeName, rowHeight, size, slots, items });
   }
-  return boardView(homeRows(model, layout), cards, cols, editing);
+  return boardView(rows, cards, cols, editing);
 }
 
 const allRoomsOf = (model: FloorGroup[]) => model.flatMap((g) => g.rooms);

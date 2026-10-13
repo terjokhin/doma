@@ -121,6 +121,8 @@
     "icon": "Значок",
     "newRow": "Новая строка",
     "ownRowItem": "В свою строку",
+    "rowHeight": "Высота строки, в рядах кнопок",
+    "rowHeightAuto": "Авто",
     "pick": "Изменить «{{name}}»",
     "showItem": "Показать",
     "hideItem": "Скрыть",

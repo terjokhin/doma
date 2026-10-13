@@ -1,6 +1,15 @@
 import type { LensId } from "../model/lenses";
 import type { AreaEntry } from "../ha/types";
-import { DEFAULT_CARD_SIZE, EMPTY_LAYOUT, newRoutineCardId, ROOM_NAME_MAX, type CardSize, type HomeLayout } from "./homeLayout";
+import {
+  DEFAULT_CARD_SIZE,
+  EMPTY_LAYOUT,
+  newRoutineCardId,
+  ROOM_NAME_MAX,
+  rowHeightOf,
+  type CardSize,
+  type HomeLayout,
+  type RowHeight,
+} from "./homeLayout";
 import { homeLayout, saveLayout } from "./layoutStore.svelte";
 import { DEFAULT_SECTIONS, roomSections, withRoom, withTemplate, type SectionTemplate } from "./roomTemplate";
 
@@ -59,11 +68,21 @@ export const editor = {
       ...(routineCards?.length && { routineCards, cards: mine(draft.cards), roomNames: mine(draft.roomNames) }),
     };
   },
-  /** Home's rows of room cards; the same on every screen width. (A layout's old floor-grouping fields go.) */
-  setRows(rows: readonly string[][]) {
+  /**
+   * Home's rows of room cards; the same on every screen width. (A layout's old floor-grouping fields go.) A `moved`
+   * card that's now in a row with others takes that row's height; on its own, it keeps its own.
+   */
+  setRows(rows: readonly string[][], moved?: string) {
     if (!draft) return;
     const { floors: _, flatRows: __, ...rest } = draft;
     draft = { ...rest, rows: rows.map((r) => [...r]) };
+    if (!moved) return;
+    const others = rows.find((r) => r.includes(moved))?.filter((id) => id !== moved);
+    if (others?.length) setHeights(draft, [moved], rowHeightOf(draft, others));
+  },
+  /** The height of a row of Home (its card IDs, hidden ones too); undefined for auto. */
+  setRowHeight(row: readonly string[], height: RowHeight | undefined) {
+    if (draft) setHeights(draft, row, height);
   },
   /** A room card's size. The default size isn't stored. */
   setSize(areaId: string, size: CardSize) {
@@ -120,6 +139,7 @@ export const editor = {
       cards: drop(draft.cards),
       roomNames: drop(draft.roomNames),
       sizes: drop(draft.sizes),
+      rowHeights: drop(draft.rowHeights),
       rows: draft.rows?.map((row) => row.filter((x) => x !== id)).filter((row) => row.length > 0),
     };
   },
@@ -180,6 +200,15 @@ export const editor = {
     }
   },
 };
+
+function setHeights(layout: HomeLayout, ids: readonly string[], height: RowHeight | undefined) {
+  const rowHeights = { ...layout.rowHeights };
+  for (const id of ids) {
+    if (height) rowHeights[id] = height;
+    else delete rowHeights[id];
+  }
+  draft = { ...layout, rowHeights };
+}
 
 function setRoom(room: HomeLayout["room"]) {
   if (!draft) return;

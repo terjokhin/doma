@@ -12,7 +12,7 @@ export const TITLE_CELLS = 0.5;
  */
 export const ROW_CELLS = 0.75;
 
-/** The most rows of tiles a card has. */
+/** The most rows of tiles a card has in a row of auto height. */
 const MAX_ROWS = 3;
 
 /**
@@ -30,6 +30,9 @@ export const CARD_CELLS: Record<CardSize, Size> = {
 
 /** Rows of tiles on a card of `size`. Item sizes on a card are in columns and these rows. */
 export const cardRows = (size: Size) => Math.round((size.h - TITLE_CELLS) / ROW_CELLS);
+
+/** A card `size.w` wide with `rows` rows of tiles under its title: on Home, in a row with a height. */
+export const withRows = (size: Size, rows: number): Size => ({ w: size.w, h: TITLE_CELLS + rows * ROW_CELLS });
 
 /**
  * The size a card shows, at most `max`: its width, and only as tall as its tiles need, with `spare` free cells

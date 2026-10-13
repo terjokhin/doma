@@ -121,6 +121,8 @@
     "icon": "Icon",
     "newRow": "New row",
     "ownRowItem": "Own row",
+    "rowHeight": "Row height, in rows of tiles",
+    "rowHeightAuto": "Auto",
     "pick": "Change {{name}}",
     "showItem": "Show",
     "hideItem": "Hide",

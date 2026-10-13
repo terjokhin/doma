@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { mdiClose, mdiDeleteOutline, mdiEyeOffOutline, mdiEyeOutline, mdiPencilOutline, mdiTableRowPlusAfter } from "@mdi/js";
+  import { mdiArrowExpandVertical, mdiClose, mdiDeleteOutline, mdiEyeOffOutline, mdiEyeOutline, mdiPencilOutline, mdiTableRowPlusAfter } from "@mdi/js";
   import { tick } from "svelte";
   import { t } from "../i18n/index.svelte";
-  import { CARD_SIZES, ROOM_NAME_MAX, type CardSize } from "../layout/homeLayout";
+  import { CARD_SIZES, ROOM_NAME_MAX, ROW_HEIGHTS, type CardSize, type RowHeight } from "../layout/homeLayout";
   import Icon from "./Icon.svelte";
 
   /**
    * In a board's edit mode, a bar at the bottom of the screen (LAYOUTS.md, "Edit mode"): for the selected card (a room
-   * on Home, a section on a room screen), its name (tap it to rename it in Doma), size, "Own row" (in a stack) and
-   * "Hide" ("Show" for a hidden section); with none selected, a hint. Always in the same place, whichever card is
+   * on Home, a section on a room screen), its name (tap it to rename it in Doma), size, its row's height (on Home),
+   * "Own row" (in a stack) and "Hide" ("Show" for a hidden section); with none selected, a hint. Always in the same place, whichever card is
    * selected, and big enough to hit on a wall tablet. A room card itself keeps its controls' × and "+".
    */
   let {
@@ -17,9 +17,11 @@
     nameLabel,
     hint,
     size,
+    rowHeight,
     hidden = false,
     onRename,
     onSize,
+    onRowHeight,
     onOwnRow,
     onHide,
     onRemove,
@@ -34,10 +36,14 @@
     /** Shown with nothing selected. */
     hint?: string;
     size?: CardSize;
+    /** The height of the card's row; undefined for auto. */
+    rowHeight?: RowHeight;
     /** The card is hidden (a section, shown in edit mode only): "Hide" shows it again instead. */
     hidden?: boolean;
     onRename: (name: string) => void;
     onSize: (size: CardSize) => void;
+    /** A new height for the card's row (undefined: auto); no heights without it. */
+    onRowHeight?: (height: RowHeight | undefined) => void;
     /** Take it out of its stack; undefined when it has a row of its own. */
     onOwnRow?: () => void;
     /** Hide it, or show it again when `hidden`; no "Hide" without it. */
@@ -100,6 +106,16 @@
         <button role="radio" aria-checked={s === size} onclick={() => s !== size && onSize(s)}>{t(`edit.sizes.${s}`)}</button>
       {/each}
     </div>
+    {#if onRowHeight}
+      <div class="edit-dock-sizes" role="radiogroup" aria-label={t("edit.rowHeight")}>
+        <span class="edit-dock-sizes-icon"><Icon path={mdiArrowExpandVertical} size={18} /></span>
+        {#each [undefined, ...ROW_HEIGHTS] as h (h ?? 0)}
+          <button role="radio" aria-checked={h === rowHeight} onclick={() => h !== rowHeight && onRowHeight(h)}>
+            {h ?? t("edit.rowHeightAuto")}
+          </button>
+        {/each}
+      </div>
+    {/if}
     {#if onOwnRow}
       <button class="edit-dock-action" onclick={onOwnRow}>
         <Icon path={mdiTableRowPlusAfter} size={20} />{t("edit.ownRowItem")}
