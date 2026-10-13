@@ -4,8 +4,8 @@
  * variables it sets (--cols, --cell, --gap, --pad) or `grid` below.
  */
 
-/** Cells aim for about this many CSS px. */
-const CELL_TARGET = 100;
+/** Cells aim for about this many CSS px: a little over 100, so the Fire HD beside the sidebar keeps 8 columns. */
+const CELL_TARGET = 104;
 /** Gap between cells, in cells. */
 export const GAP = 0.1;
 /** Page padding left and right, in cells. */
@@ -14,10 +14,10 @@ export const PAD = 0.25;
 export const SECTION_WIDTH = 4;
 /**
  * From this screen width there's a sidebar (ui/Sidebar.svelte) this wide, and the grid is what's left: on the Fire
- * HD in landscape, 8 columns of about 106 px. A tablet in portrait and phones keep the header and the tab band.
+ * HD in landscape, 8 columns of about 111 px. A tablet in portrait and phones keep the header and the tab band.
  */
 const SIDEBAR_FROM = 1100;
-const SIDEBAR_WIDTH = 300;
+const SIDEBAR_WIDTH = 260;
 
 interface Grid {
   cols: number;

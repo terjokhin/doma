@@ -354,7 +354,7 @@ button {
   flex-direction: column;
   width: var(--sidebar);
   box-sizing: border-box;
-  padding: max(var(--space-6), env(safe-area-inset-top)) var(--space-5) var(--space-4) var(--space-6);
+  padding: max(var(--space-6), env(safe-area-inset-top)) var(--space-5) var(--space-4);
   overflow-y: auto;
   background: var(--surface);
   box-shadow: inset -1px 0 0 var(--line);
