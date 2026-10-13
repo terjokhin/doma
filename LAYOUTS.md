@@ -191,13 +191,14 @@ is edited they're generated:
   reading. − and + are in its pop-up. (A tile as wide as the card with − and + was tried on 2026-10-07 and
   dropped: a whole row for one device, empty while it's off.)
 - the generated controls: lights, then climate devices, then heating switches (underfloor heating, a radiator: a
-  switch whose ID says so);
+  switch whose ID says so), then the room's routines (see "Routines");
 - **as many rows as the size has**. What doesn't fit is replaced by a "+N" tile ("3 more") that opens the room.
-  When something has to go, climate and heating are kept before lights; the order on screen stays lights first.
+  When something has to go, climate and heating are kept before lights, and routines go first; the order on screen
+  stays lights first.
 - A room without lights, climate or heating keeps an empty card.
 
 A card can have **its own list** instead (edit mode, below), in the order you set: lights and switches, climate
-devices, scenes (a tap anywhere on the tile runs one) and **all lights**, one tile for all the
+devices, scenes (a tap anywhere on the tile runs one), routines, automations and **all lights**, one tile for all the
 room's lights (lit while any is on, showing how many; its chip turns them all off, or all on; the rest opens all
 of them in one pop-up). What doesn't fit goes into "+N" from the end. A control the room no longer has is skipped.
 
@@ -218,6 +219,40 @@ size. In the demo, `?latency=1500` answers that late and `?fail` refuses everyth
 
 In code: the sizes are `CARD_CELLS` and `roomCardItems` (given the card's size) in `model/roomCard.ts`, rendered by
 `screens/RoomCard.svelte`.
+
+### Routines
+
+What runs when asked, and what runs by itself (`model/home.ts`, `ui/routine.ts`):
+
+- **Routines** are scripts, buttons and timers. The icon runs one (a script with `script.turn_on`, so Doma doesn't
+  wait for it to end; a button is pressed; a timer starts); the rest of the tile opens its pop-up. The tile says when
+  it last ran ("Ran 17:40", or the day), or "Running" while a script is.
+- **A script that runs a timer** shows its countdown. The timer is found by name: the timer whose name starts the
+  script's ("Heating floors" for "Heating floors for 1 hour"; the longest such name when several do). That's the
+  usual way to make an "on for an hour" in HA: a script switches something on and (re)starts a timer, and an
+  automation switches it off when the timer finishes. The tile goes by the timer's name and says how long the run
+  is ("Heating floors · 1 h"); while the timer runs it's lit (orange when its icon says it heats) and says what's
+  left ("42 min left", in minutes, then seconds in the last minute: the tile repaints at most once every 10 s until
+  then, `ui/countdown.svelte.ts`). Its icon starts from the timer's, which says what's being timed. The timer isn't
+  shown on its own. The pop-up shows what's left, big, until when, **Stop now** and **Start 1 h again**. **Stop
+  now finishes the timer** (`timer.finish`): HA then does what it does when the time is up, the automation switches
+  the heating off, so Doma needn't know what the script switched on.
+- **Automations** switch on and off from the icon (a switched-off one has its robot crossed out); their tiles are
+  never lit, since on is the usual thing. The pop-up has On / Off, **Run now** (`automation.trigger`) and when it
+  last ran.
+- **Where they go.** In the room HA gives them, as two sections of the room screen, **Routines** and
+  **Automations**; a room card adds its routines last (automations only when picked). Those HA gives no room, the
+  house's own, are in a room of their own, **Routines** (area ID `_routines`, which HA can't make): its card is
+  first on Home (also on a Home arranged before it came), and it's placed, sized, renamed and filled like any
+  room's; its screen lists them all. Buttons that look after a device (restart, identify, update) and config or
+  diagnostic entities are left out.
+- **Routine cards** (`model/routineCards.ts`) gather routines and automations from anywhere in the house, whichever
+  room HA gives them: "Heating" with every 1-hour run, "Safety" with the alarm automations. **Routines card** in
+  Home's edit bar adds one, empty, in a row of its own at the top, selected; its "+" lists every routine and
+  automation of the house, and it's dragged, sized and renamed like a room's card. The dock has **Remove** in place
+  of Hide. Its title opens a screen of what it holds, as Routines and Automations. Home's Reset keeps routine cards,
+  what they hold and their names: they're made, not arranged. To the board a card is a room of its own (ID
+  `_card_…`), so rows, sizes and names work as for rooms, and lenses, which share Home's rows, skip it.
 
 ### The floor grid
 
@@ -259,7 +294,7 @@ a cell apart, for the bands a card is dropped on to get a row of its own (see "E
 A room screen (`screens/RoomScreen.svelte`) starts with a 1-row header (back, the room's name, temperature and
 humidity, and on narrower screens the edit button), then a **board** whose cards are the room's **sections**:
 **Scenes** (tap to activate), **Lights** (with All on / All off for the lights shown), **Climate**, **Switches**,
-**Media** and **Sensors**. A section the room has nothing for is left out. Every section shows **all** its tiles,
+**Media**, **Sensors**, **Routines** and **Automations** (see "Routines"). A section the room has nothing for is left out. Every section shows **all** its tiles,
 slim tiles as on Home: lights and switches switch from the icon and open their pop-up from the rest, a dimmable
 light dims by dragging across it, a thermostat shows its target at the right (− and + are in its pop-up), a
 scene runs from anywhere on its tile, and readings (sensors, media players) show their state, lit while they need
@@ -286,16 +321,19 @@ or hides it; drag a section by its title onto another to stack them, or onto "+ 
 - a section is selected by its **title** only, since its tiles are selected on their own: **tapping a tile**
   selects it (a section and a tile aren't both selected), and the bar at the bottom has its name, **Hide** (hidden
   on this room's screen only; hidden tiles stay in place, dimmed, with a crossed-out eye; **Show** brings one back)
-  and ×. For a **light, a thermostat or a switch** (a fan, a helper), the bar also has a row of icons, to say what it
+  and ×. For a **light, a thermostat, a switch** (a fan, a helper) **or a routine** (a script, a button, a timer, an
+  automation), the bar also has a row of icons, to say what it
   is (`ICON_SETS` in `ui/icons.ts`): for lights, a bulb, ceiling lights, a chandelier, spots, sconces, floor, table
   and desk lamps, an LED strip, string lights, outdoor lamps (20); for thermostats, an air conditioner, a heat pump,
   a radiator, underfloor heating, a boiler, a fireplace (12); for switches, a socket, a kettle, a washing machine, a
-  TV, a router, a pump, an aquarium, a Christmas tree (28). The icon shows wherever the entity does: Home, room
+  TV, a router, a pump, an aquarium, a Christmas tree (28); for routines, heating, night, morning, leaving, a
+  movie, a party (29). The icon shows wherever the entity does: Home, room
   screens, lenses, pop-ups. Without one given in Doma, it has the icon set on it in HA when Doma has that one
   (`mdi:wall-sconce`), else its default: the bulb (outlined when off), the thermostat (showing the mode it runs in:
-  a flame, a snowflake), the power sign (a fan's fan, a heating switch's coil). Picking that one again forgets the
-  choice, so it follows HA again. The 60 icons add about 10 KB to start-up, so the sets stay small: HA's whole
-  icon set is about 3 MB;
+  a flame, a snowflake), the power sign (a fan's fan, a heating switch's coil), a script, a button, a timer, a robot
+  (crossed out while the automation is off). A script that runs a timer starts from the timer's icon. Picking that
+  one again forgets the choice, so it follows HA again. The 89 icons add about 14 KB to start-up, so the sets stay
+  small: HA's whole icon set is about 3 MB;
 - a hidden section shows in edit mode as its title alone, struck through, and the bar's **Show** brings it back;
 - the bar at the top has **All rooms / Only this room**: whether this room follows the template (its changes then
   apply to every room that does) or has its own sections. Switching to "Only this room" starts from a copy of the
@@ -351,6 +389,7 @@ aren't changed here.
   "hidden": ["garage"],
   "cards": { "kitchen": ["lights", "climate.kitchen", "scene.kitchen_dinner"] },
   "tabs": ["lights", "devices", "climate"],
+  "routineCards": ["_card_mv6rk3da"],
   "icons": { "light.living_room_ceiling": "ceiling-light", "light.hallway_wall": "wall-sconce" },
   "room": {
     "rows": [["lights", "climate"], ["scenes"], ["switches", "media", "sensors"]],
@@ -384,6 +423,8 @@ aren't changed here.
 - **`icons`**: icons given to entities in a room's edit mode, by entity ID: names from Material Design Icons, as
   HA's `mdi:` names without the prefix. Unlisted: HA's icon when Doma has it, else the default. A name Doma doesn't
   have shows the default but is kept. Home's Reset keeps them: they say what a lamp is, not where it goes.
+- **`routineCards`**: the routine cards made on Home, by ID (`_card_` and a time in base 36), in the order they were
+  made. What a card holds is its list in `cards`, its name in `roomNames` (unset: "Routines"), its size in `sizes`.
 - **`tabs`**: the tabs after Home, in order: `lights`, `climate`, `security`, `devices`. Unset means all four in
   that order; `[]` means Home alone. Home is always the first tab. A lens that isn't a tab is still reached from
   its status chip.

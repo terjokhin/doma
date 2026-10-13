@@ -92,6 +92,13 @@ Where the app is going, in order, and how each step is checked. The README cover
     starting point when Doma has it. Saved as `icons`. Start-up JS 72.4 KB gzipped (+10 KB);
   - a **demo Home Assistant** (`compose.demo-ha.yaml`) to try devices a home doesn't have.
 
+- **Routines and automations** (2026-10-13; tried on the laptop with a snapshot of a real home, not yet with a live
+  HA or on the Fire HD): scripts, buttons and timers as routine tiles, automations switched on and off; a script that
+  runs a timer (found by name) shows its countdown and Stop finishes the timer; a Routines card first on Home for the
+  house's own, Routines and Automations sections in rooms; an icon set for them. **Routine cards** made on Home
+  hold any routines and automations of the house. A selected card's open menu was covered by the title bands of the
+  cards below it; it now goes above them. Start-up JS 80.0 KB gzipped.
+
 **Next:** nothing planned. A Fire HD round is due for the slim tile (dragging to dim, update times with the fill),
 for room screens and lenses as boards, and for the icon pickers.
 

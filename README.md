@@ -39,6 +39,9 @@ directly over its WebSocket API: no server of its own, no custom integration, no
   50 ms.
 - **Calm.** A tile that's off is a faint shape; what's on is lit. Dim a light by dragging across its tile. Status
   chips speak only when something needs a look: "3 lights on", "Door open · Hallway", "2 offline".
+- **Routines with a countdown.** Scripts, buttons and automations are tiles too, in their rooms, and on routine
+  cards you make on Home and fill with any of them (say, "Heating" with every 1-hour run). A script that runs a timer, the usual way to make "underfloor heating for 1 hour" in
+  HA, shows what's left ("42 min left"), and Stop ends it the way the timer would.
 - **Lenses: the whole house, one question.** Lights, Climate, Security and Devices show every room filtered to one
   thing, in the same arrangement as Home.
 - **Nothing to break.** No dependency on Home Assistant's frontend internals, so an HA update can't break it. One
@@ -237,7 +240,7 @@ one): drag a card by its title onto another card to stack them side by
 side, or onto **+ New row** between rows for a row of its own. Tap a room to select it: the bar at the bottom renames it (in Doma only; HA's
 area keeps its name), sets its width (S, M, L or the whole row), gives it its own row or hides it (**Hidden rooms** brings them back), and the
 card itself sets what it shows (**+** adds a control, × removes one, drag one to move it, tap one to swap it or
-give it an icon; lights, switches, climate, scenes and an all-lights button); pick and order the tabs under
+give it an icon; lights, switches, climate, scenes, routines, automations and an all-lights button); pick and order the tabs under
 **Tabs**, then **Done**.
 At first each floor's rooms share a row; there are no floor headings.
 
