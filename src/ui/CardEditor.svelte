@@ -248,7 +248,8 @@
         {:else}
           <p class="slot-option-note">{t("edit.noControls")}</p>
         {/each}
-        {#if slots}
+        <!-- A routine card has nothing of its own to go back to. -->
+        {#if slots && !room.pickFrom}
           <button class="slot-option automatic" onclick={automatic}>{t("edit.automatic")}</button>
         {/if}
       </div>

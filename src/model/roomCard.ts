@@ -64,6 +64,8 @@ export type CardItem =
   | { kind: "toggle"; id: string; size: Size }
   | { kind: "climate"; id: string; size: Size }
   | { kind: "scene"; id: string; size: Size }
+  | { kind: "routine"; id: string; size: Size }
+  | { kind: "automation"; id: string; size: Size }
   | { kind: "lights"; id: typeof ROOM_LIGHTS; size: Size }
   | { kind: "more"; count: number; size: Size };
 
@@ -75,17 +77,25 @@ export function slotControl(room: Room, slot: string): Control | undefined {
   if (room.climate.includes(slot)) return { kind: "climate", id: slot, size: SIZES.tile };
   if (room.scenes.includes(slot)) return { kind: "scene", id: slot, size: SIZES.tile };
   if (room.lights.includes(slot) || room.switches.includes(slot)) return { kind: "toggle", id: slot, size: SIZES.tile };
+  if (room.routines.includes(slot)) return { kind: "routine", id: slot, size: SIZES.tile };
+  if (room.automations.includes(slot)) return { kind: "automation", id: slot, size: SIZES.tile };
   return undefined;
 }
 
-/** What a room's card can hold, in the order a picker lists it: all its lights, then lights, climate, switches, scenes. */
+/**
+ * What a room's card can hold, in the order a picker lists it: all its lights, then lights, climate, switches, scenes,
+ * routines and automations.
+ */
 export function slotChoices(room: Room): string[] {
+  if (room.pickFrom) return room.pickFrom;
   return [
     ...(room.lights.length ? [ROOM_LIGHTS] : []),
     ...room.lights,
     ...room.climate,
     ...room.switches.filter((id) => !room.lights.includes(id)),
     ...room.scenes,
+    ...room.routines,
+    ...room.automations,
   ];
 }
 
@@ -123,8 +133,9 @@ export function roomCardItems(room: Room, size: Size, slots?: readonly string[])
 
 /**
  * The generated controls on a room's card of `size`: its lights, then its climate devices, then its heating switches
- * (underfloor heating, a radiator). What doesn't fit in the card's rows is replaced by a "+N" button that opens
- * the room; when something has to go, climate and heating are kept before lights. The order on screen stays
+ * (underfloor heating, a radiator), then its routines (scripts, buttons, timers; not automations, which a card only
+ * shows when picked). What doesn't fit in the card's rows is replaced by a "+N" button that opens the room; when
+ * something has to go, climate and heating are kept before lights, and routines go first. The order on screen stays
  * lights first.
  */
 function generatedCardItems(room: Room, size: Size): CardItem[] {
@@ -132,16 +143,18 @@ function generatedCardItems(room: Room, size: Size): CardItem[] {
     ...room.lights.map((id): Control => ({ kind: "toggle", id, size: SIZES.tile })),
     ...room.climate.map((id): Control => ({ kind: "climate", id, size: SIZES.tile })),
     ...room.heating.map((id): Control => ({ kind: "toggle", id, size: SIZES.tile })),
+    ...room.routines.map((id): Control => ({ kind: "routine", id, size: SIZES.tile })),
   ];
   const heating = new Set(room.heating);
   const keepFirst = (i: Control) => i.kind === "climate" || heating.has(i.id);
+  const keepLast = (i: Control) => i.kind === "routine";
 
   const fits = (items: { size: Size }[]) => fitsCard(items, size);
   if (fits(all)) return all;
 
   const more = { size: SIZES.more };
   const kept = new Set<Control>();
-  const byPriority = [...all.filter(keepFirst), ...all.filter((i) => !keepFirst(i))];
+  const byPriority = [...all.filter(keepFirst), ...all.filter((i) => !keepFirst(i) && !keepLast(i)), ...all.filter(keepLast)];
   for (const item of byPriority) {
     const next = all.filter((i) => kept.has(i) || i === item); // in display order
     if (fits([...next, more])) kept.add(item);

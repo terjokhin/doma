@@ -29,7 +29,8 @@
     "more": "{{count}} more",
     "roomLights": "All lights",
     "lightsOn": "{{count}} on",
-    "scene": "Scene"
+    "scene": "Scene",
+    "routines": "Routines"
   },
   "room": {
     "back": "Back",
@@ -42,7 +43,9 @@
     "allOn": "All on",
     "empty": "Nothing to control here yet.",
     "scenes": "Scenes",
-    "allHidden": "Everything in this room is hidden. Edit the room to show it again."
+    "allHidden": "Everything in this room is hidden. Edit the room to show it again.",
+    "routines": "Routines",
+    "automations": "Automations"
   },
   "state": {
     "on": "On",
@@ -124,7 +127,9 @@
     "closeRoom": "Done with {{name}}",
     "dockHint": "Tap a room to change its size, row or controls.",
     "rename": "Rename {{name}}",
-    "roomName": "Room name"
+    "roomName": "Room name",
+    "addRoutineCard": "Routines card",
+    "removeCard": "Remove"
   },
   "views": {
     "home": "Home"
@@ -245,7 +250,8 @@
     "undo": "Undo",
     "noAnswer": "{{name}} didn't answer.",
     "failed": "Couldn't switch {{name}}: {{message}}",
-    "sceneOn": "{{name}} is on"
+    "sceneOn": "{{name}} is on",
+    "ran": "{{name}}: done"
   },
   "weather": {
     "clear-night": "Clear",
@@ -317,6 +323,50 @@
     "sprinkler-variant": "Sprinkler",
     "fishbowl": "Aquarium",
     "pine-tree": "Christmas tree",
-    "bell": "Bell"
+    "bell": "Bell",
+    "script-text-play": "Script",
+    "gesture-tap-button": "Button",
+    "timer-outline": "Timer",
+    "robot-outline": "Automation",
+    "play-circle-outline": "Play",
+    "timer-play-outline": "Timed run",
+    "snowflake": "Cooling",
+    "lightbulb-group": "Lights",
+    "weather-sunny": "Morning",
+    "weather-night": "Night",
+    "bed-outline": "Bedtime",
+    "home-export-outline": "Leaving",
+    "home-import-outline": "Coming home",
+    "lock-outline": "Lock up",
+    "movie-open": "Movie",
+    "music": "Music",
+    "party-popper": "Party",
+    "coffee": "Coffee",
+    "shower": "Shower",
+    "car-outline": "Car",
+    "bell-ring": "Alarm"
+  },
+  "routine": {
+    "title": "Routine",
+    "left": "{{time}} left",
+    "paused": "Paused · {{time}} left",
+    "running": "Running",
+    "ranAt": "Ran {{time}}",
+    "notRun": "Not run yet",
+    "runsFor": "Runs for {{time}}",
+    "run": "Run",
+    "start": "Start",
+    "runNow": "Run now",
+    "until": "until {{time}}",
+    "stop": "Stop now",
+    "restart": "Start {{time}} again",
+    "runAgain": "Run again",
+    "lastRan": "Last ran {{time}}",
+    "neverRan": "Hasn't run yet"
+  },
+  "time": {
+    "h": "{{h}} h",
+    "min": "{{m}} min",
+    "s": "{{s}} s"
   }
 }

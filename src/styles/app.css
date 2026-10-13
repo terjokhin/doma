@@ -1238,6 +1238,27 @@ button {
   font-size: var(--text-s);
 }
 
+/* A routine's countdown: what's left, big, and until when. */
+.sheet-countdown {
+  text-align: center;
+}
+
+.sheet-countdown b {
+  display: block;
+  font-size: 3.5rem;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-countdown span {
+  display: block;
+  margin-top: var(--space-2);
+  color: var(--text-dim);
+  font-size: var(--text-s);
+}
+
 /* Climate: the target between − and +, then the modes. */
 .sheet-temp {
   display: flex;

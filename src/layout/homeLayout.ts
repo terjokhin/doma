@@ -78,6 +78,12 @@ export interface HomeLayout {
   icons?: Record<string, string>;
   /** The tabs after Home, in order. Unset: every lens, in LENS_IDS order. */
   tabs?: LensId[];
+  /**
+   * Routine cards made on Home (LAYOUTS.md, "Routines"), by ID (`_card_…`, never an area ID), in the order they were
+   * made. A card holds any routines and automations of the house: its list is in `cards`, its name in `roomNames`,
+   * its size and row like a room's.
+   */
+  routineCards?: string[];
   /** The room template, and what each room changes on top of it. */
   room?: RoomLayout;
 }
@@ -98,6 +104,16 @@ export const hiddenOf = (layout: HomeLayout): readonly string[] => layout.hidden
 
 /** A room card's own controls in this layout, or undefined when it shows the generated ones. */
 export const slotsOf = (layout: HomeLayout, areaId: string): string[] | undefined => layout.cards?.[areaId];
+
+/** The routine cards made on Home in this layout. */
+export const routineCardsOf = (layout: HomeLayout): readonly string[] => layout.routineCards ?? [];
+
+const ROUTINE_CARD = /^_card_[a-z0-9]+$/;
+/** Whether a card is a routine card made on Home, not a room. */
+export const isRoutineCard = (id: string) => ROUTINE_CARD.test(id);
+
+/** A new routine card's ID: unlike any area's, and unlike the cards made before it. */
+export const newRoutineCardId = () => `_card_${Date.now().toString(36)}`;
 
 /** The tabs after Home in this layout. */
 export const tabsOf = (layout: HomeLayout): readonly LensId[] => layout.tabs ?? LENS_IDS;
@@ -199,6 +215,9 @@ export function parseLayout(value: unknown): HomeLayout {
       if (ENTITY_ID.test(entityId) && typeof name === "string" && ICON_NAME.test(name)) icons[entityId] = name;
     }
     layout.icons = icons;
+  }
+  if (Array.isArray(value.routineCards)) {
+    layout.routineCards = [...new Set(value.routineCards.filter((id): id is string => typeof id === "string" && isRoutineCard(id)))];
   }
   if (Array.isArray(value.tabs)) {
     layout.tabs = [...new Set(value.tabs.filter((id): id is LensId => typeof id === "string" && isLensId(id)))];

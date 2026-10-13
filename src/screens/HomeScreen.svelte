@@ -1,9 +1,10 @@
 <script lang="ts">
+  import { mdiPlus } from "@mdi/js";
   import { t } from "../i18n/index.svelte";
   import Board from "../layout/Board.svelte";
   import type { CardSize } from "../layout/homeLayout";
   import { grid } from "../layout/grid.svelte";
-  import { sizeOf, tabsOf } from "../layout/homeLayout";
+  import { isRoutineCard, sizeOf, tabsOf } from "../layout/homeLayout";
   import { editor } from "../layout/layoutEditor.svelte";
   import { homeLayout } from "../layout/layoutStore.svelte";
   import { dropCard, ownRow, type Drop } from "../layout/rows";
@@ -16,6 +17,7 @@
   import Header from "../ui/Header.svelte";
   import NavBand, { docked } from "../ui/NavBand.svelte";
   import TabsMenu from "../ui/TabsMenu.svelte";
+  import Icon from "../ui/Icon.svelte";
   import RoomCard from "./RoomCard.svelte";
 
   // The room cards on a board (layout/Board.svelte): the layout's rows, each a room on its own or a stack of rooms
@@ -36,6 +38,15 @@
     if (size === "full") editor.setRows(ownRow(rows(), id));
   }
 
+  /** A new routine card, in a row of its own at the top, selected to fill it. */
+  function addRoutineCard() {
+    const id = editor.addRoutineCard();
+    if (!id) return;
+    editor.setRows([[id], ...rows().filter((row) => !row.includes(id))]);
+    selected = id;
+    scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function drop(id: string, at: Drop) {
     const before = rows();
     const next = dropCard(before, id, at, isFull);
@@ -48,6 +59,9 @@
 <main class="screen" class:editing class:docked={docked()}>
   {#if editing}
     <EditBar title={t("edit.title")} hint={t("edit.hint")} onReset={editor.reset}>
+      <button class="chip" disabled={editor.saving} onclick={addRoutineCard}>
+        <Icon path={mdiPlus} size={18} />{t("edit.addRoutineCard")}
+      </button>
       <HiddenRoomsMenu />
       <TabsMenu />
     </EditBar>
@@ -82,7 +96,8 @@
       size={selectedCard?.sizeName}
       onSize={(size) => id && resize(id, size)}
       onOwnRow={id && selectedCard?.stacked ? () => editor.setRows(ownRow(rows(), id)) : undefined}
-      onHide={() => id && editor.setRoomHidden(id, true)}
+      onHide={id && !isRoutineCard(id) ? () => editor.setRoomHidden(id, true) : undefined}
+      onRemove={id && isRoutineCard(id) ? () => editor.removeRoutineCard(id) : undefined}
       onClose={() => (selected = null)}
     />
   {/if}

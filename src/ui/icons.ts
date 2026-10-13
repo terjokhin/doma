@@ -74,12 +74,34 @@ import {
   mdiFishbowl,
   mdiPineTree,
   mdiBell,
+  mdiScriptTextPlay,
+  mdiTimerOutline,
+  mdiTimerPlayOutline,
+  mdiRobotOutline,
+  mdiRobotOffOutline,
+  mdiGestureTapButton,
+  mdiPlayCircleOutline,
+  mdiWeatherNight,
+  mdiWeatherSunny,
+  mdiBedOutline,
+  mdiMovieOpen,
+  mdiHomeExportOutline,
+  mdiHomeImportOutline,
+  mdiPartyPopper,
+  mdiShower,
+  mdiCoffee,
+  mdiLightbulbGroup,
+  mdiMusic,
+  mdiBellRing,
+  mdiLockOutline,
+  mdiCarOutline,
 } from "@mdi/js";
 import type { HassEntity } from "home-assistant-js-websocket";
 import { home } from "../ha/store.svelte";
 import type { HomeLayout } from "../layout/homeLayout";
 import { editor } from "../layout/layoutEditor.svelte";
-import { deviceClass, domainOf, isHeatingSwitch, isLight } from "../model/home";
+import { deviceClass, domainOf, isHeatingSwitch, isLight, runsOrAutomates } from "../model/home";
+import { timerOf } from "../model/model.svelte";
 import type { LensId } from "../model/lenses";
 
 const BY_CLASS: Record<string, string> = {
@@ -182,7 +204,43 @@ const SWITCH_ICONS: Record<string, string> = {
   bell: mdiBell,
 };
 
-export const ICON_SETS = { light: LIGHT_ICONS, climate: CLIMATE_ICONS, switch: SWITCH_ICONS };
+/** Scripts, buttons, timers and automations: what they do, or when. */
+const ROUTINE_ICONS: Record<string, string> = {
+  "script-text-play": mdiScriptTextPlay,
+  "gesture-tap-button": mdiGestureTapButton,
+  "timer-outline": mdiTimerOutline,
+  "robot-outline": mdiRobotOutline,
+  "play-circle-outline": mdiPlayCircleOutline,
+  "timer-play-outline": mdiTimerPlayOutline,
+  "heating-coil": mdiHeatingCoil,
+  radiator: mdiRadiator,
+  "home-thermometer": mdiHomeThermometer,
+  fireplace: mdiFireplace,
+  snowflake: mdiSnowflake,
+  fan: mdiFan,
+  "lightbulb-group": mdiLightbulbGroup,
+  "weather-sunny": mdiWeatherSunny,
+  "weather-night": mdiWeatherNight,
+  "bed-outline": mdiBedOutline,
+  "home-export-outline": mdiHomeExportOutline,
+  "home-import-outline": mdiHomeImportOutline,
+  "lock-outline": mdiLockOutline,
+  "movie-open": mdiMovieOpen,
+  music: mdiMusic,
+  "party-popper": mdiPartyPopper,
+  coffee: mdiCoffee,
+  shower: mdiShower,
+  "washing-machine": mdiWashingMachine,
+  "robot-vacuum": mdiRobotVacuum,
+  "sprinkler-variant": mdiSprinklerVariant,
+  "car-outline": mdiCarOutline,
+  "bell-ring": mdiBellRing,
+};
+
+export const ICON_SETS = { light: LIGHT_ICONS, climate: CLIMATE_ICONS, switch: SWITCH_ICONS, routine: ROUTINE_ICONS };
+
+/** Routines whose icon says they heat: their tile glows orange while they run, like heating does. */
+export const HEAT_ICONS = new Set(["heating-coil", "radiator", "home-thermometer", "fireplace"]);
 export type IconKind = keyof typeof ICON_SETS;
 
 const SWITCH_DOMAINS = new Set(["switch", "fan", "input_boolean"]);
@@ -192,12 +250,20 @@ export function iconKind(entityId: string): IconKind | undefined {
   if (isLight(entityId)) return "light";
   const domain = domainOf(entityId);
   if (domain === "climate") return "climate";
+  if (runsOrAutomates(entityId)) return "routine";
   return SWITCH_DOMAINS.has(domain) ? "switch" : undefined;
 }
+
+const ROUTINE_DEFAULTS: Record<string, string> = {
+  script: "script-text-play",
+  timer: "timer-outline",
+  automation: "robot-outline",
+};
 
 function defaultIcon(entityId: string, kind: IconKind): string {
   if (kind === "light") return "lightbulb";
   if (kind === "climate") return "thermostat";
+  if (kind === "routine") return ROUTINE_DEFAULTS[domainOf(entityId)] ?? "gesture-tap-button";
   return isHeatingSwitch(entityId) ? "heating-coil" : domainOf(entityId) === "fan" ? "fan" : "power";
 }
 
@@ -208,8 +274,15 @@ function haIcon(s: HassEntity, kind: IconKind): string | undefined {
   return name && name in ICON_SETS[kind] ? name : undefined;
 }
 
-/** What it shows when nothing is given in Doma: HA's icon, else the default for its kind. */
-const startingIcon = (s: HassEntity, kind: IconKind) => haIcon(s, kind) ?? defaultIcon(s.entity_id, kind);
+/**
+ * What it shows when nothing is given in Doma: HA's icon, else the default for its kind. A script that runs a timer
+ * starts from the timer's icon, which says what's being timed (scripts that start timers tend to share one icon).
+ */
+function startingIcon(s: HassEntity, kind: IconKind): string {
+  const timer = kind === "routine" ? timerOf(s.entity_id) : undefined;
+  const timerState = timer ? home.entity(timer) ?? home.catalog[timer] : undefined;
+  return (timerState && haIcon(timerState, kind)) ?? haIcon(s, kind) ?? defaultIcon(s.entity_id, kind);
+}
 
 /** An entity's icon, by name: the one given in Doma, else HA's, else the default. Reads the draft while editing. */
 export function iconName(s: HassEntity, kind: IconKind, layout: HomeLayout = editor.layout): string {
@@ -229,6 +302,7 @@ export function entityIcon(s: HassEntity) {
     const name = iconName(s, kind);
     if (name === "lightbulb") return s.state === "on" ? mdiLightbulb : mdiLightbulbOutline;
     if (name === "thermostat" && kind === "climate") return modeIcon(s.state === "off" ? "" : s.state);
+    if (name === "robot-outline" && s.state === "off") return mdiRobotOffOutline; // an automation that's switched off
     return ICON_SETS[kind][name];
   }
   return BY_CLASS[deviceClass(s)] ?? BY_DOMAIN[domainOf(s.entity_id)] ?? mdiEyeOutline;

@@ -1,8 +1,9 @@
 import { hiddenOf, nearestGrid, roomNameOf, rowsOf, sizeOf, slotsOf, type CardSize, type HomeLayout, type Position } from "../layout/homeLayout";
 import type { Size } from "../layout/pack";
 import { boardView, sameSize, type Board, type BoardItem, type Placed } from "../layout/board";
-import type { FloorGroup, Room } from "./home";
+import { ROUTINES_ID, type FloorGroup, type Room } from "./home";
 import { CARD_CELLS, fitCard, roomCardItems, shownSize, type CardItem } from "./roomCard";
+import { withRoutineCards } from "./routineCards";
 
 /** A room's card on Home. */
 export interface RoomCard extends BoardItem {
@@ -65,7 +66,7 @@ function readingOrder(rooms: Room[], reference: Record<string, Position> | undef
  * (`order`, or an arrangement from when cards were placed freely), else HA's.
  */
 function floorsOf(model: FloorGroup[], layout: HomeLayout): Room[][] {
-  return model.map((g) => (layout.order ? inOrder(g.rooms, layout.order) : readingOrder(g.rooms, nearestGrid(layout.grids, 8))));
+  return withRoutineCards(model, layout).map((g) => (layout.order ? inOrder(g.rooms, layout.order) : readingOrder(g.rooms, nearestGrid(layout.grids, 8))));
 }
 
 /**
@@ -83,6 +84,9 @@ export function homeRows(model: FloorGroup[], layout: HomeLayout, floors = floor
     const rest = rooms.filter((r) => !listed.has(r.area.area_id)).map((r) => r.area.area_id);
     if (rest.length) rows.push(rest);
   }
+  // The house's routines start at the top, also on a Home arranged before they came.
+  const routines = rows.findIndex((row) => row.length === 1 && row[0] === ROUTINES_ID);
+  if (routines > 0 && !listed.has(ROUTINES_ID)) rows.unshift(...rows.splice(routines, 1));
   return rows;
 }
 
@@ -102,7 +106,7 @@ export function homeView(
 ): Board<RoomCard> {
   const hidden = new Set(hiddenOf(layout));
   const cards = new Map<string, RoomCard>();
-  for (const room of allRoomsOf(model)) {
+  for (const room of allRoomsOf(withRoutineCards(model, layout))) {
     const id = room.area.area_id;
     if (hidden.has(id)) continue;
     const sizeName = sizeOf(layout, id);

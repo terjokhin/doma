@@ -855,6 +855,165 @@
     "parent_id": null,
     "user_id": null
    }
+  },
+  {
+   "entity_id": "script.kitchen_floor_heating_1h",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Kitchen floor heating for 1 hour",
+    "icon": "mdi:timer-play-outline",
+    "mode": "single",
+    "current": 0,
+    "last_triggered": "2026-10-12T07:10:00.000Z"
+   },
+   "last_changed": "2026-10-12T18:00:00.000Z",
+   "last_updated": "2026-10-12T18:00:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "timer.kitchen_floor_heating",
+   "state": "idle",
+   "attributes": {
+    "friendly_name": "Kitchen floor heating",
+    "icon": "mdi:heating-coil",
+    "duration": "1:00:00",
+    "editable": true,
+    "restore": true
+   },
+   "last_changed": "2026-10-12T18:00:00.000Z",
+   "last_updated": "2026-10-12T18:00:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "script.house_heating_2h",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "House heating for 2 hours",
+    "icon": "mdi:timer-play-outline",
+    "mode": "single",
+    "current": 0,
+    "last_triggered": null
+   },
+   "last_changed": "2026-10-12T18:00:00.000Z",
+   "last_updated": "2026-10-12T18:00:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "timer.house_heating",
+   "state": "idle",
+   "attributes": {
+    "friendly_name": "House heating",
+    "icon": "mdi:home-thermometer",
+    "duration": "2:00:00",
+    "editable": true,
+    "restore": true
+   },
+   "last_changed": "2026-10-12T18:00:00.000Z",
+   "last_updated": "2026-10-12T18:00:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "script.good_night",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Good night",
+    "icon": "mdi:weather-night",
+    "mode": "single",
+    "current": 0,
+    "last_triggered": "2026-10-12T22:40:00.000Z"
+   },
+   "last_changed": "2026-10-12T18:00:00.000Z",
+   "last_updated": "2026-10-12T18:00:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "script.leaving_home",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Leaving home",
+    "icon": "mdi:home-export-outline",
+    "mode": "single",
+    "current": 0,
+    "last_triggered": "2026-10-12T08:15:00.000Z"
+   },
+   "last_changed": "2026-10-12T18:00:00.000Z",
+   "last_updated": "2026-10-12T18:00:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "automation.evening_lights",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Evening lights",
+    "mode": "single",
+    "current": 0,
+    "last_triggered": "2026-10-12T18:00:00.000Z"
+   },
+   "last_changed": "2026-10-12T18:00:00.000Z",
+   "last_updated": "2026-10-12T18:00:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "automation.morning_heating",
+   "state": "on",
+   "attributes": {
+    "friendly_name": "Morning heating",
+    "mode": "single",
+    "current": 0,
+    "last_triggered": "2026-10-12T06:00:00.000Z"
+   },
+   "last_changed": "2026-10-12T18:00:00.000Z",
+   "last_updated": "2026-10-12T18:00:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
+  },
+  {
+   "entity_id": "automation.away_lights",
+   "state": "off",
+   "attributes": {
+    "friendly_name": "Away lights",
+    "mode": "single",
+    "current": 0,
+    "last_triggered": "2026-08-03T20:00:00.000Z"
+   },
+   "last_changed": "2026-10-12T18:00:00.000Z",
+   "last_updated": "2026-10-12T18:00:00.000Z",
+   "context": {
+    "id": "demo",
+    "parent_id": null,
+    "user_id": null
+   }
   }
  ],
  "floors": [
@@ -1573,6 +1732,53 @@
    "ei": "scene.bedroom_good_night",
    "pl": "homeassistant",
    "ai": "bedroom",
+   "lb": []
+  },
+  {
+   "ei": "script.kitchen_floor_heating_1h",
+   "pl": "script",
+   "lb": [],
+   "ai": "kitchen"
+  },
+  {
+   "ei": "timer.kitchen_floor_heating",
+   "pl": "timer",
+   "lb": [],
+   "ai": "kitchen"
+  },
+  {
+   "ei": "script.house_heating_2h",
+   "pl": "script",
+   "lb": []
+  },
+  {
+   "ei": "timer.house_heating",
+   "pl": "timer",
+   "lb": []
+  },
+  {
+   "ei": "script.good_night",
+   "pl": "script",
+   "lb": []
+  },
+  {
+   "ei": "script.leaving_home",
+   "pl": "script",
+   "lb": []
+  },
+  {
+   "ei": "automation.evening_lights",
+   "pl": "automation",
+   "lb": []
+  },
+  {
+   "ei": "automation.morning_heating",
+   "pl": "automation",
+   "lb": []
+  },
+  {
+   "ei": "automation.away_lights",
+   "pl": "automation",
    "lb": []
   }
  ],

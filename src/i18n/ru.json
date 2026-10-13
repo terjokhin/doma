@@ -29,7 +29,8 @@
     "more": "Ещё {{count}}",
     "roomLights": "Весь свет",
     "lightsOn": "Горит: {{count}}",
-    "scene": "Сцена"
+    "scene": "Сцена",
+    "routines": "Сценарии"
   },
   "room": {
     "back": "Назад",
@@ -42,7 +43,9 @@
     "allOn": "Включить всё",
     "empty": "Здесь пока нечем управлять.",
     "scenes": "Сцены",
-    "allHidden": "Всё в этой комнате скрыто. Измените комнату, чтобы снова это показать."
+    "allHidden": "Всё в этой комнате скрыто. Измените комнату, чтобы снова это показать.",
+    "routines": "Сценарии",
+    "automations": "Автоматизации"
   },
   "state": {
     "on": "Вкл.",
@@ -124,7 +127,9 @@
     "closeRoom": "Готово с «{{name}}»",
     "dockHint": "Нажмите на комнату, чтобы поменять её размер, строку или кнопки.",
     "rename": "Переименовать «{{name}}»",
-    "roomName": "Название комнаты"
+    "roomName": "Название комнаты",
+    "addRoutineCard": "Карточка сценариев",
+    "removeCard": "Удалить"
   },
   "views": {
     "home": "Дом"
@@ -245,7 +250,8 @@
     "undo": "Отменить",
     "noAnswer": "«{{name}}» не отвечает.",
     "failed": "Не удалось переключить «{{name}}»: {{message}}",
-    "sceneOn": "Сцена «{{name}}» включена"
+    "sceneOn": "Сцена «{{name}}» включена",
+    "ran": "{{name}}: выполнено"
   },
   "weather": {
     "clear-night": "Ясно",
@@ -317,6 +323,50 @@
     "sprinkler-variant": "Полив",
     "fishbowl": "Аквариум",
     "pine-tree": "Ёлка",
-    "bell": "Звонок"
+    "bell": "Звонок",
+    "script-text-play": "Скрипт",
+    "gesture-tap-button": "Кнопка",
+    "timer-outline": "Таймер",
+    "robot-outline": "Автоматизация",
+    "play-circle-outline": "Запуск",
+    "timer-play-outline": "На время",
+    "snowflake": "Охлаждение",
+    "lightbulb-group": "Свет",
+    "weather-sunny": "Утро",
+    "weather-night": "Ночь",
+    "bed-outline": "Сон",
+    "home-export-outline": "Ухожу",
+    "home-import-outline": "Пришёл домой",
+    "lock-outline": "Закрыть",
+    "movie-open": "Кино",
+    "music": "Музыка",
+    "party-popper": "Праздник",
+    "coffee": "Кофе",
+    "shower": "Душ",
+    "car-outline": "Машина",
+    "bell-ring": "Будильник"
+  },
+  "routine": {
+    "title": "Сценарий",
+    "left": "ещё {{time}}",
+    "paused": "Пауза · ещё {{time}}",
+    "running": "Выполняется",
+    "ranAt": "Запуск: {{time}}",
+    "notRun": "Ещё не запускался",
+    "runsFor": "На {{time}}",
+    "run": "Запустить",
+    "start": "Старт",
+    "runNow": "Запустить сейчас",
+    "until": "до {{time}}",
+    "stop": "Остановить",
+    "restart": "Заново на {{time}}",
+    "runAgain": "Запустить снова",
+    "lastRan": "Последний запуск: {{time}}",
+    "neverRan": "Ещё не запускался"
+  },
+  "time": {
+    "h": "{{h}} ч",
+    "min": "{{m}} мин",
+    "s": "{{s}} с"
   }
 }

@@ -8,7 +8,7 @@ import { CARD_SIZES, DEFAULT_CARD_SIZE, type CardSize, type HomeLayout } from ".
  */
 
 /** A room screen's sections, in their default order. */
-export const ROOM_SECTIONS = ["scenes", "lights", "climate", "switches", "media", "sensors"] as const;
+export const ROOM_SECTIONS = ["scenes", "lights", "climate", "switches", "media", "sensors", "routines", "automations"] as const;
 export type RoomSectionId = (typeof ROOM_SECTIONS)[number];
 
 /** Where a room's sections go, which are hidden, their sizes and their names. */

@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { domainOf, isLight } from "../model/home";
+  import { domainOf, isLight, runsOrAutomates } from "../model/home";
   import { route } from "../router.svelte";
   import ClimateSheet from "./ClimateSheet.svelte";
   import LightSheet from "./LightSheet.svelte";
   import LightsSheet from "./LightsSheet.svelte";
+  import RoutineSheet from "./RoutineSheet.svelte";
   import { sheet } from "./sheet.svelte";
   import ToggleSheet from "./ToggleSheet.svelte";
 
@@ -37,6 +38,8 @@
             <LightSheet entityId={target.entityId} area={target.area} />
           {:else if domainOf(target.entityId) === "climate"}
             <ClimateSheet entityId={target.entityId} area={target.area} />
+          {:else if runsOrAutomates(target.entityId)}
+            <RoutineSheet entityId={target.entityId} area={target.area} />
           {:else}
             <ToggleSheet entityId={target.entityId} area={target.area} />
           {/if}

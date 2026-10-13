@@ -1,4 +1,5 @@
 import type { HassConfig, HassEntity } from "home-assistant-js-websocket";
+import { linkTimers } from "../model/home";
 import type { EntityChanges } from "./entities";
 import { home, type Backend } from "./store.svelte";
 import type { AreaEntry, DeviceEntry, EntityEntry, FloorEntry } from "./types";
@@ -84,6 +85,21 @@ export async function connectFixture(name: string): Promise<Backend> {
   };
 }
 
+/** A timer started now for its whole duration, as HA reports one. */
+function startTimer(timer: HassEntity): HassEntity {
+  const now = new Date();
+  const [h, m, s] = String(timer.attributes.duration ?? "0:00:00").split(":").map(Number);
+  const finishes = new Date(now.getTime() + ((h * 60 + m) * 60 + s) * 1000);
+  const at = now.toISOString();
+  return {
+    ...timer,
+    state: "active",
+    attributes: { ...timer.attributes, remaining: timer.attributes.duration, finishes_at: finishes.toISOString() },
+    last_changed: at,
+    last_updated: at,
+  };
+}
+
 /** Scenes made with `scene.create` (Undo after a scene): the states they bring back. */
 const snapshots = new Map<string, HassEntity[]>();
 
@@ -116,8 +132,23 @@ function simulate(states: Record<string, HassEntity>, domain: string, service: s
     const e = states[id];
     if (!e) continue;
     let next: HassEntity = e;
+    const at = new Date().toISOString();
     if (domain === "scene" && service === "turn_on") {
       next = { ...e, state: new Date().toISOString() }; // a scene's state is when it was last activated
+    } else if (domain === "script" && service === "turn_on") {
+      // A script runs and is done; one that runs a timer starts it, as a real one would.
+      next = { ...e, attributes: { ...e.attributes, last_triggered: at } };
+      const timer = states[linkTimers(states).get(id) ?? ""];
+      if (timer) changed[timer.entity_id] = startTimer(timer);
+    } else if (domain === "timer" && service === "start") {
+      next = startTimer(e);
+    } else if (domain === "timer" && (service === "finish" || service === "cancel")) {
+      const { finishes_at: _, remaining: __, ...attributes } = e.attributes;
+      next = { ...e, state: "idle", attributes };
+    } else if (domain === "automation" && service === "trigger") {
+      next = { ...e, attributes: { ...e.attributes, last_triggered: at } };
+    } else if ((domain === "button" || domain === "input_button") && service === "press") {
+      next = { ...e, state: at }; // a button's state is when it was last pressed
     } else if (domain === "climate" && (service === "turn_on" || service === "turn_off")) {
       const modes = (e.attributes.hvac_modes as string[] | undefined) ?? [];
       next = { ...e, state: service === "turn_off" ? "off" : (modes.find((m) => m !== "off") ?? "heat") };

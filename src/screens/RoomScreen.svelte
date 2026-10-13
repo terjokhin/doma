@@ -60,6 +60,8 @@
     switches: (r) => r.switches,
     media: (r) => r.media,
     sensors: (r) => r.sensors,
+    routines: (r) => r.routines,
+    automations: (r) => r.automations,
   };
 
   interface SectionCard extends BoardItem {

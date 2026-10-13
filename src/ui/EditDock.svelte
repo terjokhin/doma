@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { mdiClose, mdiEyeOffOutline, mdiEyeOutline, mdiPencilOutline, mdiTableRowPlusAfter } from "@mdi/js";
+  import { mdiClose, mdiDeleteOutline, mdiEyeOffOutline, mdiEyeOutline, mdiPencilOutline, mdiTableRowPlusAfter } from "@mdi/js";
   import { tick } from "svelte";
   import { t } from "../i18n/index.svelte";
   import { CARD_SIZES, ROOM_NAME_MAX, type CardSize } from "../layout/homeLayout";
@@ -22,6 +22,7 @@
     onSize,
     onOwnRow,
     onHide,
+    onRemove,
     onClose,
   }: {
     /** The selected card's name; undefined with none selected. */
@@ -41,6 +42,8 @@
     onOwnRow?: () => void;
     /** Hide it, or show it again when `hidden`; no "Hide" without it. */
     onHide?: () => void;
+    /** Remove it for good (a card made on Home); no "Remove" without it. */
+    onRemove?: () => void;
     onClose: () => void;
   } = $props();
 
@@ -105,6 +108,11 @@
     {#if onHide}
       <button class="edit-dock-action" onclick={onHide}>
         <Icon path={hidden ? mdiEyeOutline : mdiEyeOffOutline} size={20} />{t(hidden ? "edit.showItem" : "edit.hideItem")}
+      </button>
+    {/if}
+    {#if onRemove}
+      <button class="edit-dock-action" onclick={onRemove}>
+        <Icon path={mdiDeleteOutline} size={20} />{t("edit.removeCard")}
       </button>
     {/if}
     <button class="edit-dock-close" aria-label={t("edit.closeRoom", { name })} onclick={onClose}>

@@ -1,6 +1,6 @@
 import type { LensId } from "../model/lenses";
 import type { AreaEntry } from "../ha/types";
-import { DEFAULT_CARD_SIZE, EMPTY_LAYOUT, ROOM_NAME_MAX, type CardSize, type HomeLayout } from "./homeLayout";
+import { DEFAULT_CARD_SIZE, EMPTY_LAYOUT, newRoutineCardId, ROOM_NAME_MAX, type CardSize, type HomeLayout } from "./homeLayout";
 import { homeLayout, saveLayout } from "./layoutStore.svelte";
 import { DEFAULT_SECTIONS, roomSections, withRoom, withTemplate, type SectionTemplate } from "./roomTemplate";
 
@@ -43,11 +43,21 @@ export const editor = {
     draft = null;
     target = null;
   },
-  /** Home back to the generated layout, keeping the room template and icons; saved on Done like any other change. */
+  /**
+   * Home back to the generated layout, keeping the room template, icons and routine cards with what they hold and
+   * their names (they're made, not arranged); saved on Done like any other change.
+   */
   reset() {
     if (!draft) return;
-    const { room, icons } = draft;
-    draft = { ...EMPTY_LAYOUT, ...(room && { room }), ...(icons && { icons }) };
+    const { room, icons, routineCards } = draft;
+    const mine = <T>(record: Record<string, T> | undefined) =>
+      Object.fromEntries(Object.entries(record ?? {}).filter(([id]) => routineCards?.includes(id)));
+    draft = {
+      ...EMPTY_LAYOUT,
+      ...(room && { room }),
+      ...(icons && { icons }),
+      ...(routineCards?.length && { routineCards, cards: mine(draft.cards), roomNames: mine(draft.roomNames) }),
+    };
   },
   /** Home's rows of room cards; the same on every screen width. (A layout's old floor-grouping fields go.) */
   setRows(rows: readonly string[][]) {
@@ -89,6 +99,29 @@ export const editor = {
     const { [entityId]: _, ...icons } = draft.icons ?? {};
     if (name) icons[entityId] = name;
     draft = { ...draft, icons };
+  },
+  /** A new routine card, empty, after the ones there are; its ID, to place and select it. */
+  addRoutineCard(): string | undefined {
+    if (!draft) return undefined;
+    const id = newRoutineCardId();
+    draft = { ...draft, routineCards: [...(draft.routineCards ?? []), id], cards: { ...draft.cards, [id]: [] } };
+    return id;
+  },
+  /** Remove a routine card, and everything kept about it. */
+  removeRoutineCard(id: string) {
+    if (!draft) return;
+    const drop = <T>(record: Record<string, T> | undefined) => {
+      const { [id]: _, ...rest } = record ?? {};
+      return rest;
+    };
+    draft = {
+      ...draft,
+      routineCards: (draft.routineCards ?? []).filter((x) => x !== id),
+      cards: drop(draft.cards),
+      roomNames: drop(draft.roomNames),
+      sizes: drop(draft.sizes),
+      rows: draft.rows?.map((row) => row.filter((x) => x !== id)).filter((row) => row.length > 0),
+    };
   },
   /** The tabs after Home, in order. */
   setTabs(tabs: LensId[]) {
